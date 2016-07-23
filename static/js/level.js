@@ -20,7 +20,7 @@ var Level = (function () {
 
             // entity needs to be created
             if (typeof objects[id] === 'undefined') {
-                objects[id] = models[1].createInstance(id);
+                objects[id] = models[updates[id].model].createInstance(id);
                 objects[id].isVisible = true;
             }
 
@@ -36,12 +36,15 @@ var Level = (function () {
         init: function (s) {
             scene = s;
 
-            scene.clearColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+            scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
             scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
             // Material selection
             materials.blue = new BABYLON.StandardMaterial("texture1", scene);
             materials.blue.diffuseColor = new BABYLON.Color3(0.0, 0.0, 0.4);
+
+            materials.gray = new BABYLON.StandardMaterial("texture1", scene);
+            materials.gray.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 
             materials.red = new BABYLON.StandardMaterial("red", scene);
             materials.red.diffuseColor = new BABYLON.Color3(0.9, 0.2, 0.2);
@@ -63,7 +66,7 @@ var Level = (function () {
 
             models[0] = BABYLON.Mesh.CreateBox("box", 1.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
             models[0].scaling = new BABYLON.Vector3(10, 10, 10);
-            models[0].material = materials.blue;
+            models[0].material = materials.gray;
             models[0].isVisible = false;
 
             models[1] = BABYLON.Mesh.CreateBox("box", 1.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
@@ -73,7 +76,8 @@ var Level = (function () {
             //multi.subMaterials.push(green);
             multi.subMaterials.push(materials.yellow);
             multi.subMaterials.push(materials.yellow);
-            multi.subMaterials.push(materials.red);
+            //multi.subMaterials.push(materials.red);
+            multi.subMaterials.push(materials.yellow);
             multi.subMaterials.push(materials.yellow);
             multi.subMaterials.push(materials.yellow);
             multi.subMaterials.push(materials.yellow);
@@ -93,6 +97,21 @@ var Level = (function () {
             mainLight.specular = new BABYLON.Color3(1, 1, 1);
             mainLight.groundColor = new BABYLON.Color3(0, 0, 0);
             mainLight.intensity = 0.95;
+
+
+            var canvas = new BABYLON.ScreenSpaceCanvas2D(scene, {
+                id: "ScreenCanvas",
+                size: new BABYLON.Size(300, 100),
+                backgroundFill: "#4040408F",
+                backgroundRoundRadius: 0,
+                children: [
+                    new BABYLON.Text2D("cyberspace", {
+                        id: "text",
+                        marginAlignment: "h: center, v:center",
+                        fontName: "20pt Arial",
+                    })
+                ]
+            });
 
         },
 

@@ -4,7 +4,7 @@ import (
 	. "github.com/stojg/vivere/lib/components"
 )
 
-func NewAI(ent*Entity) *AI {
+func NewAI(ent *Entity) *AI {
 	ai := &AI{
 		states: make(map[*Entity]Steering),
 	}

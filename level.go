@@ -4,24 +4,24 @@ import (
 	"bytes"
 	"encoding/binary"
 	. "github.com/stojg/vivere/lib/components"
-	"github.com/stojg/vivere/lib/vector"
 	"math"
+	"github.com/stojg/vivere/lib/vector"
 	"math/rand"
 )
 
 var (
-	entities      *EntityManager
-	modelList     *ModelList
-	collisionList *CollisionList
-	rigidList     *RigidBodyList
+	entities       *EntityManager
+	modelList      *ModelList
+	collisionList  *CollisionList
+	rigidList      *RigidBodyList
 	controllerList *ControllerList
 )
 
 func NewLevel(monitor *Monitor) *Level {
 
-	x := 800.0
-	y := 800.0
-	z := 400.0
+	x := 1800.0
+	y := 1800.0
+	z := 1800.0
 
 	entities = NewEntityManager()
 	modelList = NewModelList()
@@ -31,21 +31,63 @@ func NewLevel(monitor *Monitor) *Level {
 
 	monitor.UpdateInstances()
 
+	cubeRoot := math.Pow(float64(len(monitor.subnets)), 1.0/3)
+	subX := x / cubeRoot
+	subY := y / cubeRoot
+	subZ := z / cubeRoot
+
+	currX := 0.0
+	currY := 0.0
+	currZ := 0.0
+
 	var dudeList []*Entity
-	for range monitor.instances {
-		e := entities.Create()
-		dudeList = append(dudeList, e)
 
-		body := modelList.New(e, 8, 8, 8, ENTITY_PRAY)
-		body.Position.Set(x*rand.Float64()-x/2, z*rand.Float64()-z/2, rand.Float64()*y-y/2)
-		phi := rand.Float64() * math.Pi * 2
-		body.Orientation.RotateByVector(&vector.Vector3{math.Cos(phi), 0, math.Sin(phi)})
+	for _, subnet := range monitor.subnets {
 
-		rig := rigidList.New(e, 1)
-		rig.MaxAcceleration = &vector.Vector3{10, 0, 10}
+		instances := subnet.Instances
 
-		collisionList.New(e, 8, 8, 8)
-		//controllerList.New(e, NewAI(e))
+		midX := currX + subX/2
+		midY := currY + subY/2
+		midZ := currZ + subZ/2
+
+		cX := 0.2 * subX
+		cY := 0.2 * subY
+		cZ := 0.2 * subZ
+
+		for _, inst := range instances {
+
+			e := entities.Create()
+			dudeList = append(dudeList, e)
+
+			var model EntityType = 1
+			if inst.State != "running" {
+				model = 0
+			}
+			body := modelList.New(e, inst.Scale[0], inst.Scale[1], inst.Scale[2], model)
+			posX := (midX + (cX * rand.Float64()) - cX/2) - x / 2
+			posY := (midY + (cY * rand.Float64()) - cY/2)- y / 2
+			posZ := (midZ + (cZ * rand.Float64()) - cZ/2) - z / 2
+			body.Position.Set(posX, posY, posZ)
+			phi := rand.Float64() * math.Pi * 2
+			body.Orientation.RotateByVector(&vector.Vector3{math.Cos(phi), 0, math.Sin(phi)})
+			rig := rigidList.New(e, 1)
+			rig.MaxAcceleration = &vector.Vector3{10, 0, 10}
+			collisionList.New(e, inst.Scale[0], inst.Scale[1], inst.Scale[2])
+		}
+
+		currX += subX
+		if currX > x {
+			currX = 0
+			currY += subY
+		}
+		if currY > y {
+			currY = 0
+			currZ += subZ
+		}
+		if currZ > z {
+			currZ = 0
+		}
+
 	}
 
 	lvl := &Level{}

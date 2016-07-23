@@ -23,7 +23,10 @@ func init() {
 
 func main() {
 
-	monitor := &Monitor{}
+	monitor := &Monitor{
+		instances: make(map[string]*Instance),
+		subnets:   make(map[string]*Subnet),
+	}
 
 	level := NewLevel(monitor)
 
