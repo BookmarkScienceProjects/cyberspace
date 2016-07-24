@@ -58,7 +58,7 @@ func (s *CollisionSystem) Check() []*Contact {
 	}
 
 	for _, a := range bodies {
-		if !a.rigid.IsAwake {
+		if !a.rigid.Awake() {
 			continue
 		}
 

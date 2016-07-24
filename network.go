@@ -13,6 +13,10 @@ import (
 
 var clients []*client.Client
 
+type ServerInfo struct {
+	Name string
+}
+
 func init() {
 	Println("Inititalising Network")
 
@@ -52,6 +56,8 @@ func binaryStream(buf *bytes.Buffer, lit Literal, val interface{}) {
 		binary.Write(buf, binary.LittleEndian, byte(val.(uint8)))
 	case uint16:
 		binary.Write(buf, binary.LittleEndian, float32(val.(uint16)))
+	case uint32:
+		binary.Write(buf, binary.LittleEndian, float32(val.(uint32)))
 	case EntityType:
 		binary.Write(buf, binary.LittleEndian, float32(val.(EntityType)))
 	case float32:

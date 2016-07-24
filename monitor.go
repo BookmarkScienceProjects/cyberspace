@@ -1,14 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	. "github.com/stojg/vivere/lib/components"
 	"github.com/stojg/vivere/lib/vector"
+	"math/rand"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+	"math"
+	"sync"
 )
 
 var typeToCost map[string]float64
+
+var monitor *Monitor
 
 func init() {
 	typeToCost = make(map[string]float64)
@@ -28,66 +40,228 @@ func init() {
 	typeToCost["m1.small"] = 0.058
 	typeToCost["m1.medium"] = 0.117
 
-}
+	monitor = &Monitor{
+		instances: make(map[string]*Instance),
+		clusters:  make(map[string]*Cluster),
+	}
 
-type Subnet struct {
-	Name      string
-	Instances []*Instance
+	http.HandleFunc("/monitor", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed", 405)
+			return
+		}
+
+		id := r.FormValue("id")
+		if id == "" {
+			return
+		}
+
+		realID, err := strconv.Atoi(id)
+		if err != nil {
+			Printf("atoi error: %s", err)
+		}
+
+		found := monitor.FindByEntityID(Entity(realID))
+
+		t, err := json.Marshal(found)
+		if err != nil {
+			Printf("Error during info json marshalling: %s", err)
+		}
+
+		w.Write(t)
+
+		fmt.Println("we got a request for some info at ", r.URL.Path)
+	})
 }
 
 type Instance struct {
+	ID           *Entity
+	Cluster      string
+	Stack        string
+	Environment  string
+	InstanceID   string
 	InstanceType string
 	Scale        vector.Vector3
 	State        string
+	Name         string
+	CPU          float64
+}
+
+func (inst *Instance) Update(ec2Inst *ec2.Instance) {
+
+	inst.InstanceID = *ec2Inst.InstanceId
+	inst.InstanceType = *ec2Inst.InstanceType
+	inst.State = *ec2Inst.State.Name
+
+	for _, tag := range ec2Inst.Tags {
+		if *tag.Key == "Name" && len(*tag.Value) > 0 {
+			inst.Name = *tag.Value
+			nameParts := strings.Split(inst.Name, ".")
+			if (len(nameParts)) > 2 {
+				inst.Environment = nameParts[2]
+			}
+			if (len(nameParts)) > 1 {
+				inst.Stack = nameParts[1]
+			}
+			if (len(nameParts)) > 0 {
+				inst.Cluster = nameParts[0]
+			}
+			break
+		}
+	}
+
+	if t, ok := typeToCost[*ec2Inst.InstanceType]; !ok {
+		Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
+		inst.Scale = vector.Vector3{10, 10, 10}
+	} else {
+		costToDimension := t * 10000
+		size := math.Pow(costToDimension, 1/3.0)
+		inst.Scale = vector.Vector3{size , size , size }
+	}
+}
+
+func (i *Instance) String() string {
+	return fmt.Sprintf("%s %s %s\t%s\t%s", i.Cluster, i.Stack, i.Environment, i.InstanceType, i.InstanceID)
 }
 
 type Monitor struct {
+	sync.Mutex
 	instances map[string]*Instance
-	subnets   map[string]*Subnet
+	clusters  map[string]*Cluster
+}
+
+func (m *Monitor) FindByEntityID(id Entity) *Instance {
+	m.Lock()
+	defer m.Unlock()
+	for _, inst := range m.instances {
+		if inst == nil {
+			continue
+		}
+		if *inst.ID == (id) {
+			return inst
+		}
+	}
+	return nil
 }
 
 func (m *Monitor) UpdateInstances() {
 
-	svc := ec2.New(session.New(), &aws.Config{Region: aws.String("ap-southeast-2")})
-	resp, err := svc.DescribeInstances(nil)
-	if err != nil {
-		panic(err)
+
+	regions := []*string {
+		aws.String("us-east-1"),
+		aws.String("us-west-2"),
+		aws.String("us-west-1"),
+		aws.String("eu-west-1"),
+		aws.String("eu-central-1"),
+		aws.String("ap-southeast-1"),
+		aws.String("ap-northeast-1"),
+		aws.String("ap-southeast-2"),
+		aws.String("ap-northeast-2"),
+		aws.String("ap-south-1"),
+		aws.String("sa-east-1"),
 	}
-	// resp has all of the response data, pull out instance IDs:
-	for idx := range resp.Reservations {
-		for _, ec2instance := range resp.Reservations[idx].Instances {
-			inst, ok := m.instances[*ec2instance.InstanceId]
-			if !ok {
-				inst = &Instance{}
-			}
 
-			inst.InstanceType = *ec2instance.InstanceType
-			inst.State = *ec2instance.State.Name
 
-			var subnet *Subnet
-			if ec2instance.SubnetId == nil {
-				fmt.Println("todo: no subnet for", *ec2instance.InstanceId)
-			} else {
-				//fmt.Println(":", *ec2instance.SubnetId)
-				if subnet, ok = m.subnets[*ec2instance.SubnetId]; !ok {
-					subnet = &Subnet{}
-					subnet.Name = *ec2instance.SubnetId
-					subnet.Instances = make([]*Instance, 0)
-					m.subnets[*ec2instance.SubnetId] = subnet
-				}
-				subnet.Instances = append(subnet.Instances, inst)
-			}
+	for _, region := range regions {
 
-			if t, ok := typeToCost[*ec2instance.InstanceType]; ok {
-				costToDimension := t * 500 / 3
-				inst.Scale = vector.Vector3{costToDimension, costToDimension, costToDimension}
-			} else {
-				fmt.Println("No typeToCost found for", *ec2instance.InstanceType)
-				inst.Scale = vector.Vector3{10, 10, 10}
-			}
+		Printf("Checking region %s", *region)
 
-			m.instances[*ec2instance.InstanceId] = inst
+		sess := session.New()
+		svc := ec2.New(sess, &aws.Config{Region: region })
+		resp, err := svc.DescribeInstances(nil)
+		if err != nil {
+			panic(err)
 		}
+		// resp has all of the response data, pull out instance IDs:
+		for idx := range resp.Reservations {
+			for _, ec2Inst := range resp.Reservations[idx].Instances {
+
+				inst, ok := m.instances[*ec2Inst.InstanceId]
+				if !ok {
+					e := entities.Create()
+					inst = &Instance{
+						ID: e,
+					}
+				}
+				m.instances[*ec2Inst.InstanceId] = inst
+
+				m.Lock()
+				inst.Update(ec2Inst)
+				m.Unlock()
+
+				body := modelList.Get(inst.ID)
+				if body == nil {
+					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
+					body.Position.Set(rand.Float64() * 800 - 400, rand.Float64() * 800 - 400, rand.Float64() * 800 - 400)
+				}
+				body.Model = 1
+				if inst.State != "running" {
+					body.Model = 0
+				}
+
+				if rigidList.Get(inst.ID) == nil {
+					rig := rigidList.New(inst.ID, 1)
+					rig.MaxAcceleration = &vector.Vector3{10, 10, 10}
+				}
+
+				if collisionList.Get(inst.ID) == nil {
+					collisionList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2])
+				}
+
+				if controllerList.Get(inst.ID) == nil {
+					controllerList.New(inst.ID, NewAI(inst.ID))
+				}
+
+				if inst.Cluster != "" {
+					cluster, ok := m.clusters[inst.Cluster]
+					if !ok {
+						cluster = NewCluster(inst.Cluster)
+						m.clusters[inst.Cluster] = cluster
+					}
+					cluster.Add(inst)
+				}
+
+				m.SetMetrics(inst, region)
+				time.Sleep(time.Millisecond * 5000)
+			}
+		}
+		Printf("Checked region %s", *region)
+	}
+}
+
+func (m *Monitor) SetMetrics(inst *Instance, region *string) {
+	cw := cloudwatch.New(session.New(), &aws.Config{Region: region})
+
+	endTime := time.Now()
+	startTime := endTime.Add(-(time.Minute * 5))
+	period := int64(360)
+	statistics := []*string{
+		aws.String("Maximum"),
+	}
+	metrics, err := cw.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String("AWS/EC2"),
+		MetricName: aws.String("CPUUtilization"),
+		Dimensions: []*cloudwatch.Dimension{
+			&cloudwatch.Dimension{
+				Name:  aws.String("InstanceId"),
+				Value: aws.String(inst.InstanceID),
+			},
+		},
+		StartTime:  &startTime,
+		EndTime:    &endTime,
+		Period:     &period,
+		Statistics: statistics,
+	})
+
+	if err != nil {
+		Printf("%s", err)
 	}
 
+	if len(metrics.Datapoints) > 0 {
+		inst.CPU = *metrics.Datapoints[0].Maximum
+		Printf("%s %f", inst.Name, inst.CPU)
+	}
+}
+
+func (m *Monitor) something(x, y, z float64) {
 }

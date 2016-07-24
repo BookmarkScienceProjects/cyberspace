@@ -2,6 +2,9 @@ var Client = (function () {
 
     "use strict";
 
+    var conn;
+
+
     return {
         connect: function (onConnect, onMessage) {
             if (!window.WebSocket) {
@@ -15,7 +18,7 @@ var Client = (function () {
                 proto = "wss";
             }
 
-            var conn = new window.WebSocket(proto + "://" + document.location.host + "/ws/");
+            conn = new window.WebSocket(proto + "://" + document.location.host + "/ws/");
             conn.binaryType = "arraybuffer";
 
             conn.onopen = function (data) {
@@ -31,6 +34,9 @@ var Client = (function () {
             conn.onclose = function (event) {
                 console.log("connection was closed to '" + event.currentTarget.url + '"');
             };
+        },
+        send: function(message) {
+            conn.send(message);
         }
     }
 })();

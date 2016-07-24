@@ -10,7 +10,8 @@ func (s *PhysicSystem) Update(elapsed float64) {
 
 	entities := rigidList.All()
 	for i, move := range entities {
-		if !move.IsAwake {
+
+		if !move.Awake(){
 			continue
 		}
 
@@ -55,7 +56,7 @@ func (s *PhysicSystem) Update(elapsed float64) {
 			bias := math.Pow(0.5, elapsed)
 			motion := bias*move.Motion + (1-bias)*currentMotion
 			if motion < move.SleepEpsilon {
-				move.IsAwake = false
+				move.SetAwake(false)
 			}
 		} else if move.Motion > 10*move.SleepEpsilon {
 			move.Motion = 10 * move.SleepEpsilon
