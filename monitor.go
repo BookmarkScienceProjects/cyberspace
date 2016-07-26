@@ -84,7 +84,8 @@ type Instance struct {
 	Scale        vector.Vector3
 	State        string
 	Name         string
-	CPU          float64
+	CPUUtilization float64
+	CPUCreditBalance float64
 }
 
 func (inst *Instance) Update(ec2Inst *ec2.Instance) {
@@ -183,9 +184,8 @@ func (m *Monitor) UpdateInstances() {
 						ID: e,
 					}
 				}
-				m.instances[*ec2Inst.InstanceId] = inst
-
 				m.Lock()
+				m.instances[*ec2Inst.InstanceId] = inst
 				inst.Update(ec2Inst)
 				m.Unlock()
 
@@ -222,7 +222,7 @@ func (m *Monitor) UpdateInstances() {
 				}
 
 				m.SetMetrics(inst, region)
-				time.Sleep(time.Millisecond * 5000)
+				time.Sleep(time.Millisecond * 100)
 			}
 		}
 		Printf("Checked region %s", *region)
@@ -258,9 +258,34 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 	}
 
 	if len(metrics.Datapoints) > 0 {
-		inst.CPU = *metrics.Datapoints[0].Maximum
-		Printf("%s %f", inst.Name, inst.CPU)
+		inst.CPUUtilization = *metrics.Datapoints[0].Maximum
+		Printf("%s CPUUtilization: %f", inst.Name, inst.CPUUtilization)
 	}
+
+	metrics, err = cw.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String("AWS/EC2"),
+		MetricName: aws.String("CPUCreditBalance"),
+		Dimensions: []*cloudwatch.Dimension{
+			&cloudwatch.Dimension{
+				Name:  aws.String("InstanceId"),
+				Value: aws.String(inst.InstanceID),
+			},
+		},
+		StartTime:  &startTime,
+		EndTime:    &endTime,
+		Period:     &period,
+		Statistics: statistics,
+	})
+
+	if err != nil {
+		Printf("%s", err)
+	}
+
+	if len(metrics.Datapoints) > 0 {
+		inst.CPUCreditBalance = *metrics.Datapoints[0].Maximum
+		Printf("%s CPUCreditBalance: %f", inst.Name, inst.CPUCreditBalance)
+	}
+
 }
 
 func (m *Monitor) something(x, y, z float64) {

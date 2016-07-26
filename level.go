@@ -27,8 +27,7 @@ func NewLevel(monitor *Monitor) *Level {
 	collisionList = NewCollisionList()
 	controllerList = NewControllerList()
 
-
-	ticker := time.NewTicker(time.Minute * 5)
+	ticker := time.NewTicker(time.Minute * 1)
 	go func() {
 		for {
 			Println("Updating instances")

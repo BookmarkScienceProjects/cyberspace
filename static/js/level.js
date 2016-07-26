@@ -55,12 +55,22 @@ var Level = (function () {
             var xhr = new XMLHttpRequest();
             xhr.open('POST', encodeURI('/monitor'));
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status !== 200) {
                     alert('Request failed.  Returned status of ' + xhr.status);
                 } else {
                     var info = JSON.parse(xhr.responseText);
-                    Level.changeText(info.Name+"\n"+info.InstanceType+" - cpu at "+info.CPU+" %");
+                    var text = info.Name + " - " + info.InstanceType + "\nCPU utilisation: " + info.CPUUtilization + "%\nCPU credits: " + info.CPUCreditBalance;
+                    Level.changeText(text);
+                    var plane = BABYLON.Mesh.CreatePlane("plane", 3, scene);
+                    var planeMaterial = new BABYLON.StandardMaterial("plane material", scene);
+                    planeMaterial.backFaceCulling = false;
+                    var planeTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
+                    planeTexture.hasAlpha = true;
+                    planeMaterial.diffuseTexture = planeTexture;
+                    plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    plane.material = planeMaterial;
+                    plane.parent = evt.source;
                 }
 
             };
@@ -70,7 +80,7 @@ var Level = (function () {
     };
 
 
-    var updateScene = function(updates) {
+    var updateScene = function (updates) {
 
         for (var id in updates) {
             if (!updates.hasOwnProperty(id)) {
@@ -112,8 +122,6 @@ var Level = (function () {
                 var order = 0.1;
 
 
-
-
             }
 
             objects[id].position = updates[id].position;
@@ -129,7 +137,7 @@ var Level = (function () {
         console.log(cmd);
         var objectId = buf.readFloat32();
         console.log(objectId);
-        Level.changeText(cmd+" "+objectId);
+        Level.changeText(cmd + " " + objectId);
     };
 
     var entityUpdate = function (buf) {
@@ -145,7 +153,11 @@ var Level = (function () {
                     break;
                 // INST_SET_POSITION
                 case 2:
-                    var pos = {x: buf.readFloat32(), y: buf.readFloat32(), z: buf.readFloat32()};
+                    var pos = {
+                        x: buf.readFloat32(),
+                        y: buf.readFloat32(),
+                        z: buf.readFloat32()
+                    };
                     updates[objectId].position = pos;
                     break;
                 // INST_SET_ROTATION
@@ -162,7 +174,11 @@ var Level = (function () {
                     break;
                 // INST_SET_SCALE
                 case 5:
-                    updates[objectId].scale = {x: buf.readFloat32(), y: buf.readFloat32(), z: buf.readFloat32()};
+                    updates[objectId].scale = {
+                        x: buf.readFloat32(),
+                        y: buf.readFloat32(),
+                        z: buf.readFloat32()
+                    };
                     break;
                 // INST_KILL - remove this entrity
                 case 6:
@@ -210,7 +226,7 @@ var Level = (function () {
                     entityInfo(buf);
                     break;
                 default:
-                    console.log("Not sure what to do with message type "+msgType);
+                    console.log("Not sure what to do with message type " + msgType);
                     break;
             }
 

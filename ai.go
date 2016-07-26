@@ -34,9 +34,9 @@ func (s *AI) Update(elapsed float64) {
 	body.SetAwake(true)
 
 	rotSpeed := body.Rotation.Length()
-	if rotSpeed < inst.CPU/100 {
+	if rotSpeed < inst.CPUUtilization/100 {
 		body.AddTorque(&vector.Vector3{0.1, 0.1, 0.1})
-	} else if rotSpeed > inst.CPU/100 {
+	} else if rotSpeed > inst.CPUUtilization/100 {
 		body.AddTorque(body.Rotation.NewInverse())
 	}
 
