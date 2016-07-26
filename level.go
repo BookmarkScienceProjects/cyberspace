@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	. "github.com/stojg/vivere/lib/components"
 	"time"
+	"strings"
 )
 
 var (
@@ -16,11 +17,6 @@ var (
 )
 
 func NewLevel(monitor *Monitor) *Level {
-
-	//x := 1800.0
-	//y := 1800.0
-	//z := 1800.0
-
 	entities = NewEntityManager()
 	modelList = NewModelList()
 	rigidList = NewRigidBodyManager()
@@ -33,7 +29,7 @@ func NewLevel(monitor *Monitor) *Level {
 			Println("Updating instances")
 			monitor.UpdateInstances()
 			Println("Instances updated")
-			<- ticker.C
+			<-ticker.C
 		}
 	}()
 
@@ -58,13 +54,21 @@ func (l *Level) Draw() *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	binary.Write(buf, binary.LittleEndian, float32(Frame))
 
-
 	for id, component := range modelList.All() {
 		binaryStream(buf, INST_ENTITY_ID, *id)
 		binaryStream(buf, INST_SET_POSITION, component.Position)
 		binaryStream(buf, INST_SET_ORIENTATION, component.Orientation)
 		binaryStream(buf, INST_SET_TYPE, component.Model)
 		binaryStream(buf, INST_SET_SCALE, component.Scale)
+		inst := monitor.FindByEntityID(*id)
+		var health float64
+		if inst.CPUCreditBalance < 10 && strings.HasPrefix(inst.InstanceType, "t2") && inst.State == "running" {
+			health = 0.0
+		} else {
+			health = 1.0 - inst.CPUUtilization/100.0
+		}
+		binaryStream(buf, INST_SET_HEALTH, health)
+		//Printf("cpu %f  health %f", inst.CPUUtilization, health)
 	}
 
 	return buf

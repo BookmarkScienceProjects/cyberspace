@@ -8,6 +8,7 @@ const (
 	INST_SET_ORIENTATION Literal = 3
 	INST_SET_TYPE        Literal = 4
 	INST_SET_SCALE       Literal = 5
+	INST_SET_HEALTH		 Literal = 6
 )
 
 type System interface {

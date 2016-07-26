@@ -79,7 +79,6 @@ var Level = (function () {
         mesh.actionManager.registerAction(action);
     };
 
-
     var updateScene = function (updates) {
 
         for (var id in updates) {
@@ -90,44 +89,41 @@ var Level = (function () {
             // entity needs to be created
             if (typeof objects[id] === 'undefined') {
 
-
-                objects[id] = models[updates[id].model].createInstance(id);
+                //objects[id] = BABYLON.Mesh.CreateBox(id, 1.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+                //objects[id].scaling = new BABYLON.Vector3(10, 10, 10);
+                objects[id] = models[1].clone(id);
+                //objects[id].material = materials.gray;
+                //objects[id] = models[updates[id].model].i(id);
                 objects[id].id = id;
                 objects[id].isVisible = true;
                 objects[id].actionManager = new BABYLON.ActionManager(scene);
+                objects[id].material = new BABYLON.StandardMaterial(id, scene);
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+                objects[id].material.diffuseTexture = new BABYLON.Texture("/assets/square_running.jpeg", scene);
+                //objects[id].materials = new BABYLON.Texture("/assets/square_running.jpeg", scene);
                 onClick(objects[id]);
-                //var particleSystem = new BABYLON.ParticleSystem("particles", 100, scene);
-                //particleSystem.emitter = objects[id];
-                //particleSystem.particleTexture = new BABYLON.Texture("/assets/particles/flare.png", scene);
-                //particleSystem.color1 = new BABYLON.Color4(0.7, 0.8, 1.0, 1.0);
-                //particleSystem.color2 = new BABYLON.Color4(0.2, 0.5, 1.0, 1.0);
-                //particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
-                //particleSystem.gravity = new BABYLON.Vector3(0, 9.81, 0);
-                //
-                //particleSystem.minLifeTime = 1.0;
-                //particleSystem.maxLifeTime = 2.0;
-                //
-                //particleSystem.textureMask = new BABYLON.Color4(0.1, 0.8, 0.8, 1.0);
-                //particleSystem.emitRate = 1000;
-                //
-                //particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
-                //particleSystem.direction1 = new BABYLON.Vector3(1, 0, 0);
-                //particleSystem.direction2 = new BABYLON.Vector3(-1, 0, 0);
-                //particleSystem.color1 = new BABYLON.Color4(1, 1, 0, 1);
-                //particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1);
-                //particleSystem.gravity = new BABYLON.Vector3(0, 1.0, 0);
-                //particleSystem.start();
-
-                var time = 0;
-                var order = 0.1;
-
-
             }
 
-            objects[id].position = updates[id].position;
 
+            objects[id].position = updates[id].position;
             objects[id].rotationQuaternion = new BABYLON.Quaternion(updates[id].orientation[1], updates[id].orientation[2], updates[id].orientation[3], updates[id].orientation[0]);
             objects[id].scaling = updates[id].scale;
+            if(updates[id].health > 0.99) {
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+            } else if(updates[id].health > 0.98) {
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.3, 0.2, 0.1);
+            } else if(updates[id].health > 0.66) {
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+            } else if(updates[id].health > 0.10) {
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.3);
+
+            } else {
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.0, 0.0);
+            }
+            //} else if(updates[id].health > 0.5) {
+            //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.4);
+            //} else if(updates[id].health > 0.25) {
+            //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.0, 0.0);
 
         }
     };
@@ -180,8 +176,8 @@ var Level = (function () {
                         z: buf.readFloat32()
                     };
                     break;
-                // INST_KILL - remove this entrity
                 case 6:
+                    updates[objectId].health = buf.readFloat32();
                     break;
             }
         }

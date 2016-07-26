@@ -12,10 +12,8 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
-	"strings"
-	"time"
-	"math"
 	"sync"
+	"time"
 )
 
 var typeToCost map[string]float64
@@ -74,57 +72,6 @@ func init() {
 	})
 }
 
-type Instance struct {
-	ID           *Entity
-	Cluster      string
-	Stack        string
-	Environment  string
-	InstanceID   string
-	InstanceType string
-	Scale        vector.Vector3
-	State        string
-	Name         string
-	CPUUtilization float64
-	CPUCreditBalance float64
-}
-
-func (inst *Instance) Update(ec2Inst *ec2.Instance) {
-
-	inst.InstanceID = *ec2Inst.InstanceId
-	inst.InstanceType = *ec2Inst.InstanceType
-	inst.State = *ec2Inst.State.Name
-
-	for _, tag := range ec2Inst.Tags {
-		if *tag.Key == "Name" && len(*tag.Value) > 0 {
-			inst.Name = *tag.Value
-			nameParts := strings.Split(inst.Name, ".")
-			if (len(nameParts)) > 2 {
-				inst.Environment = nameParts[2]
-			}
-			if (len(nameParts)) > 1 {
-				inst.Stack = nameParts[1]
-			}
-			if (len(nameParts)) > 0 {
-				inst.Cluster = nameParts[0]
-			}
-			break
-		}
-	}
-
-	if t, ok := typeToCost[*ec2Inst.InstanceType]; !ok {
-		Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
-		inst.Scale = vector.Vector3{10, 10, 10}
-	} else {
-		costToDimension := t * 10000
-		size := math.Pow(costToDimension, 1/3.0)
-		inst.Scale = vector.Vector3{size , size , size }
-	}
-}
-
-func (i *Instance) String() string {
-	return fmt.Sprintf("%s %s %s\t%s\t%s", i.Cluster, i.Stack, i.Environment, i.InstanceType, i.InstanceID)
-}
-
 type Monitor struct {
 	sync.Mutex
 	instances map[string]*Instance
@@ -147,8 +94,7 @@ func (m *Monitor) FindByEntityID(id Entity) *Instance {
 
 func (m *Monitor) UpdateInstances() {
 
-
-	regions := []*string {
+	regions := []*string{
 		aws.String("us-east-1"),
 		aws.String("us-west-2"),
 		aws.String("us-west-1"),
@@ -162,13 +108,12 @@ func (m *Monitor) UpdateInstances() {
 		aws.String("sa-east-1"),
 	}
 
-
 	for _, region := range regions {
 
 		Printf("Checking region %s", *region)
 
 		sess := session.New()
-		svc := ec2.New(sess, &aws.Config{Region: region })
+		svc := ec2.New(sess, &aws.Config{Region: region})
 		resp, err := svc.DescribeInstances(nil)
 		if err != nil {
 			panic(err)
@@ -181,6 +126,7 @@ func (m *Monitor) UpdateInstances() {
 				if !ok {
 					e := entities.Create()
 					inst = &Instance{
+						CPUCreditBalance: 1000,
 						ID: e,
 					}
 				}
@@ -192,7 +138,7 @@ func (m *Monitor) UpdateInstances() {
 				body := modelList.Get(inst.ID)
 				if body == nil {
 					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
-					body.Position.Set(rand.Float64() * 800 - 400, rand.Float64() * 800 - 400, rand.Float64() * 800 - 400)
+					body.Position.Set(rand.Float64()*800-400, rand.Float64()*800-400, rand.Float64()*800-400)
 				}
 				body.Model = 1
 				if inst.State != "running" {
@@ -259,7 +205,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 
 	if len(metrics.Datapoints) > 0 {
 		inst.CPUUtilization = *metrics.Datapoints[0].Maximum
-		Printf("%s CPUUtilization: %f", inst.Name, inst.CPUUtilization)
+		//Printf("%s CPUUtilization: %f", inst.Name, inst.CPUUtilization)
 	}
 
 	metrics, err = cw.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
@@ -283,7 +229,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 
 	if len(metrics.Datapoints) > 0 {
 		inst.CPUCreditBalance = *metrics.Datapoints[0].Maximum
-		Printf("%s CPUCreditBalance: %f", inst.Name, inst.CPUCreditBalance)
+		//Printf("%s CPUCreditBalance: %f", inst.Name, inst.CPUCreditBalance)
 	}
 
 }

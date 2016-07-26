@@ -3,12 +3,16 @@
     "use strict";
 
     var canvas = document.getElementById("renderCanvas");
-    var engine = new BABYLON.Engine(canvas, true);
+    var engine = new BABYLON.Engine(canvas, false, null, true);
     window.addEventListener("resize", function () {
         engine.resize();
     });
 
+
+
     var scene = new BABYLON.Scene(engine);
+    //BABYLON.SceneOptimizer.OptimizeAsync(scene);
+    //scene.debugLayer.show();
 
     scene.clearColor = new BABYLON.Color3(0.01, 0.01, 0.01);
     scene.ambientColor = new BABYLON.Color3(1, 1, 1);
@@ -23,8 +27,6 @@
     scene.activeCamera.checkCollisions = true;
     scene.activeCamera.position = new BABYLON.Vector3(100, 100, -500);
     scene.activeCamera.setTarget(new BABYLON.Vector3(-100, -100,  500));
-    //scene.activeCamera.position = new BABYLON.Vector3(2000, 2000, -500);
-    //scene.activeCamera.setTarget(new BABYLON.Vector3(-2000, -2000,  500));
     scene.activeCamera.attachControl(canvas, false);
 
     //new BABYLON.FxaaPostProcess("fxaa", 2.0, scene.activeCamera, 4.0);

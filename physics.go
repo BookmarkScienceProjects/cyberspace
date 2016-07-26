@@ -11,7 +11,7 @@ func (s *PhysicSystem) Update(elapsed float64) {
 	entities := rigidList.All()
 	for i, move := range entities {
 
-		if !move.Awake(){
+		if !move.Awake() {
 			continue
 		}
 
