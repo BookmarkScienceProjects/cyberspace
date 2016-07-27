@@ -8,9 +8,9 @@ import (
 
 func NewAI(ent *Entity) *AI {
 	rotation := &vector.Vector3{
-		(rand.Float64()-0.5),
-		(rand.Float64()-0.5),
-		(rand.Float64()-0.5),
+		(rand.Float64() - 0.5),
+		(rand.Float64() - 0.5),
+		(rand.Float64() - 0.5),
 	}
 	rotation.Normalize()
 	ai := &AI{
@@ -32,6 +32,7 @@ func (s *AI) Update(elapsed float64) {
 	if inst == nil {
 		return
 	}
+
 
 	rotSpeed := body.Rotation.Length()
 	if rotSpeed < inst.CPUUtilization/40 {

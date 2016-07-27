@@ -15,6 +15,7 @@ type Instance struct {
 	Stack            string
 	Environment      string
 	InstanceID       string
+	HasCredits       bool
 	InstanceType     string
 	Scale            vector.Vector3
 	State            string
@@ -23,11 +24,25 @@ type Instance struct {
 	CPUCreditBalance float64
 }
 
+func (inst *Instance) Health() float64 {
+	if inst.State != "running" {
+		return 1.0
+	}
+	if inst.HasCredits && inst.CPUCreditBalance < 10 {
+		return  0.0
+	}
+	return  1.0 - inst.CPUUtilization/100.0
+}
+
 func (inst *Instance) Update(ec2Inst *ec2.Instance) {
 
 	inst.InstanceID = *ec2Inst.InstanceId
 	inst.InstanceType = *ec2Inst.InstanceType
 	inst.State = *ec2Inst.State.Name
+
+	if strings.HasPrefix(inst.InstanceType, "t2") {
+		inst.HasCredits = true
+	}
 
 	for _, tag := range ec2Inst.Tags {
 		if *tag.Key == "Name" && len(*tag.Value) > 0 {

@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	. "github.com/stojg/vivere/lib/components"
 	"time"
-	"strings"
 )
 
 var (
@@ -61,13 +60,7 @@ func (l *Level) Draw() *bytes.Buffer {
 		binaryStream(buf, INST_SET_TYPE, component.Model)
 		binaryStream(buf, INST_SET_SCALE, component.Scale)
 		inst := monitor.FindByEntityID(*id)
-		var health float64
-		if inst.CPUCreditBalance < 10 && strings.HasPrefix(inst.InstanceType, "t2") && inst.State == "running" {
-			health = 0.0
-		} else {
-			health = 1.0 - inst.CPUUtilization/100.0
-		}
-		binaryStream(buf, INST_SET_HEALTH, health)
+		binaryStream(buf, INST_SET_HEALTH, inst.Health())
 		//Printf("cpu %f  health %f", inst.CPUUtilization, health)
 	}
 

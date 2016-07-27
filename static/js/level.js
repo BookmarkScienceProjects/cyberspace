@@ -60,19 +60,13 @@ var Level = (function () {
                     alert('Request failed.  Returned status of ' + xhr.status);
                 } else {
                     var info = JSON.parse(xhr.responseText);
-                    var text = info.Name + " - " + info.InstanceType + "\nCPU utilisation: " + info.CPUUtilization + "%\nCPU credits: " + info.CPUCreditBalance;
+                    var text = info.Name + " - " + info.InstanceType + " " + info.InstanceID + "\n";
+                    text += "CPU utilisation: " + info.CPUUtilization + "%\n";
+                    if(info.HasCredits) {
+                        text += "CPU credits: " + info.CPUCreditBalance;
+                    }
                     Level.changeText(text);
-                    var plane = BABYLON.Mesh.CreatePlane("plane", 3, scene);
-                    var planeMaterial = new BABYLON.StandardMaterial("plane material", scene);
-                    planeMaterial.backFaceCulling = false;
-                    var planeTexture = new BABYLON.DynamicTexture("dynamic texture", 512, scene, true);
-                    planeTexture.hasAlpha = true;
-                    planeMaterial.diffuseTexture = planeTexture;
-                    plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    plane.material = planeMaterial;
-                    plane.parent = evt.source;
                 }
-
             };
             xhr.send(encodeURI('id=' + evt.source.id));
         });
@@ -88,19 +82,14 @@ var Level = (function () {
 
             // entity needs to be created
             if (typeof objects[id] === 'undefined') {
-
-                //objects[id] = BABYLON.Mesh.CreateBox(id, 1.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
-                //objects[id].scaling = new BABYLON.Vector3(10, 10, 10);
                 objects[id] = models[1].clone(id);
-                //objects[id].material = materials.gray;
-                //objects[id] = models[updates[id].model].i(id);
                 objects[id].id = id;
                 objects[id].isVisible = true;
                 objects[id].actionManager = new BABYLON.ActionManager(scene);
                 objects[id].material = new BABYLON.StandardMaterial(id, scene);
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+                objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
                 objects[id].material.diffuseTexture = new BABYLON.Texture("/assets/square_running.jpeg", scene);
-                //objects[id].materials = new BABYLON.Texture("/assets/square_running.jpeg", scene);
                 onClick(objects[id]);
             }
 
@@ -108,13 +97,14 @@ var Level = (function () {
             objects[id].position = updates[id].position;
             objects[id].rotationQuaternion = new BABYLON.Quaternion(updates[id].orientation[1], updates[id].orientation[2], updates[id].orientation[3], updates[id].orientation[0]);
             objects[id].scaling = updates[id].scale;
-            if(updates[id].health > 0.99) {
+
+            if (updates[id].health > 0.99) {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-            } else if(updates[id].health > 0.98) {
+            } else if (updates[id].health > 0.98) {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.3, 0.2, 0.1);
-            } else if(updates[id].health > 0.66) {
+            } else if (updates[id].health > 0.66) {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-            } else if(updates[id].health > 0.10) {
+            } else if (updates[id].health > 0.10) {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.3);
 
             } else {

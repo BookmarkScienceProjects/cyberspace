@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -126,7 +127,6 @@ func (m *Monitor) UpdateInstances() {
 				if !ok {
 					e := entities.Create()
 					inst = &Instance{
-						CPUCreditBalance: 1000,
 						ID: e,
 					}
 				}
@@ -176,63 +176,64 @@ func (m *Monitor) UpdateInstances() {
 }
 
 func (m *Monitor) SetMetrics(inst *Instance, region *string) {
+
+	if inst.State != "running" {
+		inst.CPUUtilization = 0
+		return
+	}
+
 	cw := cloudwatch.New(session.New(), &aws.Config{Region: region})
 
-	endTime := time.Now()
-	startTime := endTime.Add(-(time.Minute * 5))
-	period := int64(360)
-	statistics := []*string{
-		aws.String("Maximum"),
-	}
-	metrics, err := cw.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
-		Namespace:  aws.String("AWS/EC2"),
-		MetricName: aws.String("CPUUtilization"),
-		Dimensions: []*cloudwatch.Dimension{
-			&cloudwatch.Dimension{
-				Name:  aws.String("InstanceId"),
-				Value: aws.String(inst.InstanceID),
-			},
-		},
-		StartTime:  &startTime,
-		EndTime:    &endTime,
-		Period:     &period,
-		Statistics: statistics,
-	})
-
+	point, err := m.GetEc2Metric(inst.InstanceID, "CPUUtilization", cw)
 	if err != nil {
 		Printf("%s", err)
+	} else {
+		inst.CPUUtilization = point
 	}
 
-	if len(metrics.Datapoints) > 0 {
-		inst.CPUUtilization = *metrics.Datapoints[0].Maximum
-		//Printf("%s CPUUtilization: %f", inst.Name, inst.CPUUtilization)
+	time.Sleep(10*time.Millisecond)
+
+	if inst.HasCredits {
+		point, err = m.GetEc2Metric(inst.InstanceID, "CPUCreditBalance", cw)
+		if err != nil {
+			Printf("%s", err)
+		} else {
+			inst.CPUCreditBalance = point
+		}
+		time.Sleep(10*time.Millisecond)
 	}
-
-	metrics, err = cw.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
-		Namespace:  aws.String("AWS/EC2"),
-		MetricName: aws.String("CPUCreditBalance"),
-		Dimensions: []*cloudwatch.Dimension{
-			&cloudwatch.Dimension{
-				Name:  aws.String("InstanceId"),
-				Value: aws.String(inst.InstanceID),
-			},
-		},
-		StartTime:  &startTime,
-		EndTime:    &endTime,
-		Period:     &period,
-		Statistics: statistics,
-	})
-
-	if err != nil {
-		Printf("%s", err)
-	}
-
-	if len(metrics.Datapoints) > 0 {
-		inst.CPUCreditBalance = *metrics.Datapoints[0].Maximum
-		//Printf("%s CPUCreditBalance: %f", inst.Name, inst.CPUCreditBalance)
-	}
-
 }
 
-func (m *Monitor) something(x, y, z float64) {
+func (m *Monitor) GetEc2Metric(instanceID, metricName string, cw *cloudwatch.CloudWatch) (float64, error) {
+	endTime := time.Now()
+	startTime := endTime.Add(-10 * time.Minute)
+	period := int64(3600)
+	metrics, err := cw.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String("AWS/EC2"),
+		MetricName: aws.String(metricName),
+		Dimensions: []*cloudwatch.Dimension{
+			&cloudwatch.Dimension{
+				Name:  aws.String("InstanceId"),
+				Value: aws.String(instanceID),
+			},
+		},
+		StartTime:  &startTime,
+		EndTime:    &endTime,
+		Period:     &period,
+		Statistics: []*string{
+			aws.String("Average"),
+		},
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	//fmt.Printf("metric:\n%v\n", metrics)
+
+	if len(metrics.Datapoints) > 0 {
+		return *metrics.Datapoints[0].Average, nil
+
+	}
+	return 0, errors.New(fmt.Sprintf("No datapoints for %s and metric %s", instanceID, metricName))
 }

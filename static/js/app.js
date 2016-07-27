@@ -8,8 +8,6 @@
         engine.resize();
     });
 
-
-
     var scene = new BABYLON.Scene(engine);
     //BABYLON.SceneOptimizer.OptimizeAsync(scene);
     //scene.debugLayer.show();
