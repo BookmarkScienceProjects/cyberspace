@@ -11,6 +11,9 @@ var Level = (function () {
     var serverTick;
     var objects = {};
 
+    var light;
+    var shadowGenerator;
+
     var materials = {};
     var models = [];
 
@@ -22,10 +25,17 @@ var Level = (function () {
         new BABYLON.Text2D("cyberspace", {
             id: "text",
             marginAlignment: "h: left, v:center",
-            fontName: "20pt Arial"
+            fontName: "16px Arial"
         });
 
     var setupModels = function (scene) {
+
+        shadowGenerator = new BABYLON.ShadowGenerator(512, light);
+        shadowGenerator.bias = 0.0007;
+        //shadowGenerator.usePoissonSampling = true;
+        //shadowGenerator.useBlurVarianceShadowMap = true;
+        //shadowGenerator.useVarianceShadowMap = false;
+
         // Material selection
         materials.blue = new BABYLON.StandardMaterial("texture1", scene);
         materials.blue.diffuseColor = new BABYLON.Color3(0.0, 0.0, 0.4);
@@ -61,9 +71,9 @@ var Level = (function () {
                 } else {
                     var info = JSON.parse(xhr.responseText);
                     var text = info.Name + " - " + info.InstanceType + " " + info.InstanceID + "\n";
-                    text += "CPU utilisation: " + info.CPUUtilization + "%\n";
+                    text += "CPU utilisation: " + info.CPUUtilization.toFixed(1) + "%\n";
                     if(info.HasCredits) {
-                        text += "CPU credits: " + info.CPUCreditBalance;
+                        text += "CPU credits: " + info.CPUCreditBalance.toFixed(1);
                     }
                     Level.changeText(text);
                 }
@@ -83,6 +93,7 @@ var Level = (function () {
             // entity needs to be created
             if (typeof objects[id] === 'undefined') {
                 objects[id] = models[1].clone(id);
+                //objects[id] = models[1].createInstance(id);
                 objects[id].id = id;
                 objects[id].isVisible = true;
                 objects[id].actionManager = new BABYLON.ActionManager(scene);
@@ -90,25 +101,25 @@ var Level = (function () {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
                 objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
                 objects[id].material.diffuseTexture = new BABYLON.Texture("/assets/square_running.jpeg", scene);
+                //shadowGenerator.getShadowMap().renderList.push(objects[id]);
+                //objects[id].receiveShadows = true;
                 onClick(objects[id]);
             }
-
 
             objects[id].position = updates[id].position;
             objects[id].rotationQuaternion = new BABYLON.Quaternion(updates[id].orientation[1], updates[id].orientation[2], updates[id].orientation[3], updates[id].orientation[0]);
             objects[id].scaling = updates[id].scale;
 
             if (updates[id].health > 0.99) {
-                objects[id].material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-            } else if (updates[id].health > 0.98) {
-                objects[id].material.diffuseColor = new BABYLON.Color3(0.3, 0.2, 0.1);
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+            } else if (updates[id].health > 0.95) {
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.4, 0.29, 0.27);
             } else if (updates[id].health > 0.66) {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
             } else if (updates[id].health > 0.10) {
-                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.3);
-
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.6, 0.3);
             } else {
-                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.0, 0.0);
+                objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.2, 0.1);
             }
             //} else if(updates[id].health > 0.5) {
             //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.4);
@@ -177,9 +188,10 @@ var Level = (function () {
 
     return {
 
-        init: function (e, s) {
+        init: function (e, s, mainLight) {
             engine = e;
             scene = s;
+            light = mainLight;
 
 
             setupModels(s);

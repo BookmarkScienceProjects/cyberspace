@@ -111,8 +111,6 @@ func (m *Monitor) UpdateInstances() {
 
 	for _, region := range regions {
 
-		Printf("Checking region %s", *region)
-
 		sess := session.New()
 		svc := ec2.New(sess, &aws.Config{Region: region})
 		resp, err := svc.DescribeInstances(nil)
@@ -138,7 +136,7 @@ func (m *Monitor) UpdateInstances() {
 				body := modelList.Get(inst.ID)
 				if body == nil {
 					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
-					body.Position.Set(rand.Float64()*800-400, rand.Float64()*800-400, rand.Float64()*800-400)
+					body.Position.Set(rand.Float64()*800-400, inst.Scale[1]/2, rand.Float64()*800-400)
 				}
 				body.Model = 1
 				if inst.State != "running" {
@@ -168,10 +166,9 @@ func (m *Monitor) UpdateInstances() {
 				}
 
 				m.SetMetrics(inst, region)
-				time.Sleep(time.Millisecond * 100)
+				time.Sleep(time.Millisecond * 1000)
 			}
 		}
-		Printf("Checked region %s", *region)
 	}
 }
 
@@ -191,7 +188,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		inst.CPUUtilization = point
 	}
 
-	time.Sleep(10*time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	if inst.HasCredits {
 		point, err = m.GetEc2Metric(inst.InstanceID, "CPUCreditBalance", cw)
@@ -200,7 +197,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		} else {
 			inst.CPUCreditBalance = point
 		}
-		time.Sleep(10*time.Millisecond)
+		time.Sleep(10 * time.Second)
 	}
 }
 
@@ -217,9 +214,9 @@ func (m *Monitor) GetEc2Metric(instanceID, metricName string, cw *cloudwatch.Clo
 				Value: aws.String(instanceID),
 			},
 		},
-		StartTime:  &startTime,
-		EndTime:    &endTime,
-		Period:     &period,
+		StartTime: &startTime,
+		EndTime:   &endTime,
+		Period:    &period,
 		Statistics: []*string{
 			aws.String("Average"),
 		},
@@ -228,8 +225,6 @@ func (m *Monitor) GetEc2Metric(instanceID, metricName string, cw *cloudwatch.Clo
 	if err != nil {
 		return 0, err
 	}
-
-	//fmt.Printf("metric:\n%v\n", metrics)
 
 	if len(metrics.Datapoints) > 0 {
 		return *metrics.Datapoints[0].Average, nil

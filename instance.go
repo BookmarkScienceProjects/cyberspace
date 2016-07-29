@@ -29,9 +29,9 @@ func (inst *Instance) Health() float64 {
 		return 1.0
 	}
 	if inst.HasCredits && inst.CPUCreditBalance < 10 {
-		return  0.0
+		return 0.0
 	}
-	return  1.0 - inst.CPUUtilization/100.0
+	return 1.0 - inst.CPUUtilization/100.0
 }
 
 func (inst *Instance) Update(ec2Inst *ec2.Instance) {
@@ -66,7 +66,7 @@ func (inst *Instance) Update(ec2Inst *ec2.Instance) {
 		inst.Scale = vector.Vector3{10, 10, 10}
 	} else {
 		costToDimension := t * 10000
-		size := math.Pow(costToDimension, 1/3.0)
+		size := math.Pow(costToDimension, 1/2.0)
 		inst.Scale = vector.Vector3{size, size, size}
 	}
 }
