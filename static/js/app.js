@@ -23,7 +23,7 @@
     groundMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
     groundMaterial.maxSimultaneousLights = 2;
     ground.material = groundMaterial;
-    //ground.receiveShadows = true;
+    ground.receiveShadows = true;
 
     var camera = new BABYLON.UniversalCamera("FreeCamera", new BABYLON.Vector3(1, 100, 1), scene);
     camera.attachControl(canvas);
@@ -32,7 +32,7 @@
     camera.keysDown.push(83);
     camera.keysRight.push(68);
     camera.speed = 10;
-    camera.position = new BABYLON.Vector3(600, 300, -600);
+    camera.position = new BABYLON.Vector3(500, 300, -500);
     camera.setTarget(new BABYLON.Vector3(0, 0,  0));
     camera.attachControl(canvas, false);
     scene.activeCamera = camera;
@@ -54,22 +54,22 @@
     sphere.material.emissiveColor = mainLight.diffuse;
 
     // Post-process
-    //var blurWidth = 1;
-    //var postProcess0 = new BABYLON.PassPostProcess("Scene copy", 1.0, scene.activeCamera);
-    //var postProcess1 = new BABYLON.PostProcess("Down sample", "downsample", ["screenSize", "highlightThreshold"], null, 0.25, scene.activeCamera, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
-    //postProcess1.onApply = function (effect) {
-    //    effect.setFloat2("screenSize", postProcess1.width, postProcess1.height);
-    //    effect.setFloat("highlightThreshold", 0.80);
-    //};
-    //var postProcess2 = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), blurWidth, 0.25, scene.activeCamera);
-    //var postProcess3 = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), blurWidth, 0.25, scene.activeCamera);
-    //var postProcess4 = new BABYLON.PostProcess("Final compose", "/assets/shaders/compose", ["sceneIntensity", "glowIntensity", "highlightIntensity"], ["sceneSampler"], 1, scene.activeCamera);
-    //postProcess4.onApply = function (effect) {
-    //    effect.setTextureFromPostProcess("sceneSampler", postProcess0);
-    //    effect.setFloat("sceneIntensity", 0.9);
-    //    effect.setFloat("glowIntensity", 0.3);
-    //    effect.setFloat("highlightIntensity", 1.0);
-    //};
+    var blurWidth = 1;
+    var postProcess0 = new BABYLON.PassPostProcess("Scene copy", 1.0, scene.activeCamera);
+    var postProcess1 = new BABYLON.PostProcess("Down sample", "downsample", ["screenSize", "highlightThreshold"], null, 0.25, scene.activeCamera, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+    postProcess1.onApply = function (effect) {
+        effect.setFloat2("screenSize", postProcess1.width, postProcess1.height);
+        effect.setFloat("highlightThreshold", 0.80);
+    };
+    var postProcess2 = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), blurWidth, 0.25, scene.activeCamera);
+    var postProcess3 = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), blurWidth, 0.25, scene.activeCamera);
+    var postProcess4 = new BABYLON.PostProcess("Final compose", "/assets/shaders/compose", ["sceneIntensity", "glowIntensity", "highlightIntensity"], ["sceneSampler"], 1, scene.activeCamera);
+    postProcess4.onApply = function (effect) {
+        effect.setTextureFromPostProcess("sceneSampler", postProcess0);
+        effect.setFloat("sceneIntensity", 0.9);
+        effect.setFloat("glowIntensity", 0.3);
+        effect.setFloat("highlightIntensity", 1.0);
+    };
 
     var beforeRenderFunction = function () {
         scene.activeCamera.position.y = 300;

@@ -31,9 +31,6 @@ func (s *CollisionSystem) Update(elapsed float64) {
 	// @todo sort collisions in the order of the most severe
 	for j := 0; j < 5; j++ {
 		collisions := s.Check()
-		if len(collisions) == 0 {
-			return
-		}
 		for i := range collisions {
 			collisions[i].Resolve(elapsed)
 		}
@@ -58,15 +55,33 @@ func (s *CollisionSystem) Check() []*Contact {
 	}
 
 	for _, a := range bodies {
-		if !a.rigid.Awake() {
-			continue
-		}
+		//if !a.rigid.Awake() {
+		//	continue
+		//}
 
+		//checked := make(map[quadtree.BoundingBoxer]map[quadtree.BoundingBoxer]bool)
 		broadPhase := tree.Query(a.BoundingBox())
 		for _, b := range broadPhase {
 			if a == b {
 				continue
 			}
+
+			//if _, ok := checked[a][b]; ok {
+			//	continue
+			//}
+			//
+			//if _, ok := checked[b][a]; ok {
+			//	continue
+			//}
+			//
+			//if _, ok := checked[a]; !ok {
+			//	checked[a] = make(map[quadtree.BoundingBoxer]bool)
+			//}
+			//
+			//if _, ok := checked[b]; !ok {
+			//	checked[b] = make(map[quadtree.BoundingBoxer]bool)
+			//}
+			//checked[a][b], checked[b][a] = true, true
 
 			//hashA := string(a.ID) + ":" + string(b.(*Entity).ID)
 			//hashB := string(b.(*Entity).ID) + ":" + string(a.ID)

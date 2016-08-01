@@ -32,21 +32,21 @@ var Level = (function () {
 
         shadowGenerator = new BABYLON.ShadowGenerator(512, light);
         shadowGenerator.bias = 0.0007;
-        //shadowGenerator.usePoissonSampling = true;
-        //shadowGenerator.useBlurVarianceShadowMap = true;
-        //shadowGenerator.useVarianceShadowMap = false;
+        shadowGenerator.usePoissonSampling = true;
+        shadowGenerator.useBlurVarianceShadowMap = true;
+        shadowGenerator.useVarianceShadowMap = false;
 
         // Material selection
         materials.blue = new BABYLON.StandardMaterial("texture1", scene);
-        materials.blue.diffuseColor = new BABYLON.Color3(0.0, 0.0, 0.4);
+        materials.blue.diffuseColor = new BABYLON.Color3(0.8, 0.8, 1);
 
         materials.gray = new BABYLON.StandardMaterial("texture1", scene);
         materials.gray.diffuseColor = new BABYLON.Color3(0.2, 0.9, 1);
-        materials.gray.diffuseTexture = new BABYLON.Texture("/assets/square_gray.jpg", scene);
+        //materials.gray.diffuseTexture = new BABYLON.Texture("/assets/square_gray.jpg", scene);
 
         materials.yellow = new BABYLON.StandardMaterial("yellow", scene);
         materials.yellow.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-        materials.yellow.diffuseTexture = new BABYLON.Texture("/assets/square_running.jpeg", scene);
+        //materials.yellow.diffuseTexture = new BABYLON.Texture("/assets/square_running.jpeg", scene);
 
         models[0] = BABYLON.Mesh.CreateBox("box", 1.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
         models[0].scaling = new BABYLON.Vector3(10, 10, 10);
@@ -57,6 +57,12 @@ var Level = (function () {
         models[1].scaling = new BABYLON.Vector3(30, 30, 30);
         models[1].isVisible = false;
         models[1].material = materials.yellow;
+
+
+        models[2] = BABYLON.Mesh.CreateBox("box", 1.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+        models[2].scaling = new BABYLON.Vector3(10, 10, 10);
+        models[2].isVisible = false;
+        models[2].material = materials.blue;
     };
 
     // Over/Out
@@ -101,8 +107,8 @@ var Level = (function () {
                 objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
                 objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
                 objects[id].material.diffuseTexture = new BABYLON.Texture("/assets/square_running.jpeg", scene);
-                //shadowGenerator.getShadowMap().renderList.push(objects[id]);
-                //objects[id].receiveShadows = true;
+                shadowGenerator.getShadowMap().renderList.push(objects[id]);
+                objects[id].receiveShadows = true;
                 onClick(objects[id]);
             }
 

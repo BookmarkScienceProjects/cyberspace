@@ -1,71 +1,181 @@
 package main
 
-func NewEnvironment(name string) *Environment {
-	return &Environment{
-		Name:      name,
-		Instances: make(map[string]*Instance),
+import (
+	"github.com/stojg/vivere/lib/vector"
+	"math"
+	"strings"
+)
+
+type Collidable interface {
+	Name() string
+	Position() *vector.Vector3
+	SetPosition(*vector.Vector3)
+	AddPosition(*vector.Vector3)
+	MinPoint(axis int) float64
+	MaxPoint(axis int) float64
+	Children() []Collidable
+	Leaves() []Collidable
+	Add(i *Instance)
+	Instance() *Instance
+}
+
+type Leaf struct {
+	position *vector.Vector3
+	scale    *vector.Vector3
+	instance *Instance
+}
+
+func (l *Leaf) Name() string {
+	return l.instance.Name
+}
+
+func (l *Leaf) Position() *vector.Vector3 {
+	return l.position
+}
+
+func (l *Leaf) SetPosition(v *vector.Vector3) {
+	l.position = v
+}
+
+func (l *Leaf) AddPosition(v *vector.Vector3) {
+	//Println(l.Name(), v)
+	l.position.Add(v)
+}
+
+func (l *Leaf) MinPoint(axis int) float64 {
+	return l.position[axis] - l.instance.Scale[axis]/2
+}
+
+func (l *Leaf) MaxPoint(axis int) float64 {
+	return l.position[axis] + l.instance.Scale[axis]/2
+}
+
+func (l *Leaf) Children() []Collidable {
+	return nil
+}
+
+func (l *Leaf) Leaves() []Collidable {
+	return nil
+}
+
+func (l *Leaf) Add(i *Instance) {}
+
+func (l *Leaf) Instance() *Instance {
+	return l.instance
+}
+
+func NewTree(name string, level int) *TreeNode {
+	return &TreeNode{
+		level:    level,
+		name:     name,
+		children: make([]Collidable, 0),
+		leaves:   make([]Collidable, 0),
+		position: vector.NewVector3(0, 0, 0),
 	}
 }
 
-type Environment struct {
-	Name      string
-	Instances map[string]*Instance
+type TreeNode struct {
+	parent   Collidable
+	level    int
+	name     string
+	children []Collidable
+	leaves   []Collidable
+	position *vector.Vector3
 }
 
-func (s *Environment) Add(i *Instance) {
-	s.Instances[i.InstanceID] = i
+func (l *TreeNode) SetPosition(v *vector.Vector3) {
+	l.position = v
 }
 
-func NewStack(name string) *Stack {
-	return &Stack{
-		Name:         name,
-		Environments: make(map[string]*Environment),
-		Instances:    make(map[string]*Instance),
-	}
+func (c *TreeNode) Children() []Collidable {
+	return c.children
 }
 
-type Stack struct {
-	Name         string
-	Environments map[string]*Environment
-	Instances    map[string]*Instance
+func (c *TreeNode) Leaves() []Collidable {
+	return c.leaves
 }
 
-func (s *Stack) Add(i *Instance) {
-	s.Instances[i.InstanceID] = i
-	if i.Environment == "" {
+func (c *TreeNode) Add(i *Instance) {
+	names := strings.Split(i.Name, ".")
+	if len(names) <= c.level+1 {
+		c.leaves = append(c.leaves, &Leaf{
+			instance: i,
+			position: vector.NewVector3(0, 0, 0),
+		})
 		return
 	}
-	env, ok := s.Environments[i.Environment]
-	if !ok {
-		env = NewEnvironment(i.Environment)
-		s.Environments[i.Environment] = env
+
+	var existingChild Collidable
+	for _, child := range c.Children() {
+		if child.Name() == names[c.level+1] {
+			existingChild = child
+			break
+		}
 	}
-	env.Add(i)
+
+	if existingChild == nil {
+		existingChild = NewTree(names[c.level+1], c.level+1)
+		c.children = append(c.children, existingChild)
+	}
+	existingChild.Add(i)
 }
 
-func NewCluster(name string) *Cluster {
-	return &Cluster{
-		Name:      name,
-		Stacks:    make(map[string]*Stack),
-		Instances: make(map[string]*Instance),
+func (c *TreeNode) Level() int {
+	return c.level
+}
+
+func (c *TreeNode) Name() string {
+	return c.name
+}
+
+func (c *TreeNode) Position() *vector.Vector3 {
+	return c.position
+}
+
+func (c *TreeNode) AddPosition(p *vector.Vector3) {
+	c.position.Add(p)
+	for _, child := range c.Children() {
+		child.AddPosition(p)
+	}
+	for _, child := range c.leaves {
+		child.AddPosition(p)
 	}
 }
 
-type Cluster struct {
-	Name      string
-	Stacks    map[string]*Stack
-	Instances map[string]*Instance
+func (c *TreeNode) MinPoint(axis int) float64 {
+	min := math.MaxFloat64
+	for _, child := range c.Children() {
+		minPoint := child.MinPoint(axis)
+		if minPoint < min {
+			min = minPoint
+		}
+	}
+	for _, child := range c.leaves {
+		minPoint := child.MinPoint(axis)
+		if minPoint < min {
+			min = minPoint
+		}
+	}
+	return min * 1.0
 }
 
-func (c *Cluster) Add(i *Instance) {
-	c.Instances[i.InstanceID] = i
-	if i.Stack == "" {
-		return
+func (c *TreeNode) MaxPoint(axis int) float64 {
+	max := -math.MaxFloat64
+	for _, child := range c.Children() {
+		maxPoint := child.MaxPoint(axis)
+		if maxPoint > max {
+			max = maxPoint
+		}
 	}
-	stack, ok := c.Stacks[i.Stack]
-	if !ok {
-		stack = NewStack(i.Stack)
-		c.Stacks[i.Stack] = stack
+	for _, child := range c.leaves {
+		maxPoint := child.MaxPoint(axis)
+		if maxPoint > max {
+			max = maxPoint
+		}
 	}
-	stack.Add(i)
+	return max * 1.0
+}
+
+func (c *TreeNode) Instance() *Instance {
+	return nil
 }
