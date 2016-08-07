@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	. "github.com/stojg/vivere/lib/components"
 	//"time"
+	"time"
 )
 
 var (
@@ -22,20 +23,20 @@ func NewLevel(monitor *Monitor) *Level {
 	collisionList = NewCollisionList()
 	controllerList = NewControllerList()
 
-	//ticker := time.NewTicker(time.Minute * 1)
-	//go func() {
-	//	for {
-	Println("Updating instances")
-	monitor.UpdateInstances()
-	Println("Instances updated")
-	//<-ticker.C
-	//}
-	//}()
+	ticker := time.NewTicker(time.Minute * 1)
+	go func() {
+		for {
+			Println("Updating instances")
+			monitor.UpdateInstances()
+			Println("Instances updated")
+			<-ticker.C
+		}
+	}()
 
 	lvl := &Level{}
-	//lvl.systems = append(lvl.systems, &PhysicSystem{})
-	//lvl.systems = append(lvl.systems, &ControllerSystem{})
-	//lvl.systems = append(lvl.systems, &CollisionSystem{})
+	lvl.systems = append(lvl.systems, &PhysicSystem{})
+	lvl.systems = append(lvl.systems, &ControllerSystem{})
+	lvl.systems = append(lvl.systems, &CollisionSystem{})
 	return lvl
 }
 

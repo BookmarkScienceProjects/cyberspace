@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/stojg/vivere/lib/components"
 	"github.com/stojg/vivere/lib/vector"
-	"math"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -95,20 +94,22 @@ func (m *Monitor) FindByEntityID(id Entity) *Instance {
 func (m *Monitor) UpdateInstances() {
 
 	regions := []*string{
-		//aws.String("us-east-1"),
-		//aws.String("us-west-2"),
-		//aws.String("us-west-1"),
-		//aws.String("eu-west-1"),
-		//aws.String("eu-central-1"),
-		//aws.String("ap-southeast-1"),
-		//aws.String("ap-northeast-1"),
+		aws.String("us-east-1"),
+		aws.String("us-west-2"),
+		aws.String("us-west-1"),
+		aws.String("eu-west-1"),
+		aws.String("eu-central-1"),
+		aws.String("ap-southeast-1"),
+		aws.String("ap-northeast-1"),
 		aws.String("ap-southeast-2"),
-		//aws.String("ap-northeast-2"),
-		//aws.String("ap-south-1"),
-		//aws.String("sa-east-1"),
+		aws.String("ap-northeast-2"),
+		aws.String("ap-south-1"),
+		aws.String("sa-east-1"),
 	}
 
 	rootNode := NewTree("root", -1)
+
+	instanceCount := 0
 
 	for _, region := range regions {
 
@@ -135,194 +136,39 @@ func (m *Monitor) UpdateInstances() {
 				inst.Update(ec2Inst)
 				m.Unlock()
 
+				instanceCount++
+
 				body := modelList.Get(inst.ID)
 				if body == nil {
 					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
-					//body.Position.Set(rand.Float64()*800-400, inst.Scale[1]/2, rand.Float64()*800-400)
+					body.Position.Set(rand.Float64()*2000-1000, rand.Float64()*2000-1000, rand.Float64()*2000-1000)
 				}
 				body.Model = 2
-				//if inst.State != "running" {
-				//	body.Model = 2
-				//}
-				//
-				//if rigidList.Get(inst.ID) == nil {
-				//	rig := rigidList.New(inst.ID, 1)
-				//	rig.MaxAcceleration = &vector.Vector3{10, 10, 10}
-				//}
-				//
-				//if collisionList.Get(inst.ID) == nil {
-				//	collisionList.New(inst.ID, 10, 100, 10)
-				//}
-				//
-				//if controllerList.Get(inst.ID) == nil {
-				//	controllerList.New(inst.ID, NewAI(inst.ID))
-				//}
+				if inst.State != "running" {
+					body.Model = 2
+				}
+
+				if rigidList.Get(inst.ID) == nil {
+					rig := rigidList.New(inst.ID, 1)
+					rig.MaxAcceleration = &vector.Vector3{10, 10, 10}
+				}
+
+				if collisionList.Get(inst.ID) == nil {
+					collisionList.New(inst.ID, 10, 100, 10)
+				}
+
+				if controllerList.Get(inst.ID) == nil {
+					controllerList.New(inst.ID, NewAI(inst.ID))
+				}
 
 				rootNode.Add(inst)
 
 				m.SetMetrics(inst, region)
-				//time.Sleep(time.Millisecond * 1000)
 			}
 		}
 	}
 
-	Some(rootNode)
-	Other(rootNode)
-
-}
-
-func Some(c Collidable) {
-	for _, c := range c.Children() {
-		Some(c)
-	}
-
-	// 1. place all instances (leaf nodes)
-	for _, leaf := range c.Leaves() {
-		//Println("Placing", leaf.Name())
-		leaf.SetPosition(vector.NewVector3(
-			(rand.Float64()-0.5)*0,
-			//leaf.Instance().Scale[1]/2,
-			0,
-			(rand.Float64()-0.5)*0,
-		))
-	}
-
-	//2. resolve all collisions among leaf nodes
-	if len(c.Leaves()) > 1 {
-		num := 1
-		for num != 0 {
-			//Println("Resolve leaf nodes", c.Name())
-			num = CheckLeaves(c.Leaves())
-		}
-	}
-
-	for _, leaf := range c.Children() {
-		//Println("Placing", leaf.Name())
-		leaf.AddPosition(vector.NewVector3(
-			(rand.Float64()-0.5)*300,
-			//leaf.Instance().Scale[1]/2,
-			0,
-			(rand.Float64()-0.5)*300,
-		))
-	}
-
-	if len(c.Children()) > 1 {
-		num := 1
-		for num != 0 {
-			//Println("Checking intersection in group", c.Name())
-			num = CheckLeaves(c.Children())
-		}
-	}
-}
-
-func Other(c Collidable) {
-	for _, c := range c.Children() {
-		Other(c)
-	}
-
-	for _, leaf := range c.Leaves() {
-		i := leaf.Instance()
-		if i != nil {
-			body := modelList.Get(i.ID)
-			body.Position = leaf.Position()
-		}
-	}
-}
-
-func CheckLeaves(leaves []Collidable) int {
-
-	checked := make(map[int]map[int]bool)
-	collisions := make([]*rectCol, 0)
-
-	for i, a := range leaves {
-		for j, b := range leaves {
-			if i == j {
-				continue
-			}
-			if _, ok := checked[i][j]; ok {
-				continue
-			}
-			if _, ok := checked[j][i]; ok {
-				continue
-			}
-			if _, ok := checked[i]; !ok {
-				checked[i] = make(map[int]bool)
-			}
-
-			if _, ok := checked[j]; !ok {
-				checked[j] = make(map[int]bool)
-			}
-			checked[i][j], checked[j][i] = true, true
-
-			pair := &rectCol{
-				A: a,
-				B: b,
-			}
-
-			pair.intersects()
-
-			if pair.IsIntersecting {
-				collisions = append(collisions, pair)
-			}
-		}
-	}
-
-	num := len(collisions)
-	var biggest *rectCol
-	pen := -math.MaxFloat64
-	for _, pair := range collisions {
-		if pair.penetration > pen {
-			pen = pair.penetration
-			biggest = pair
-		}
-
-	}
-	if pen > 0 {
-		biggest.Resolve()
-	}
-
-	return num
-}
-
-type rectCol struct {
-	A, B           Collidable
-	penetration    float64
-	normal         *vector.Vector3
-	IsIntersecting bool
-}
-
-func (contact *rectCol) intersects() {
-	mtvDistance := math.MaxFloat32 // Set current minimum distance (max float value so next value is always less)
-	mtvAxis := &vector.Vector3{}   // Axis along which to travel with the minimum distance
-
-	// [Axes of potential separation]
-	// [X Axis]
-	if !testAxisSeparation(vector.UnitX, contact.A.MinPoint(0), contact.A.MaxPoint(0), contact.B.MinPoint(0), contact.B.MaxPoint(0), mtvAxis, &mtvDistance) {
-		return
-	}
-
-	// [Y Axis]
-	if !testAxisSeparation(vector.UnitY, contact.A.MinPoint(1), contact.A.MaxPoint(1), contact.B.MinPoint(1), contact.B.MaxPoint(1), mtvAxis, &mtvDistance) {
-		return
-	}
-
-	// [Z Axis]
-	if !testAxisSeparation(vector.UnitZ, contact.A.MinPoint(2), contact.A.MaxPoint(2), contact.B.MinPoint(2), contact.B.MaxPoint(2), mtvAxis, &mtvDistance) {
-		return
-	}
-
-	contact.penetration = mtvDistance + 1
-	contact.normal = mtvAxis.Normalize()
-	contact.IsIntersecting = true
-}
-
-func (contact *rectCol) Resolve() {
-	if contact.penetration <= 0 {
-		return
-	}
-	movePerIMass := contact.normal.NewScale(contact.penetration / 2)
-	contact.A.AddPosition(movePerIMass.NewScale(1))
-	contact.B.AddPosition(movePerIMass.NewScale(-1))
+	Printf("%d instance found", instanceCount)
 }
 
 func (m *Monitor) SetMetrics(inst *Instance, region *string) {
@@ -341,7 +187,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		inst.CPUUtilization = point
 	}
 
-	//time.Sleep(10 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	if inst.HasCredits {
 		point, err = m.GetEc2Metric(inst.InstanceID, "CPUCreditBalance", cw)
@@ -350,7 +196,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		} else {
 			inst.CPUCreditBalance = point
 		}
-		//time.Sleep(10 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 }
 

@@ -1,0 +1,11 @@
+{
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "extends": "airbnb",
+    "rules": {
+        "new-cap": 0,
+        "react/require-extension": 0
+    }
+}

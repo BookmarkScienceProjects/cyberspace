@@ -22,6 +22,8 @@ type Instance struct {
 	Name             string
 	CPUUtilization   float64
 	CPUCreditBalance float64
+	PrivateIP        string
+	PublicIP         string
 }
 
 func (inst *Instance) Health() float64 {
@@ -39,6 +41,12 @@ func (inst *Instance) Update(ec2Inst *ec2.Instance) {
 	inst.InstanceID = *ec2Inst.InstanceId
 	inst.InstanceType = *ec2Inst.InstanceType
 	inst.State = *ec2Inst.State.Name
+	if ec2Inst.PublicIpAddress != nil {
+		inst.PublicIP = *ec2Inst.PublicIpAddress
+	}
+	if ec2Inst.PrivateIpAddress != nil {
+		inst.PrivateIP = *ec2Inst.PrivateIpAddress
+	}
 
 	if strings.HasPrefix(inst.InstanceType, "t2") {
 		inst.HasCredits = true

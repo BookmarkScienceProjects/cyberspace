@@ -11,6 +11,7 @@ type Collidable interface {
 	Position() *vector.Vector3
 	SetPosition(*vector.Vector3)
 	AddPosition(*vector.Vector3)
+	Radius() float64
 	MinPoint(axis int) float64
 	MaxPoint(axis int) float64
 	Children() []Collidable
@@ -38,8 +39,15 @@ func (l *Leaf) SetPosition(v *vector.Vector3) {
 }
 
 func (l *Leaf) AddPosition(v *vector.Vector3) {
-	//Println(l.Name(), v)
 	l.position.Add(v)
+}
+
+func (l *Leaf) Radius() float64 {
+	Println(l.instance.Scale[0])
+	return l.instance.Scale[0]
+
+	//z := l.instance.Scale[2]
+	//return math.Sqrt((x*x)+(z*z))
 }
 
 func (l *Leaf) MinPoint(axis int) float64 {
@@ -140,6 +148,12 @@ func (c *TreeNode) AddPosition(p *vector.Vector3) {
 	for _, child := range c.leaves {
 		child.AddPosition(p)
 	}
+}
+
+func (c *TreeNode) Radius() float64 {
+	x := c.MaxPoint(0) - c.MinPoint(0)
+	z := c.MaxPoint(2) - c.MinPoint(2)
+	return math.Sqrt((x * x) + (z * z))
 }
 
 func (c *TreeNode) MinPoint(axis int) float64 {

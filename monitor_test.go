@@ -25,7 +25,7 @@ func TestSomething(t *testing.T) {
 	rootNode.Add(instB)
 	rootNode.Add(instC)
 
-	Some(rootNode)
+	BuildTree(rootNode)
 
 	t.Errorf("%v", rootNode.MinPoint(0))
 	t.Errorf("%v", rootNode.MaxPoint(0))
