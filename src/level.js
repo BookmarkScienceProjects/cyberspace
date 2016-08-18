@@ -185,8 +185,6 @@ const entityUpdate = function entUpdate(buf) {
       default: {
         console.log(`unknown command ${cmd}`); // eslint-disable-line
       }
-
-
     }
   }
 

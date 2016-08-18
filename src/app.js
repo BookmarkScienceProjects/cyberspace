@@ -15,13 +15,14 @@ scene.clearColor = new BABYLON.Color3(0.05, 0.05, 0.05);
 scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 // scene.debugLayer.show();
 
-// var ground = BABYLON.Mesh.CreateGround("ground", 20000, 20000, 1, scene);
-// var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
-// groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-// groundMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-// groundMaterial.maxSimultaneousLights = 2;
-// ground.material = groundMaterial;
-// ground.receiveShadows = true;
+const ground = BABYLON.Mesh.CreateGround('ground', 20000, 20000, 1, scene);
+const groundMaterial = new BABYLON.StandardMaterial('ground', scene);
+groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+groundMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+groundMaterial.maxSimultaneousLights = 2;
+ground.material = groundMaterial;
+ground.receiveShadows = true;
+
 
 const camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 100, 1), scene);
 camera.attachControl(canvas);
@@ -76,7 +77,7 @@ postProcess4.onApply = function ps4OnApply(effect) {
 };
 
 function beforeRenderFunction() {
-  // scene.activeCamera.position.y = 300;
+   scene.activeCamera.position.y = 300;
 }
 
 scene.registerBeforeRender(beforeRenderFunction);
