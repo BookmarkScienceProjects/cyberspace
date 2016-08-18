@@ -3,16 +3,15 @@ package main
 import (
 	. "github.com/stojg/vivere/lib/components"
 	"github.com/stojg/vivere/lib/vector"
-	"math/rand"
 )
 
 func NewAI(ent *Entity) *AI {
 	rotation := &vector.Vector3{
-		rand.Float64() - 0.5,
-		rand.Float64() - 0.5,
-		rand.Float64() - 0.5,
+		0, //rand.Float64() - 0.5,
+		1,
+		0, //rand.Float64() - 0.5,
 	}
-	rotation.Normalize()
+	//rotation.Normalize()
 	ai := &AI{
 		entity: ent,
 		spin:   rotation,

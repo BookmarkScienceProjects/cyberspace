@@ -141,7 +141,7 @@ func (m *Monitor) UpdateInstances() {
 				body := modelList.Get(inst.ID)
 				if body == nil {
 					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
-					body.Position.Set(rand.Float64()*2000-1000, rand.Float64()*2000-1000, rand.Float64()*2000-1000)
+					body.Position.Set(rand.Float64()*2000-1000, inst.Scale[1]/2, rand.Float64()*2000-1000)
 				}
 				body.Model = 2
 				if inst.State != "running" {

@@ -94,22 +94,21 @@
 	camera.keysDown.push(83);
 	camera.keysRight.push(68);
 	camera.speed = 20;
-	camera.position = new BABYLON.Vector3(2000, 0, 2000);
+	camera.position = new BABYLON.Vector3(100, 0, 100);
 	camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
 	
 	var lightPosition = new BABYLON.Vector3(0, 4000, 0);
 	var light = new BABYLON.HemisphericLight('Hemi0', lightPosition, scene);
-	light.intensity = 0.4;
+	light.intensity = 0.8;
 	light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
 	
 	var mainLight = new BABYLON.PointLight('light1', lightPosition, scene);
-	mainLight.intensity = 0.7;
+	mainLight.intensity = 0.9;
 	mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
 	mainLight.specular = new BABYLON.Color3(1, 1, 1);
 	mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-	mainLight.intensity = 0.1;
 	
 	// Post-process
 	var blurWidth = 1;
