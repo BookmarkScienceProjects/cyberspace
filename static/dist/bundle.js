@@ -99,7 +99,7 @@
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
 	
-	var lightPosition = new BABYLON.Vector3(0, 4000, 0);
+	var lightPosition = new BABYLON.Vector3(2000, 400, 2000);
 	var light = new BABYLON.HemisphericLight('Hemi0', lightPosition, scene);
 	light.intensity = 0.8;
 	light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
@@ -109,6 +109,8 @@
 	mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
 	mainLight.specular = new BABYLON.Color3(1, 1, 1);
 	mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	
+	var shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
 	
 	// Post-process
 	var blurWidth = 1;
@@ -140,7 +142,7 @@
 	  return scene.render();
 	});
 	
-	Level.init(scene);
+	Level.init(scene, shadowGenerator);
 	
 	Client.connect(Level.update);
 
@@ -1771,6 +1773,8 @@
 	
 	var objects = {};
 	
+	var shadowGenerator = void 0;
+	
 	var materials = {};
 	var models = [];
 	
@@ -1851,6 +1855,7 @@
 	      objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 	      var texture = new BABYLON.Texture('/assets/square_running.jpeg', scene);
 	      objects[id].material.diffuseTexture = texture;
+	      shadowGenerator.getShadowMap().renderList.push(objects[id]);
 	      setupOnClickAction(objects[id]);
 	    }
 	
@@ -1939,7 +1944,8 @@
 	};
 	
 	module.exports = {
-	  init: function init(s) {
+	  init: function init(s, shadow) {
+	    shadowGenerator = shadow;
 	    scene = s;
 	    setupModels(s);
 	  },

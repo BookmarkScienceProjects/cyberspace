@@ -36,7 +36,7 @@ camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 camera.attachControl(canvas, false);
 scene.activeCamera = camera;
 
-const lightPosition = new BABYLON.Vector3(0, 4000, 0);
+const lightPosition = new BABYLON.Vector3(2000, 400, 2000);
 const light = new BABYLON.HemisphericLight('Hemi0', lightPosition, scene);
 light.intensity = 0.8;
 light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
@@ -46,6 +46,8 @@ mainLight.intensity = 0.9;
 mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
 mainLight.specular = new BABYLON.Color3(1, 1, 1);
 mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+const shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
 
 // Post-process
 const blurWidth = 1;
@@ -76,13 +78,13 @@ postProcess4.onApply = function ps4OnApply(effect) {
 };
 
 function beforeRenderFunction() {
-   scene.activeCamera.position.y = 300;
+  scene.activeCamera.position.y = 300;
 }
 
 scene.registerBeforeRender(beforeRenderFunction);
 
 engine.runRenderLoop(() => scene.render());
 
-Level.init(scene);
+Level.init(scene, shadowGenerator);
 
 Client.connect(Level.update);

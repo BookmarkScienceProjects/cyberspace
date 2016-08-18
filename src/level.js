@@ -24,6 +24,8 @@ let scene;
 
 const objects = {};
 
+let shadowGenerator;
+
 const materials = {};
 const models = [];
 
@@ -106,6 +108,7 @@ const updateScene = function sceneUpdater(updates) {
       objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
       const texture = new BABYLON.Texture('/assets/square_running.jpeg', scene);
       objects[id].material.diffuseTexture = texture;
+      shadowGenerator.getShadowMap().renderList.push(objects[id]);
       setupOnClickAction(objects[id]);
     }
 
@@ -193,7 +196,8 @@ const entityUpdate = function entUpdate(buf) {
 
 module.exports = {
 
-  init(s) {
+  init(s, shadow) {
+    shadowGenerator = shadow;
     scene = s;
     setupModels(s);
   },
