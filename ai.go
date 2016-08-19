@@ -29,7 +29,6 @@ type AI struct {
 
 func (s *AI) Update(elapsed float64) {
 	body := rigidList.Get(s.entity)
-	body.SetAwake(true)
 
 	inst := monitor.FindByEntityID(*s.entity)
 	if inst == nil {
