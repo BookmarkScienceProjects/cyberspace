@@ -82,7 +82,7 @@
 	var ground = BABYLON.Mesh.CreateGround('ground', 20000, 20000, 1, scene);
 	var groundMaterial = new BABYLON.StandardMaterial('ground', scene);
 	groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-	groundMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	groundMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
 	groundMaterial.maxSimultaneousLights = 2;
 	ground.material = groundMaterial;
 	ground.receiveShadows = true;
@@ -99,38 +99,18 @@
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
 	
-	var lightPosition = new BABYLON.Vector3(2000, 400, 2000);
+	var lightPosition = new BABYLON.Vector3(200, 400, 200);
 	var light = new BABYLON.HemisphericLight('Hemi0', lightPosition, scene);
-	light.intensity = 0.8;
+	light.intensity = 0.5;
 	light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
 	
 	var mainLight = new BABYLON.PointLight('light1', lightPosition, scene);
-	mainLight.intensity = 0.9;
+	mainLight.intensity = 0.5;
 	mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
 	mainLight.specular = new BABYLON.Color3(1, 1, 1);
 	mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 	
 	var shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
-	
-	// Post-process
-	var blurWidth = 1;
-	var postProcess0 = new BABYLON.PassPostProcess('Scene copy', 1.0, scene.activeCamera);
-	var postProcess1 = new BABYLON.PostProcess('Down sample', 'downsample', ['screenSize', 'highlightThreshold'], null, 0.25, scene.activeCamera, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
-	
-	postProcess1.onApply = function pp1OnApply(effect) {
-	  effect.setFloat2('screenSize', postProcess1.width, postProcess1.height);
-	  effect.setFloat('highlightThreshold', 0.80);
-	};
-	
-	var postProcess2 = new BABYLON.BlurPostProcess('Horizontal blur', new BABYLON.Vector2(1.0, 0), blurWidth, 0.25, scene.activeCamera); // eslint-disable-line
-	var postProcess3 = new BABYLON.BlurPostProcess('Vertical blur', new BABYLON.Vector2(0, 1.0), blurWidth, 0.25, scene.activeCamera); // eslint-disable-line
-	var postProcess4 = new BABYLON.PostProcess('Final compose', '/assets/shaders/compose', ['sceneIntensity', 'glowIntensity', 'highlightIntensity'], ['sceneSampler'], 1, scene.activeCamera); // eslint-disable-line
-	postProcess4.onApply = function ps4OnApply(effect) {
-	  effect.setTextureFromPostProcess('sceneSampler', postProcess0);
-	  effect.setFloat('sceneIntensity', 0.9);
-	  effect.setFloat('glowIntensity', 0.3);
-	  effect.setFloat('highlightIntensity', 1.0);
-	};
 	
 	function beforeRenderFunction() {
 	  scene.activeCamera.position.y = 300;
