@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	. "github.com/stojg/vivere/lib/components"
-	//"time"
 	"time"
 )
 
@@ -23,11 +22,12 @@ func NewLevel(monitor *Monitor) *Level {
 	collisionList = NewCollisionList()
 	controllerList = NewControllerList()
 
-	ticker := time.NewTicker(time.Minute * 1)
+	ticker := time.NewTicker(time.Second * 60)
+	rootNode := NewTree("root", -1)
 	go func() {
 		for {
 			Println("Updating instances")
-			monitor.UpdateInstances()
+			monitor.UpdateInstances(rootNode)
 			Println("Instances updated")
 			<-ticker.C
 		}

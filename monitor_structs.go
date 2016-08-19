@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/stojg/vivere/lib/components"
 	"github.com/stojg/vivere/lib/vector"
 	"math"
 	"strings"
@@ -18,6 +19,8 @@ type Collidable interface {
 	Leaves() []Collidable
 	Add(i *Instance)
 	Instance() *Instance
+	Clear()
+	Siblings(name string) []*components.Entity
 }
 
 type Leaf struct {
@@ -30,16 +33,30 @@ func (l *Leaf) Name() string {
 	return l.instance.Name
 }
 
+func (l *Leaf) Siblings(name string) []*components.Entity {
+	return nil
+}
+
 func (l *Leaf) Position() *vector.Vector3 {
 	return l.position
 }
 
 func (l *Leaf) SetPosition(v *vector.Vector3) {
 	l.position = v
+	body := modelList.Get(l.instance.ID)
+	body.Position = v
+}
+
+func (l *Leaf) Clear() {
+	l.position = nil
+	l.scale = nil
+	l.instance = nil
 }
 
 func (l *Leaf) AddPosition(v *vector.Vector3) {
 	l.position.Add(v)
+	body := modelList.Get(l.instance.ID)
+	body.Position.Add(v)
 }
 
 func (l *Leaf) Radius() float64 {
@@ -103,12 +120,33 @@ func (c *TreeNode) Leaves() []Collidable {
 	return c.leaves
 }
 
+func (c *TreeNode) Siblings(name string) []*components.Entity {
+	names := strings.Split(name, ".")
+
+	if len(names) == 1 {
+		var sib []*components.Entity
+		for _, child := range c.Children() {
+			for _, leaf := range child.Leaves() {
+				sib = append(sib, leaf.Instance().ID)
+			}
+		}
+		return sib
+	}
+	for _, child := range c.Children() {
+		if child.Name() == names[0] {
+			return child.Siblings(strings.Join(names[1:], "."))
+		}
+	}
+	return nil
+}
+
 func (c *TreeNode) Add(i *Instance) {
 	names := strings.Split(i.Name, ".")
 	if len(names) <= c.level+1 {
+		body := modelList.Get(i.ID)
 		c.leaves = append(c.leaves, &Leaf{
 			instance: i,
-			position: vector.NewVector3(0, 0, 0),
+			position: body.Position,
 		})
 		return
 	}
@@ -126,6 +164,14 @@ func (c *TreeNode) Add(i *Instance) {
 		c.children = append(c.children, existingChild)
 	}
 	existingChild.Add(i)
+}
+
+func (c *TreeNode) Clear() {
+	for _, child := range c.Children() {
+		child.Clear()
+	}
+	c.children = make([]Collidable, 0)
+	c.leaves = make([]Collidable, 0)
 }
 
 func (c *TreeNode) Level() int {

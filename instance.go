@@ -24,6 +24,7 @@ type Instance struct {
 	CPUCreditBalance float64
 	PrivateIP        string
 	PublicIP         string
+	tree             *TreeNode
 }
 
 func (inst *Instance) Health() float64 {

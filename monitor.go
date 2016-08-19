@@ -91,7 +91,7 @@ func (m *Monitor) FindByEntityID(id Entity) *Instance {
 	return nil
 }
 
-func (m *Monitor) UpdateInstances() {
+func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
 
 	regions := []*string{
 		aws.String("us-east-1"),
@@ -106,8 +106,6 @@ func (m *Monitor) UpdateInstances() {
 		aws.String("ap-south-1"),
 		aws.String("sa-east-1"),
 	}
-
-	rootNode := NewTree("root", -1)
 
 	instanceCount := 0
 
@@ -141,7 +139,7 @@ func (m *Monitor) UpdateInstances() {
 				body := modelList.Get(inst.ID)
 				if body == nil {
 					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
-					body.Position.Set(rand.Float64()*2000-1000, inst.Scale[1]/2, rand.Float64()*2000-1000)
+					body.Position.Set(rand.Float64()*4000-2000, inst.Scale[2]/2, rand.Float64()*4000-2000)
 				}
 				body.Model = 2
 				if inst.State != "running" {
@@ -150,19 +148,19 @@ func (m *Monitor) UpdateInstances() {
 
 				if rigidList.Get(inst.ID) == nil {
 					rig := rigidList.New(inst.ID, 1)
-					rig.MaxAcceleration = &vector.Vector3{10, 10, 10}
+					rig.MaxAcceleration = &vector.Vector3{20, 20, 20}
 				}
 
 				if collisionList.Get(inst.ID) == nil {
-					collisionList.New(inst.ID, 10, 100, 10)
+					collisionList.New(inst.ID, inst.Scale[0]+1, inst.Scale[1]+1, inst.Scale[2]+1)
 				}
 
 				if controllerList.Get(inst.ID) == nil {
 					controllerList.New(inst.ID, NewAI(inst.ID))
 				}
 
+				inst.tree = rootNode
 				rootNode.Add(inst)
-
 				m.SetMetrics(inst, region)
 			}
 		}
@@ -196,7 +194,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		} else {
 			inst.CPUCreditBalance = point
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(1000 * time.Millisecond)
 	}
 }
 
