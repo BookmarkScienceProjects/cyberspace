@@ -127,6 +127,7 @@ func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
 					e := entities.Create()
 					inst = &Instance{
 						ID: e,
+						CPUCreditBalance: 100,
 					}
 				}
 				m.Lock()
@@ -143,12 +144,13 @@ func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
 				}
 				body.Model = 2
 				if inst.State != "running" {
-					body.Model = 2
+					body.Model = 0
 				}
 
 				if rigidList.Get(inst.ID) == nil {
-					rig := rigidList.New(inst.ID, 1)
+					rig := rigidList.New(inst.ID,typeToCost["t2.nano"]/typeToCost[inst.InstanceType])
 					rig.MaxAcceleration = &vector.Vector3{20, 20, 20}
+					rig.SetAwake(true)
 				}
 
 				if collisionList.Get(inst.ID) == nil {
@@ -194,7 +196,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		} else {
 			inst.CPUCreditBalance = point
 		}
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 

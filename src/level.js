@@ -4,10 +4,10 @@ function Update(id) {
   return {
     id,
     timestamp: 0,
-    position: { x: 0, y: 0, z: 0 },
+    position: {x: 0, y: 0, z: 0},
     orientation: [1, 0, 0, 0],
     model: 0,
-    scale: { x: 0, y: 0, z: 0 },
+    scale: {x: 0, y: 0, z: 0},
     health: 0.0,
   };
 }
@@ -56,18 +56,15 @@ function setupModels(scn) {
 
   models[0] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
   models[0].scaling = new BABYLON.Vector3(10, 10, 10);
-  models[0].material = materials.gray;
   models[0].isVisible = false;
 
   models[1] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
   models[1].scaling = new BABYLON.Vector3(30, 30, 30);
   models[1].isVisible = false;
-  models[1].material = materials.yellow;
 
   models[2] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
   models[2].scaling = new BABYLON.Vector3(10, 10, 10);
   models[2].isVisible = false;
-  models[2].material = materials.blue;
 }
 
 function onMeshClick(meshId) {
@@ -88,7 +85,9 @@ function onMeshClick(meshId) {
 function setupOnClickAction(mesh) {
   mesh.actionManager.registerAction(
     new BABYLON.ExecuteCodeAction(
-      BABYLON.ActionManager.OnPickTrigger, evt => { onMeshClick(evt.source.id); }
+      BABYLON.ActionManager.OnPickTrigger, evt => {
+        onMeshClick(evt.source.id);
+      }
     )
   );
 }
@@ -103,13 +102,31 @@ const updateScene = function sceneUpdater(updates) {
       objects[id].id = id;
       objects[id].isVisible = true;
       objects[id].actionManager = new BABYLON.ActionManager(scene);
-      objects[id].material = new BABYLON.StandardMaterial(id, scene);
-      objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-      objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-      const texture = new BABYLON.Texture('/assets/square_running.jpeg', scene);
-      objects[id].material.diffuseTexture = texture;
       shadowGenerator.getShadowMap().renderList.push(objects[id]);
+      objects[id].material = new BABYLON.StandardMaterial(id, scene);
+      objects[id].material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
       setupOnClickAction(objects[id]);
+    }
+
+    if (update.model && objects[id].model !== update.model) {
+      objects[id].model = update.model;
+      //if(objects[id].material) {
+        objects[id].material.dispose();
+      //}
+      const material = new BABYLON.StandardMaterial(id, scene);
+      //material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+      //material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+      switch (update.model) {
+        case 0:
+          material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
+          break;
+        case 1:
+          material.diffuseTexture = new BABYLON.Texture('/assets/square_black.jpg', scene);
+          break;
+        default:
+          material.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+      }
+      objects[id].material = material;
     }
 
     objects[id].position = update.position;
@@ -121,21 +138,19 @@ const updateScene = function sceneUpdater(updates) {
     );
     objects[id].scaling = update.scale;
 
-    if (update.health > 0.99) {
-      objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-    } else if (update.health > 0.90) {
-      objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-    } else if (update.health > 0.50) {
-      objects[id].material.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.3);
-    } else if (update.health > 0.10) {
-      objects[id].material.emissiveColor = new BABYLON.Color3(0.9, 0.6, 0.3);
-    } else {
-      objects[id].material.emissiveColor = new BABYLON.Color3(0.9, 0.2, 0.1);
+    if (objects[id].material && objects.model !== 0) {
+      if (update.health > 0.99) {
+        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+      } else if (update.health > 0.90) {
+        objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+      } else if (update.health > 0.50) {
+        objects[id].material.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.3);
+      } else if (update.health > 0.10) {
+        objects[id].material.emissiveColor = new BABYLON.Color3(0.9, 0.6, 0.3);
+      } else {
+        objects[id].material.emissiveColor = new BABYLON.Color3(1, 0.0, 0.0);
+      }
     }
-    // } else if(update.health > 0.5) {
-    //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.4);
-    // } else if(update.health > 0.25) {
-    //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.0, 0.0);
   });
 };
 
@@ -145,20 +160,23 @@ const entityUpdate = function entUpdate(buf) {
   while (!buf.isEof()) {
     const cmd = buf.readUint8();
     switch (cmd) {
-      case 1: {
+      case 1:
+      {
         // INST_ENTITY_ID - we are switching the object we wish to update
         objectId = buf.readFloat32();
         updates[objectId] = new Update();
         updates[objectId].id = objectId;
         break;
       }
-      case 2: {
+      case 2:
+      {
         // INST_SET_POSITION
-        const pos = { x: buf.readFloat32(), y: buf.readFloat32(), z: buf.readFloat32() };
+        const pos = {x: buf.readFloat32(), y: buf.readFloat32(), z: buf.readFloat32()};
         updates[objectId].position = pos;
         break;
       }
-      case 3: {
+      case 3:
+      {
         // INST_SET_ROTATION
         updates[objectId].orientation = [];
         updates[objectId].orientation[0] = buf.readFloat32();
@@ -167,12 +185,14 @@ const entityUpdate = function entUpdate(buf) {
         updates[objectId].orientation[3] = buf.readFloat32();
         break;
       }
-      case 4: {
+      case 4:
+      {
         // INST_SET_MODEL
         updates[objectId].model = buf.readFloat32();
         break;
       }
-      case 5: {
+      case 5:
+      {
         // INST_SET_SCALE
         updates[objectId].scale = {
           x: buf.readFloat32(),
@@ -181,11 +201,13 @@ const entityUpdate = function entUpdate(buf) {
         };
         break;
       }
-      case 6: {
+      case 6:
+      {
         updates[objectId].health = buf.readFloat32();
         break;
       }
-      default: {
+      default:
+      {
         console.log(`unknown command ${cmd}`); // eslint-disable-line
       }
     }
@@ -208,11 +230,13 @@ module.exports = {
     buf.readFloat32(); // serverTick
 
     switch (msgType) {
-      case 1: {
+      case 1:
+      {
         entityUpdate(buf);
         break;
       }
-      default: {
+      default:
+      {
         console.log(`Not sure what to do with message type ${msgType}`); // eslint-disable-line
         break;
       }

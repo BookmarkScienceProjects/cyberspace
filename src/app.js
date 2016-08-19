@@ -23,15 +23,15 @@ groundMaterial.maxSimultaneousLights = 2;
 ground.material = groundMaterial;
 ground.receiveShadows = true;
 
-
 const camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 100, 1), scene);
+//var camera = new BABYLON.WebVRFreeCamera("WVR", new BABYLON.Vector3(0, 1, -15), scene);
 camera.attachControl(canvas);
 camera.keysUp.push(87);
 camera.keysLeft.push(65);
 camera.keysDown.push(83);
 camera.keysRight.push(68);
 camera.speed = 20;
-camera.position = new BABYLON.Vector3(100, 0, 100);
+camera.position = new BABYLON.Vector3(2000, 200, 2000);
 camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 camera.attachControl(canvas, false);
 scene.activeCamera = camera;
@@ -50,7 +50,7 @@ mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 const shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
 
 function beforeRenderFunction() {
-  scene.activeCamera.position.y = 300;
+  scene.activeCamera.position.y = 200;
 }
 
 scene.registerBeforeRender(beforeRenderFunction);

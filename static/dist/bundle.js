@@ -88,13 +88,14 @@
 	ground.receiveShadows = true;
 	
 	var camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 100, 1), scene);
+	//var camera = new BABYLON.WebVRFreeCamera("WVR", new BABYLON.Vector3(0, 1, -15), scene);
 	camera.attachControl(canvas);
 	camera.keysUp.push(87);
 	camera.keysLeft.push(65);
 	camera.keysDown.push(83);
 	camera.keysRight.push(68);
 	camera.speed = 20;
-	camera.position = new BABYLON.Vector3(100, 0, 100);
+	camera.position = new BABYLON.Vector3(2000, 200, 2000);
 	camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
@@ -113,7 +114,7 @@
 	var shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
 	
 	function beforeRenderFunction() {
-	  scene.activeCamera.position.y = 300;
+	  scene.activeCamera.position.y = 200;
 	}
 	
 	scene.registerBeforeRender(beforeRenderFunction);
@@ -1785,18 +1786,15 @@
 	
 	  models[0] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	  models[0].scaling = new BABYLON.Vector3(10, 10, 10);
-	  models[0].material = materials.gray;
 	  models[0].isVisible = false;
 	
 	  models[1] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	  models[1].scaling = new BABYLON.Vector3(30, 30, 30);
 	  models[1].isVisible = false;
-	  models[1].material = materials.yellow;
 	
 	  models[2] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	  models[2].scaling = new BABYLON.Vector3(10, 10, 10);
 	  models[2].isVisible = false;
-	  models[2].material = materials.blue;
 	}
 	
 	function onMeshClick(meshId) {
@@ -1830,34 +1828,50 @@
 	      objects[id].id = id;
 	      objects[id].isVisible = true;
 	      objects[id].actionManager = new BABYLON.ActionManager(scene);
-	      objects[id].material = new BABYLON.StandardMaterial(id, scene);
-	      objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-	      objects[id].material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-	      var texture = new BABYLON.Texture('/assets/square_running.jpeg', scene);
-	      objects[id].material.diffuseTexture = texture;
 	      shadowGenerator.getShadowMap().renderList.push(objects[id]);
+	      objects[id].material = new BABYLON.StandardMaterial(id, scene);
+	      objects[id].material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
 	      setupOnClickAction(objects[id]);
+	    }
+	
+	    if (update.model && objects[id].model !== update.model) {
+	      objects[id].model = update.model;
+	      //if(objects[id].material) {
+	      objects[id].material.dispose();
+	      //}
+	      var material = new BABYLON.StandardMaterial(id, scene);
+	      //material.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+	      //material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	      switch (update.model) {
+	        case 0:
+	          material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
+	          break;
+	        case 1:
+	          material.diffuseTexture = new BABYLON.Texture('/assets/square_black.jpg', scene);
+	          break;
+	        default:
+	          material.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	      }
+	      objects[id].material = material;
 	    }
 	
 	    objects[id].position = update.position;
 	    objects[id].rotationQuaternion = new BABYLON.Quaternion(update.orientation[1], update.orientation[2], update.orientation[3], update.orientation[0]);
 	    objects[id].scaling = update.scale;
 	
-	    if (update.health > 0.99) {
-	      objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
-	    } else if (update.health > 0.90) {
-	      objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-	    } else if (update.health > 0.50) {
-	      objects[id].material.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.3);
-	    } else if (update.health > 0.10) {
-	      objects[id].material.emissiveColor = new BABYLON.Color3(0.9, 0.6, 0.3);
-	    } else {
-	      objects[id].material.emissiveColor = new BABYLON.Color3(0.9, 0.2, 0.1);
+	    if (objects[id].material && objects.model !== 0) {
+	      if (update.health > 0.99) {
+	        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+	      } else if (update.health > 0.90) {
+	        objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+	      } else if (update.health > 0.50) {
+	        objects[id].material.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.3);
+	      } else if (update.health > 0.10) {
+	        objects[id].material.emissiveColor = new BABYLON.Color3(0.9, 0.6, 0.3);
+	      } else {
+	        objects[id].material.emissiveColor = new BABYLON.Color3(1, 0.0, 0.0);
+	      }
 	    }
-	    // } else if(update.health > 0.5) {
-	    //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.5, 0.4);
-	    // } else if(update.health > 0.25) {
-	    //    objects[id].material.diffuseColor = new BABYLON.Color3(0.9, 0.0, 0.0);
 	  });
 	};
 	
