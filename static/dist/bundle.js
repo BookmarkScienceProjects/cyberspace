@@ -95,7 +95,7 @@
 	camera.keysDown.push(83);
 	camera.keysRight.push(68);
 	camera.speed = 20;
-	camera.position = new BABYLON.Vector3(2000, 200, 2000);
+	camera.position = new BABYLON.Vector3(750, 100, 750);
 	camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
@@ -114,7 +114,7 @@
 	var shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
 	
 	function beforeRenderFunction() {
-	  scene.activeCamera.position.y = 200;
+	  scene.activeCamera.position.y = 100;
 	}
 	
 	scene.registerBeforeRender(beforeRenderFunction);
@@ -1863,7 +1863,7 @@
 	      if (update.health > 0.99) {
 	        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
 	      } else if (update.health > 0.90) {
-	        objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+	        objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.1);
 	      } else if (update.health > 0.50) {
 	        objects[id].material.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.3);
 	      } else if (update.health > 0.10) {

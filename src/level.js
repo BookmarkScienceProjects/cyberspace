@@ -142,7 +142,7 @@ const updateScene = function sceneUpdater(updates) {
       if (update.health > 0.99) {
         objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.0, 0.0);
       } else if (update.health > 0.90) {
-        objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+        objects[id].material.emissiveColor = new BABYLON.Color3(0.05, 0.05, 0.1);
       } else if (update.health > 0.50) {
         objects[id].material.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.3);
       } else if (update.health > 0.10) {

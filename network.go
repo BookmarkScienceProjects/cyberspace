@@ -35,7 +35,7 @@ func init() {
 	})
 
 	go func() {
-		Println(http.ListenAndServe(":80", nil))
+		Println(http.ListenAndServe(":8080", nil))
 	}()
 
 	go func(client chan *client.Client) {

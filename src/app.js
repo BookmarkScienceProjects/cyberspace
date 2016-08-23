@@ -31,7 +31,7 @@ camera.keysLeft.push(65);
 camera.keysDown.push(83);
 camera.keysRight.push(68);
 camera.speed = 20;
-camera.position = new BABYLON.Vector3(2000, 200, 2000);
+camera.position = new BABYLON.Vector3(750, 100, 750);
 camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 camera.attachControl(canvas, false);
 scene.activeCamera = camera;
@@ -50,7 +50,7 @@ mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 const shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
 
 function beforeRenderFunction() {
-  scene.activeCamera.position.y = 200;
+  scene.activeCamera.position.y = 100;
 }
 
 scene.registerBeforeRender(beforeRenderFunction);

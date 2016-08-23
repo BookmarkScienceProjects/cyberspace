@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/vivere/lib/components"
 	"time"
 )
@@ -56,13 +57,12 @@ func (l *Level) Draw() *bytes.Buffer {
 
 	for id, component := range modelList.All() {
 		binaryStream(buf, INST_ENTITY_ID, *id)
-		binaryStream(buf, INST_SET_POSITION, component.Position)
-		binaryStream(buf, INST_SET_ORIENTATION, component.Orientation)
+		binaryStream(buf, INST_SET_POSITION, component.Position())
+		binaryStream(buf, INST_SET_ORIENTATION, component.Orientation())
 		binaryStream(buf, INST_SET_TYPE, component.Model)
 		binaryStream(buf, INST_SET_SCALE, component.Scale)
 		inst := monitor.FindByEntityID(*id)
 		binaryStream(buf, INST_SET_HEALTH, inst.Health())
-		//Printf("cpu %f  health %f", inst.CPUUtilization, health)
 	}
 
 	return buf

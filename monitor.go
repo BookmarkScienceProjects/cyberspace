@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/vivere/lib/components"
 	"github.com/stojg/vivere/lib/vector"
 	"math/rand"
@@ -17,27 +18,9 @@ import (
 	"time"
 )
 
-var typeToCost map[string]float64
-
 var monitor *Monitor
 
 func init() {
-	typeToCost = make(map[string]float64)
-
-	typeToCost["t2.nano"] = 0.01
-	typeToCost["t2.micro"] = 0.02
-	typeToCost["t2.small"] = 0.04
-	typeToCost["t2.medium"] = 0.08
-
-	typeToCost["m4.2xlarge"] = 0.336
-	typeToCost["m3.large"] = 0.186
-
-	typeToCost["c3.large"] = 0.132
-	typeToCost["c4.large"] = 0.137
-
-	typeToCost["t1.micro"] = 0.02
-	typeToCost["m1.small"] = 0.058
-	typeToCost["m1.medium"] = 0.117
 
 	monitor = &Monitor{
 		instances: make(map[string]*Instance),
@@ -126,7 +109,7 @@ func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
 				if !ok {
 					e := entities.Create()
 					inst = &Instance{
-						ID: e,
+						ID:               e,
 						CPUCreditBalance: 100,
 					}
 				}
@@ -137,31 +120,36 @@ func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
 
 				instanceCount++
 
-				body := modelList.Get(inst.ID)
-				if body == nil {
-					body = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
-					body.Position.Set(rand.Float64()*4000-2000, inst.Scale[2]/2, rand.Float64()*4000-2000)
-				}
-				body.Model = 2
-				if inst.State != "running" {
-					body.Model = 0
+				model := modelList.Get(inst.ID)
+				if model == nil {
+					model = modelList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2], 1)
+					model.Position().Set(rand.Float64()*2000-1000, inst.Scale[2]/2, rand.Float64()*2000-1000)
+					inst.Position = model.Position()
 				}
 
-				if rigidList.Get(inst.ID) == nil {
-					rig := rigidList.New(inst.ID,typeToCost["t2.nano"]/typeToCost[inst.InstanceType])
-					rig.MaxAcceleration = &vector.Vector3{20, 20, 20}
-					rig.SetAwake(true)
+				model.Model = 2
+				if inst.State != "running" {
+					model.Model = 0
+				}
+
+				body := rigidList.Get(inst.ID)
+				if body == nil {
+					//invMass := typeToCost["t2.nano"] / typeToCost[inst.InstanceType]
+					invMass := 1.0
+					body = rigidList.New(inst.ID, invMass)
+					body.MaxAcceleration = &vector.Vector3{100, 100, 100}
+					body.SetAwake(true)
 				}
 
 				if collisionList.Get(inst.ID) == nil {
-					collisionList.New(inst.ID, inst.Scale[0]+1, inst.Scale[1]+1, inst.Scale[2]+1)
+					collisionList.New(inst.ID, inst.Scale[0], inst.Scale[1], inst.Scale[2])
 				}
 
 				if controllerList.Get(inst.ID) == nil {
-					controllerList.New(inst.ID, NewAI(inst.ID))
+					controllerList.New(inst.ID, NewAI(inst.ID, model, body))
 				}
 
-				inst.tree = rootNode
+				inst.Tree = rootNode
 				rootNode.Add(inst)
 				m.SetMetrics(inst, region)
 			}
@@ -196,7 +184,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 		} else {
 			inst.CPUCreditBalance = point
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 	}
 }
 

@@ -8,58 +8,61 @@ type PhysicSystem struct{}
 
 func (s *PhysicSystem) Update(elapsed float64) {
 
-	entities := rigidList.All()
-	for i, move := range entities {
+	for i, body := range rigidList.All() {
 
-		if !move.Awake() {
+		if !body.Awake() {
 			continue
 		}
 
-		body := modelList.Get(i)
-		if body == nil {
-			panic("Physic system requires that a *main.BodyComponent have been set")
+		model := modelList.Get(i)
+		if model == nil {
+			panic("Physic system requires that a *Model have been set")
 		}
 
 		// Calculate linear acceleration from force inputs.
-		move.LastFrameAcceleration = move.Acceleration.Clone()
-		move.LastFrameAcceleration.AddScaledVector(move.ForceAccum, move.InvMass)
+		body.LastFrameAcceleration = body.Acceleration.Clone()
+		body.LastFrameAcceleration.AddScaledVector(body.ForceAccum, body.InvMass)
 
 		// Calculate angular acceleration from torque inputs.
-		angularAcceleration := move.InverseInertiaTensorWorld.TransformVector3(move.TorqueAccum)
+		angularAcceleration := body.InverseInertiaTensorWorld.TransformVector3(body.TorqueAccum)
 
 		// Adjust velocities
 		// Update linear velocity from both acceleration and impulse.
-		move.Velocity.AddScaledVector(move.LastFrameAcceleration, elapsed)
+		body.Velocity.AddScaledVector(body.LastFrameAcceleration, elapsed)
 
 		// Update angular velocity from both acceleration and impulse.
-		move.Rotation.AddScaledVector(angularAcceleration, elapsed)
+		body.Rotation.AddScaledVector(angularAcceleration, elapsed)
 
 		// Impose drag
-		move.Velocity.Scale(math.Pow(move.LinearDamping, elapsed))
-		move.Rotation.Scale(math.Pow(move.AngularDamping, elapsed))
+		body.Velocity.Scale(math.Pow(body.LinearDamping, elapsed))
+		body.Rotation.Scale(math.Pow(body.AngularDamping, elapsed))
+
+		// fake friction
+		body.Velocity.Scale(0.95)
+		body.Rotation.Scale(0.95)
 
 		// Adjust positions
 		// Update linear position
-		body.Position.AddScaledVector(move.Velocity, elapsed)
+		model.Position().AddScaledVector(body.Velocity, elapsed)
 		// Update angular position
-		body.Orientation.AddScaledVector(move.Rotation, elapsed)
+		model.Orientation().AddScaledVector(body.Rotation, elapsed)
 
 		// Normalise the orientation, and update the matrices with the new position and orientation
-		move.CalculateDerivedData(body)
+		body.CalculateDerivedData(model)
 
 		// Clear accumulators.
-		move.ClearAccumulators()
+		body.ClearAccumulators()
 
 		// Update the kinetic energy store, and possibly put the body to sleep.
-		if move.CanSleep {
-			currentMotion := move.Velocity.ScalarProduct(move.Velocity) + move.Rotation.ScalarProduct(move.Rotation)
+		if body.CanSleep {
+			currentMotion := body.Velocity.ScalarProduct(body.Velocity) + body.Rotation.ScalarProduct(body.Rotation)
 			bias := math.Pow(0.5, elapsed)
-			motion := bias*move.Motion + (1-bias)*currentMotion
-			if motion < move.SleepEpsilon {
-				move.SetAwake(false)
+			motion := bias*body.Motion + (1-bias)*currentMotion
+			if motion < body.SleepEpsilon {
+				body.SetAwake(false)
 			}
-		} else if move.Motion > 10*move.SleepEpsilon {
-			move.Motion = 10 * move.SleepEpsilon
+		} else if body.Motion > 10*body.SleepEpsilon {
+			body.Motion = 10 * body.SleepEpsilon
 		}
 	}
 }

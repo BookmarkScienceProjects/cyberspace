@@ -1,4 +1,4 @@
-package main
+package components
 
 import (
 	"fmt"
@@ -8,6 +8,24 @@ import (
 	"math"
 	"strings"
 )
+
+var typeToCost map[string]float64
+
+func init() {
+	typeToCost = map[string]float64{
+		"t2.nano":    0.01,
+		"t2.micro":   0.02,
+		"t2.small":   0.04,
+		"t2.medium":  0.08,
+		"m4.2xlarge": 0.336,
+		"m3.large":   0.186,
+		"c3.large":   0.132,
+		"c4.large":   0.137,
+		"t1.micro":   0.02,
+		"m1.small":   0.058,
+		"m1.medium":  0.117,
+	}
+}
 
 type Instance struct {
 	ID               *Entity
@@ -24,17 +42,23 @@ type Instance struct {
 	CPUCreditBalance float64
 	PrivateIP        string
 	PublicIP         string
-	tree             *TreeNode
+	Tree             *TreeNode
+
+	// Position is cached here from the model
+	Position *vector.Vector3
 }
 
 func (inst *Instance) Health() float64 {
+
+	maxHealth := 1.0
+
 	if inst.State != "running" {
-		return 1.0
+		return maxHealth
 	}
 	if inst.HasCredits && inst.CPUCreditBalance < 10 {
 		return 0.0
 	}
-	return 1.0 - inst.CPUUtilization/100.0
+	return maxHealth - inst.CPUUtilization/100.0
 }
 
 func (inst *Instance) Update(ec2Inst *ec2.Instance) {
@@ -71,11 +95,11 @@ func (inst *Instance) Update(ec2Inst *ec2.Instance) {
 	}
 
 	if t, ok := typeToCost[*ec2Inst.InstanceType]; !ok {
-		Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
+		fmt.Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
 		inst.Scale = vector.Vector3{10, 10, 10}
 	} else {
 		costToDimension := t * 10000
-		size := math.Pow(costToDimension, 1/2.0)
+		size := math.Pow(costToDimension, 1/3.0)
 		inst.Scale = vector.Vector3{size, size, size}
 	}
 }

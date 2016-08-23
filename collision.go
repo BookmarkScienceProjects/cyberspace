@@ -9,91 +9,90 @@ import (
 
 type collisonBody struct {
 	model    *components.Model
-	rigid    *components.RigidBody
+	body     *components.RigidBody
 	geometry interface{}
 }
 
 func (a collisonBody) BoundingBox() quadtree.BoundingBox {
 	return quadtree.BoundingBox{
-		MinX: a.model.Position[0] - a.model.Scale[0],
-		MaxX: a.model.Position[0] + a.model.Scale[0],
-		MinY: a.model.Position[1] - a.model.Scale[1],
-		MaxY: a.model.Position[1] + a.model.Scale[1],
-		MinZ: a.model.Position[2] - a.model.Scale[2],
-		MaxZ: a.model.Position[2] + a.model.Scale[2],
+		MinX: a.model.Position()[0] - a.model.Scale[0],
+		MaxX: a.model.Position()[0] + a.model.Scale[0],
+		MinY: a.model.Position()[1] - a.model.Scale[1],
+		MaxY: a.model.Position()[1] + a.model.Scale[1],
+		MinZ: a.model.Position()[2] - a.model.Scale[2],
+		MaxZ: a.model.Position()[2] + a.model.Scale[2],
 	}
 }
 
 type CollisionSystem struct{}
 
 func (s *CollisionSystem) Update(elapsed float64) {
-
 	// @todo sort collisions in the order of the most severe
-	for j := 0; j < 5; j++ {
+	for i := 0; i < 2; i++ {
 		collisions := s.Check()
 		for i := range collisions {
 			collisions[i].Resolve(elapsed)
 		}
 	}
-
 }
 
 func (s *CollisionSystem) Check() []*Contact {
 	collisions := make([]*Contact, 0)
 
-	tree := quadtree.NewQuadTree(quadtree.BoundingBox{-3200 / 2, 3200 / 2, -3200 / 2, 3200 / 2, -3200 / 2, 3200 / 2})
+	tree := quadtree.NewQuadTree(
+		quadtree.BoundingBox{
+			MinX: -3200 / 2,
+			MaxX: 3200 / 2,
+			MinY: -3200 / 2,
+			MaxY: 3200 / 2,
+			MinZ: -3200 / 2,
+			MaxZ: 3200 / 2,
+		},
+	)
 
 	bodies := make([]collisonBody, 0)
 	for aID, a := range collisionList.All() {
 		body := collisonBody{
 			geometry: a.Geometry,
 			model:    modelList.Get(aID),
-			rigid:    rigidList.Get(aID),
+			body:     rigidList.Get(aID),
 		}
 		bodies = append(bodies, body)
 		tree.Add(body)
 	}
 
 	for _, a := range bodies {
-		//if !a.rigid.Awake() {
-		//	continue
-		//}
+		if !a.body.Awake() {
+			continue
+		}
 
-		//checked := make(map[quadtree.BoundingBoxer]map[quadtree.BoundingBoxer]bool)
+		checked := make(map[quadtree.BoundingBoxer]map[quadtree.BoundingBoxer]bool)
 		broadPhase := tree.Query(a.BoundingBox())
 		for _, b := range broadPhase {
 			if a == b {
 				continue
 			}
 
-			//if _, ok := checked[a][b]; ok {
-			//	continue
-			//}
-			//
-			//if _, ok := checked[b][a]; ok {
-			//	continue
-			//}
-			//
-			//if _, ok := checked[a]; !ok {
-			//	checked[a] = make(map[quadtree.BoundingBoxer]bool)
-			//}
-			//
-			//if _, ok := checked[b]; !ok {
-			//	checked[b] = make(map[quadtree.BoundingBoxer]bool)
-			//}
-			//checked[a][b], checked[b][a] = true, true
+			if _, ok := checked[a][b]; ok {
+				continue
+			}
+			if _, ok := checked[b][a]; ok {
+				continue
+			}
 
-			//hashA := string(a.ID) + ":" + string(b.(*Entity).ID)
-			//hashB := string(b.(*Entity).ID) + ":" + string(a.ID)
-			//if checked[hashA] || checked[hashB] {
-			//	continue
-			//}
-			//checked[hashA], checked[hashB] = true, true
+			if _, ok := checked[a]; !ok {
+				checked[a] = make(map[quadtree.BoundingBoxer]bool)
+			}
+
+			if _, ok := checked[b]; !ok {
+				checked[b] = make(map[quadtree.BoundingBoxer]bool)
+			}
+			checked[a][b], checked[b][a] = true, true
 
 			collisionPair := &Contact{
 				a:           a,
 				b:           b.(collisonBody),
-				restitution: 0.3,
+				restitution: 0.2,
 				normal:      &Vector3{},
 			}
 
@@ -159,9 +158,9 @@ func (contact *Contact) resolveVelocity(duration float64) {
 	newSepVelocity := -separatingVelocity * contact.restitution
 
 	// Check the velocity build up due to acceleration only
-	accCausedVelocity := contact.a.rigid.Forces.Clone()
-	if contact.b.rigid != nil {
-		accCausedVelocity.Sub(contact.b.rigid.Forces)
+	accCausedVelocity := contact.a.body.Forces.Clone()
+	if contact.b.body != nil {
+		accCausedVelocity.Sub(contact.b.body.Forces)
 	}
 
 	// If we have closing velocity due to acceleration buildup,
@@ -177,9 +176,9 @@ func (contact *Contact) resolveVelocity(duration float64) {
 
 	deltaVelocity := newSepVelocity - separatingVelocity
 
-	totalInvMass := contact.a.rigid.InvMass
-	if contact.b.rigid != nil {
-		totalInvMass += contact.b.rigid.InvMass
+	totalInvMass := contact.a.body.InvMass
+	if contact.b.body != nil {
+		totalInvMass += contact.b.body.InvMass
 	}
 
 	// Both objects have infinite mass, so they can't actually move
@@ -189,18 +188,18 @@ func (contact *Contact) resolveVelocity(duration float64) {
 
 	impulsePerIMass := contact.normal.NewScale(deltaVelocity / totalInvMass)
 
-	velocityChangeA := impulsePerIMass.NewScale(contact.a.rigid.InvMass)
-	contact.a.rigid.Velocity.Add(velocityChangeA)
-	if contact.b.rigid != nil {
-		velocityChangeB := impulsePerIMass.NewScale(-contact.b.rigid.InvMass)
-		contact.b.rigid.Velocity.Add(velocityChangeB)
+	velocityChangeA := impulsePerIMass.NewScale(contact.a.body.InvMass)
+	contact.a.body.Velocity.Add(velocityChangeA)
+	if contact.b.body != nil {
+		velocityChangeB := impulsePerIMass.NewScale(-contact.b.body.InvMass)
+		contact.b.body.Velocity.Add(velocityChangeB)
 	}
 }
 
 func (contact *Contact) SeparatingVelocity() float64 {
-	relativeVel := contact.a.rigid.Velocity.Clone()
-	if contact.b.rigid != nil {
-		relativeVel.Sub(contact.b.rigid.Velocity)
+	relativeVel := contact.a.body.Velocity.Clone()
+	if contact.b.body != nil {
+		relativeVel.Sub(contact.b.body.Velocity)
 	}
 	return relativeVel.Dot(contact.normal)
 }
@@ -212,9 +211,9 @@ func (contact *Contact) resolveInterpenetration() {
 		return
 	}
 
-	totalInvMass := contact.a.rigid.InvMass
-	if contact.b.rigid != nil {
-		totalInvMass += contact.b.rigid.InvMass
+	totalInvMass := contact.a.body.InvMass
+	if contact.b.body != nil {
+		totalInvMass += contact.b.body.InvMass
 	}
 	// Both objects have infinite mass, so no velocity
 	if totalInvMass == 0 {
@@ -223,9 +222,9 @@ func (contact *Contact) resolveInterpenetration() {
 
 	movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
 
-	contact.a.model.Position.Add(movePerIMass.NewScale(contact.a.rigid.InvMass))
-	if contact.b.rigid != nil {
-		contact.b.model.Position.Add(movePerIMass.NewScale(-contact.b.rigid.InvMass))
+	contact.a.model.Position().Add(movePerIMass.NewScale(contact.a.body.InvMass))
+	if contact.b.body != nil {
+		contact.b.model.Position().Add(movePerIMass.NewScale(-contact.b.body.InvMass))
 	}
 }
 
@@ -235,7 +234,7 @@ func CircleVsCircle(contact *Contact) {
 
 	var d [3]float64
 	for i := range d {
-		d[i] = contact.a.model.Position[i] - contact.b.model.Position[i]
+		d[i] = contact.a.model.Position()[i] - contact.b.model.Position()[i]
 	}
 
 	sqrLength := d[0]*d[0] + d[1]*d[1] + d[2]*d[2]
@@ -266,14 +265,14 @@ func CircleVsRectangle(contact *Contact) {
 
 func RectangleVsCircle(contact *Contact) {
 	rA := contact.a.geometry.(*components.Rectangle)
-	rA.ToWorld(contact.a.model.Position)
+	rA.ToWorld(contact.a.model.Position())
 
 	cB := contact.b.geometry.(*components.Circle)
 	contact.normal = &Vector3{}
 
 	closestPoint := &Vector3{}
 	for i := 0; i < 3; i++ {
-		closestPoint[i] = contact.b.model.Position[i]
+		closestPoint[i] = contact.b.model.Position()[i]
 		if closestPoint[i] < rA.MinPoint[i] {
 			closestPoint[i] = rA.MinPoint[i]
 		} else if closestPoint[i] > rA.MaxPoint[i] {
@@ -283,7 +282,7 @@ func RectangleVsCircle(contact *Contact) {
 
 	var d [3]float64
 	for i := range d {
-		d[i] = closestPoint[i] - contact.b.model.Position[i]
+		d[i] = closestPoint[i] - contact.b.model.Position()[i]
 	}
 
 	sqrLength := d[0]*d[0] + d[1]*d[1] + d[2]*d[2]
@@ -311,8 +310,8 @@ func RectangleVsRectangle(contact *Contact) {
 	rA := contact.a.geometry.(*components.Rectangle)
 	rB := contact.b.geometry.(*components.Rectangle)
 
-	rA.ToWorld(contact.a.model.Position)
-	rB.ToWorld(contact.b.model.Position)
+	rA.ToWorld(contact.a.model.Position())
+	rB.ToWorld(contact.b.model.Position())
 
 	// [Minimum Translation Vector]
 	mtvDistance := math.MaxFloat32 // Set current minimum distance (max float value so next value is always less)
