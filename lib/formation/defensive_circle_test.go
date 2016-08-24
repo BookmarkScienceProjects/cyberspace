@@ -24,7 +24,32 @@ func (c *TestCharacter) SetTarget(t formation.Static) {
 	c.target = t
 }
 
-var defTests = []struct {
+func TestDefensiveCirclePattern_DriftOffset(t *testing.T) {
+	def := formation.NewDefensiveCircle(10, 2)
+	man := formation.NewManager(def)
+	firstChar := &TestCharacter{
+		position: vector.NewVector3(0, 0, 0),
+	}
+	man.AddCharacter(firstChar)
+	secondChar := &TestCharacter{
+		position: vector.NewVector3(0, 0, 0),
+	}
+	man.AddCharacter(secondChar)
+
+	man.UpdateSlots()
+
+	expects := vector.NewVector3(-10, 0, 0)
+	if !firstChar.target.Position().Equals(expects) {
+		t.Errorf("Pos should be %s, got %s", expects, firstChar.target.Position())
+	}
+	expects = vector.NewVector3(10, 0, 0)
+	if !secondChar.target.Position().Equals(expects) {
+		t.Errorf("Pos should be %s, got %s", expects, secondChar.target.Position())
+	}
+
+}
+
+var slotLocationTests = []struct {
 	initSlotNumber int
 	slotNumber     int
 	expected       *vector.Vector3
@@ -42,7 +67,7 @@ var defTests = []struct {
 }
 
 func TestDefensiveCirclePattern_SlotLocation(t *testing.T) {
-	for _, tt := range defTests {
+	for _, tt := range slotLocationTests {
 		pattern := formation.NewDefensiveCircle(10, tt.initSlotNumber)
 		loc := pattern.SlotLocation(tt.slotNumber)
 		if !loc.Position().Equals(tt.expected) {
@@ -50,30 +75,3 @@ func TestDefensiveCirclePattern_SlotLocation(t *testing.T) {
 		}
 	}
 }
-
-//func TestSomething(t *testing.T) {
-//
-//	defPattern := formation.NewDefensiveCircle(10)
-//
-//	loc := defPattern.SlotLocation(1)
-//	pos := loc.Position()
-//	t.Errorf("%s", pos)
-//
-//	manager := formation.NewManager(defPattern)
-//
-//	char := &TestCharacter{
-//		position:    vector.NewVector3(0, 0, 0),
-//		orientation: vector.NewQuaternion(0, 0, 0, 1),
-//	}
-//	added := manager.AddCharacter(char)
-//
-//	if !added {
-//		t.Errorf("it should always to be possible to add a char to the defensive circle")
-//	}
-//
-//	manager.UpdateSlots()
-//
-//	t.Errorf("%s", char.target.Position())
-//
-//	//manager.UpdateSlots()
-//}

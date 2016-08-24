@@ -10,26 +10,6 @@ type Character interface {
 	Orientation() *Quaternion
 }
 
-type SlotAssignment struct {
-	character  Character
-	slotNumber int
-}
-
-type SlotAssignments []*SlotAssignment
-
-func (list SlotAssignments) find(char Character) (index int, found bool) {
-	for i := range list {
-		if list[i].character == char {
-			return i, true
-		}
-	}
-	return 0, false
-}
-
-func (list SlotAssignments) remove(index int) {
-	list = append(list[:index], list[index+1:]...)
-}
-
 func NewManager(pattern Pattern) *Manager {
 	return &Manager{
 		slotAssignments: make(SlotAssignments, 0),
@@ -56,7 +36,9 @@ func (m *Manager) AddCharacter(char Character) bool {
 	}
 
 	// add new slot assignment
-	slotAssignment := &SlotAssignment{character: char}
+	slotAssignment := &SlotAssignment{
+		character: char,
+	}
 	m.slotAssignments = append(m.slotAssignments, slotAssignment)
 	m.updateSlotAssignments()
 	return true
@@ -104,6 +86,7 @@ func (m *Manager) updateSlotAssignments() {
 	for i := range m.slotAssignments {
 		m.slotAssignments[i].slotNumber = i
 	}
+	m.driftOffset = m.pattern.DriftOffset(m.slotAssignments)
 }
 
 func (m *Manager) getAnchorPoint() Static {

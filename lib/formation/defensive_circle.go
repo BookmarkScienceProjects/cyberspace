@@ -23,7 +23,8 @@ func (p *DefensiveCirclePattern) SupportsSlots(slotCount int) bool {
 }
 
 // calculates the drift offset when charactres are in a vicen sets of slots
-func (p *DefensiveCirclePattern) DriftOffset(assignments []*SlotAssignment) Static {
+func (p *DefensiveCirclePattern) DriftOffset(assignments SlotAssignments) Static {
+
 	// store the center of mass
 	center := &Model{
 		position:    NewVector3(0, 0, 0),
@@ -70,7 +71,7 @@ func (p *DefensiveCirclePattern) SlotLocation(slotNumber int) Static {
 	return location
 }
 
-func (p *DefensiveCirclePattern) CalculateNumberOfSlots(assignments SlotAssignments) int {
+func (p *DefensiveCirclePattern) calculateNumberOfSlots(assignments SlotAssignments) int {
 	// find the number of filled slots: it will be highest slot number in the assignment
 	filledSlots := 0
 	for _, assignment := range assignments {
