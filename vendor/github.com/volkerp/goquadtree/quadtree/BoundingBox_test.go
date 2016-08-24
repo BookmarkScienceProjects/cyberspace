@@ -8,9 +8,9 @@ import "testing"
 import _ "math"
 
 func TestBoundingBox(t *testing.T) {
-	a := NewBoundingBox(0, 10, 0, 10, 0, 0)
+	a := NewBoundingBox(0, 10, 10, 0)
 
-	b := NewBoundingBox(4, 6, 4, 6, 0, 0) // b completely within a
+	b := NewBoundingBox(4, 6, 6, 0) // b completely within a
 
 	if !a.Intersects(b) || !b.Intersects(a) {
 		t.Errorf("%v does not intersect %v", a, b)
@@ -32,7 +32,7 @@ func TestBoundingBox(t *testing.T) {
 		t.Errorf("%v contains %v", b, a)
 	}
 
-	c := NewBoundingBox(10, 20, 0, 10, 0, 0)
+	c := NewBoundingBox(10, 20, 10, 0)
 
 	if a.Intersects(c) {
 		t.Errorf("%v does intersect %v", a, c)
@@ -45,7 +45,7 @@ func TestBoundingBox(t *testing.T) {
 		t.Errorf("%v contains %v (or vise versa)", a, c)
 	}
 
-	d := NewBoundingBox(-10, 0, 0, 10, 0, 0)
+	d := NewBoundingBox(-10, 0, 10, 0)
 
 	if a.Intersects(d) {
 		t.Errorf("%v does intersect %v", a, d)
@@ -54,13 +54,13 @@ func TestBoundingBox(t *testing.T) {
 		t.Errorf("%v does intersect %v", d, a)
 	}
 
-	e := NewBoundingBox(9, 15, 9, 15, 0, 0)
+	e := NewBoundingBox(9, 15, 15, 0)
 
 	if !a.Intersects(e) || !e.Intersects(a) {
 		t.Errorf("%v does not intersect %v", a, e)
 	}
 
-	f := NewBoundingBox(-10, 20, 4, 6, 0, 0)
+	f := NewBoundingBox(-10, 20, 6, 0)
 
 	if !a.Intersects(f) || !f.Intersects(a) {
 		t.Errorf("%v does not intersect %v", a, f)

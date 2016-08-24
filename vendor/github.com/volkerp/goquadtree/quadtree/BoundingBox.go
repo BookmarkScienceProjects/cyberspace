@@ -8,7 +8,7 @@ import "math"
 
 // Use NewBoundingBox() to construct a BoundingBox object
 type BoundingBox struct {
-	MinX, MaxX, MinY, MaxY, MinZ, MaxZ float64
+	MinX, MaxX, MinY, MaxY float64
 }
 
 func NewBoundingBox(xa, xb, za, zb float64) BoundingBox {
@@ -18,7 +18,7 @@ func NewBoundingBox(xa, xb, za, zb float64) BoundingBox {
 		//math.Min(ya, yb),
 		//math.Max(ya, yb),
 		MinY: math.Min(za, zb),
-		MinZ: math.Max(za, zb),
+		MaxY: math.Max(za, zb),
 	}
 }
 
