@@ -17,10 +17,8 @@ func (a collisonBody) BoundingBox() quadtree.BoundingBox {
 	return quadtree.BoundingBox{
 		MinX: a.model.Position()[0] - a.model.Scale[0],
 		MaxX: a.model.Position()[0] + a.model.Scale[0],
-		MinY: a.model.Position()[1] - a.model.Scale[1],
-		MaxY: a.model.Position()[1] + a.model.Scale[1],
-		MinZ: a.model.Position()[2] - a.model.Scale[2],
-		MaxZ: a.model.Position()[2] + a.model.Scale[2],
+		MinY: a.model.Position()[2] - a.model.Scale[2],
+		MaxY: a.model.Position()[2] + a.model.Scale[2],
 	}
 }
 
@@ -45,8 +43,6 @@ func (s *CollisionSystem) Check() []*Contact {
 			MaxX: 3200 / 2,
 			MinY: -3200 / 2,
 			MaxY: 3200 / 2,
-			MinZ: -3200 / 2,
-			MaxZ: 3200 / 2,
 		},
 	)
 
