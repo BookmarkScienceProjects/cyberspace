@@ -15,8 +15,6 @@ func NewBoundingBox(xa, xb, za, zb float64) BoundingBox {
 	return BoundingBox{
 		MinX: math.Min(xa, xb),
 		MaxX: math.Max(xa, xb),
-		//math.Min(ya, yb),
-		//math.Max(ya, yb),
 		MinY: math.Min(za, zb),
 		MaxY: math.Max(za, zb),
 	}
