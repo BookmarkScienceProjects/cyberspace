@@ -4,12 +4,22 @@ import (
 	. "github.com/stojg/vivere/lib/vector"
 )
 
+// Static could be anything that has a position and Orientation
+type Static interface {
+	Position() *Vector3
+	Orientation() *Quaternion
+}
+
+// Character is the minimal interface needed to interact with this package. It represents something
+// that has a position, an orientation and can have a target.
 type Character interface {
 	SetTarget(Static)
 	Position() *Vector3
 	Orientation() *Quaternion
 }
 
+// NewManager returns a new formation Manager. It is initialised with anything that can satisfy the
+// Pattern interface.
 func NewManager(pattern Pattern) *Manager {
 	return &Manager{
 		slotAssignments: make(SlotAssignments, 0),
@@ -17,6 +27,8 @@ func NewManager(pattern Pattern) *Manager {
 	}
 }
 
+// Manager manages a Pattern. All interactions with a Pattern should be via the Manager. It adds
+// and Removes characters and calculates where does characters should be to fit a Patterhappy.
 type Manager struct {
 	// holds a list of slot assignments
 	slotAssignments SlotAssignments
@@ -27,6 +39,7 @@ type Manager struct {
 	pattern Pattern
 }
 
+// AddCharacter
 func (m *Manager) AddCharacter(char Character) bool {
 	// find out how many slots we have occupied
 	occupiedSlots := len(m.slotAssignments)
@@ -44,6 +57,7 @@ func (m *Manager) AddCharacter(char Character) bool {
 	return true
 }
 
+// RemoveCharacter
 func (m *Manager) RemoveCharacter(char Character) {
 	index, found := m.slotAssignments.find(char)
 	if found {
@@ -52,27 +66,27 @@ func (m *Manager) RemoveCharacter(char Character) {
 	}
 }
 
+// UpdateSlots
 func (m *Manager) UpdateSlots() {
-	// find the anchor point,
-	// @todo, should this be passed in as a closure?
 	anchor := m.getAnchorPoint()
+
 	anchorOrientation := anchor.Orientation()
 
 	// go through each character in turn
-	for i := range m.slotAssignments {
+	for _, assignment := range m.slotAssignments {
 
 		// ask for the location of the slot relative to the anchor point, this should be a Static
-		relativeLoc := m.pattern.SlotLocation(m.slotAssignments[i].slotNumber)
+		relativeLoc := m.pattern.SlotLocation(assignment.slotNumber)
 
 		// transform it by the anchor points position and orientation
 		pos := relativeLoc.Position().Rotate(anchorOrientation).Add(anchor.Position())
 		orientation := anchor.Orientation().NewMultiply(relativeLoc.Orientation())
 
 		// remove the drift component
-		//pos.Sub(m.driftOffset.Position())
+		pos.Sub(m.driftOffset.Position())
 		//orientation.Multiply(m.driftOffset.Orientation().NewInverse())
 
-		m.slotAssignments[i].character.SetTarget(&Model{
+		assignment.character.SetTarget(&Model{
 			position:    pos,
 			orientation: orientation,
 		})

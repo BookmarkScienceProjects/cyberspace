@@ -4,11 +4,6 @@ import (
 	. "github.com/stojg/vivere/lib/vector"
 )
 
-type Static interface {
-	Position() *Vector3
-	Orientation() *Quaternion
-}
-
 type Model struct {
 	position    *Vector3
 	orientation *Quaternion
