@@ -1,7 +1,7 @@
 package formation
 
 import (
-	. "github.com/stojg/vivere/lib/vector"
+	. "github.com/stojg/vector"
 )
 
 // Static could be anything that has a position and Orientation

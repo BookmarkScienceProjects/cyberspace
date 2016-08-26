@@ -1,7 +1,7 @@
 package formation
 
 import (
-	. "github.com/stojg/vivere/lib/vector"
+	"github.com/stojg/vector"
 	"math"
 )
 
@@ -27,8 +27,8 @@ func (p *DefensiveCirclePattern) DriftOffset(assignments SlotAssignments) Static
 
 	// store the center of mass
 	center := &Model{
-		position:    NewVector3(0, 0, 0),
-		orientation: NewQuaternion(0, 0, 0, 1),
+		position:    vector.NewVector3(0, 0, 0),
+		orientation: vector.NewQuaternion(0, 0, 0, 1),
 	}
 	// now go through each assignment and add its contribution to the center
 	for _, assignment := range assignments {
@@ -49,8 +49,8 @@ func (p *DefensiveCirclePattern) SlotLocation(slotNumber int) Static {
 
 	if p.numberOfSlots == 1 {
 		return &Model{
-			position:    NewVector3(0, 0, 0),
-			orientation: NewQuaternion(0, 0, 0, 1),
+			position:    vector.NewVector3(0, 0, 0),
+			orientation: vector.NewQuaternion(0, 0, 0, 1),
 		}
 	}
 	// we place the slots around a circle based on their slot number
@@ -61,12 +61,12 @@ func (p *DefensiveCirclePattern) SlotLocation(slotNumber int) Static {
 	radius := p.characterRadius / math.Sin(math.Pi/float64(p.numberOfSlots))
 	// create location, and fill its components based on the angle around circle
 	location := &Model{
-		position: NewVector3(
+		position: vector.NewVector3(
 			radius*math.Cos(angleAroundCircle),
 			0,
 			radius*math.Sin(angleAroundCircle),
 		),
-		orientation: NewQuaternion(0, 0, 0, 1),
+		orientation: vector.NewQuaternion(0, 0, 0, 1),
 	}
 	return location
 }

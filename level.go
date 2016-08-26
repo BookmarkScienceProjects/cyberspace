@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	. "github.com/stojg/cyberspace/lib/components"
+	. "github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
-	. "github.com/stojg/vivere/lib/vector"
 	"io"
 	"time"
 )

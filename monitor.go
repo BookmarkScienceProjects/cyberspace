@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/stojg/cyberspace/lib/components"
+	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
-	"github.com/stojg/vivere/lib/vector"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -145,7 +145,7 @@ func (m *awsMonitor) UpdateInstances(rootNode *TreeNode) {
 				}
 
 				if controllerList.Get(inst.ID) == nil {
-					controllerList.New(inst.ID, NewAI(inst.ID, model, body))
+					controllerList.New(inst.ID, newAI(inst.ID, model, body))
 				}
 
 				inst.Tree = rootNode

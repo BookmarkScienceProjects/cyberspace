@@ -2,7 +2,7 @@ package formation_test
 
 import (
 	"github.com/stojg/cyberspace/lib/formation"
-	"github.com/stojg/vivere/lib/vector"
+	"github.com/stojg/vector"
 	"testing"
 )
 

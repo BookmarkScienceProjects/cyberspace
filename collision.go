@@ -1,8 +1,8 @@
 package main
 
 import (
+	. "github.com/stojg/vector"
 	"github.com/stojg/vivere/lib/components"
-	. "github.com/stojg/vivere/lib/vector"
 	"github.com/volkerp/goquadtree/quadtree"
 	"math"
 )
@@ -24,18 +24,18 @@ func (a collisonBody) BoundingBox() quadtree.BoundingBox {
 
 type collisionSystem struct{}
 
-func (s *collisionSystem) Update(elapsed float64) {
+func (c *collisionSystem) Update(elapsed float64) {
 	// @todo sort collisions in the order of the most severe
 	for i := 0; i < 2; i++ {
-		collisions := s.Check()
+		collisions := c.Check()
 		for i := range collisions {
-			collisions[i].Resolve(elapsed)
+			collisions[i].resolve(elapsed)
 		}
 	}
 }
 
-func (s *collisionSystem) Check() []*Contact {
-	collisions := make([]*Contact, 0)
+func (c *collisionSystem) Check() []*contact {
+	var collisions []*contact
 
 	tree := quadtree.NewQuadTree(
 		quadtree.BoundingBox{
@@ -46,7 +46,7 @@ func (s *collisionSystem) Check() []*Contact {
 		},
 	)
 
-	bodies := make([]collisonBody, 0)
+	var bodies []collisonBody
 	for aID, a := range collisionList.All() {
 		body := collisonBody{
 			geometry: a.Geometry,
@@ -85,14 +85,14 @@ func (s *collisionSystem) Check() []*Contact {
 			}
 			checked[a][b], checked[b][a] = true, true
 
-			collisionPair := &Contact{
+			collisionPair := &contact{
 				a:           a,
 				b:           b.(collisonBody),
 				restitution: 0.2,
 				normal:      &Vector3{},
 			}
 
-			collision, hit := s.Detect(collisionPair)
+			collision, hit := c.Detect(collisionPair)
 			if hit {
 				collisions = append(collisions, collision)
 			}
@@ -103,22 +103,22 @@ func (s *collisionSystem) Check() []*Contact {
 
 }
 
-func (c *collisionSystem) Detect(pair *Contact) (*Contact, bool) {
+func (c *collisionSystem) Detect(pair *contact) (*contact, bool) {
 
 	switch pair.a.geometry.(type) {
 	case *components.Circle:
 		switch pair.b.geometry.(type) {
 		case *components.Circle:
-			CircleVsCircle(pair)
+			circleVsCircle(pair)
 		case *components.Rectangle:
-			CircleVsRectangle(pair)
+			circleVsRectangle(pair)
 		}
 	case *components.Rectangle:
 		switch pair.b.geometry.(type) {
 		case *components.Rectangle:
-			RectangleVsRectangle(pair)
+			rectangleVsRectangle(pair)
 		case *components.Circle:
-			RectangleVsCircle(pair)
+			rectangleVsCircle(pair)
 		}
 	default:
 		panic("unknown collision geometry")
@@ -126,7 +126,7 @@ func (c *collisionSystem) Detect(pair *Contact) (*Contact, bool) {
 	return pair, pair.IsIntersecting
 }
 
-type Contact struct {
+type contact struct {
 	a              collisonBody
 	b              collisonBody
 	restitution    float64
@@ -135,15 +135,15 @@ type Contact struct {
 	IsIntersecting bool
 }
 
-func (contact *Contact) Resolve(duration float64) {
+func (contact *contact) resolve(duration float64) {
 	contact.resolveVelocity(duration)
 	contact.resolveInterpenetration()
 }
 
 // resolveVelocity calculates the new velocity that is the result of the collision
-func (contact *Contact) resolveVelocity(duration float64) {
+func (contact *contact) resolveVelocity(duration float64) {
 	// Find the velocity in the direction of the contact normal
-	separatingVelocity := contact.SeparatingVelocity()
+	separatingVelocity := contact.separatingVelocity()
 
 	// The objects are already separating, NOP
 	if separatingVelocity > 0 {
@@ -192,7 +192,7 @@ func (contact *Contact) resolveVelocity(duration float64) {
 	}
 }
 
-func (contact *Contact) SeparatingVelocity() float64 {
+func (contact *contact) separatingVelocity() float64 {
 	relativeVel := contact.a.body.Velocity.Clone()
 	if contact.b.body != nil {
 		relativeVel.Sub(contact.b.body.Velocity)
@@ -201,7 +201,7 @@ func (contact *Contact) SeparatingVelocity() float64 {
 }
 
 // resolveInterpenetration separates two objects that has penetrated
-func (contact *Contact) resolveInterpenetration() {
+func (contact *contact) resolveInterpenetration() {
 
 	if contact.penetration <= 0 {
 		return
@@ -224,7 +224,7 @@ func (contact *Contact) resolveInterpenetration() {
 	}
 }
 
-func CircleVsCircle(contact *Contact) {
+func circleVsCircle(contact *contact) {
 	cA := contact.a.geometry.(*components.Circle)
 	cB := contact.b.geometry.(*components.Circle)
 
@@ -254,12 +254,12 @@ func CircleVsCircle(contact *Contact) {
 	contact.IsIntersecting = true
 }
 
-func CircleVsRectangle(contact *Contact) {
+func circleVsRectangle(contact *contact) {
 	contact.a, contact.b = contact.b, contact.a
-	RectangleVsCircle(contact)
+	rectangleVsCircle(contact)
 }
 
-func RectangleVsCircle(contact *Contact) {
+func rectangleVsCircle(contact *contact) {
 	rA := contact.a.geometry.(*components.Rectangle)
 	rA.ToWorld(contact.a.model.Position())
 
@@ -302,7 +302,7 @@ func RectangleVsCircle(contact *Contact) {
 	contact.IsIntersecting = true
 }
 
-func RectangleVsRectangle(contact *Contact) {
+func rectangleVsRectangle(contact *contact) {
 	rA := contact.a.geometry.(*components.Rectangle)
 	rB := contact.b.geometry.(*components.Rectangle)
 

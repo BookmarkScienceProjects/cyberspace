@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	verbosity int = verbosityNormal
+	verbosity = verbosityNormal
 )
 
 const (
-	verbosityNormal int = 0
-	verbosityDebug  int = 2
+	verbosityNormal = 0
+	verbosityDebug  = 2
 )
 
 func init() {
@@ -30,7 +30,7 @@ func init() {
 	}
 }
 
-func DebugFPS(framesPerSec float64) {
+func printFPS(framesPerSec float64) {
 	warningFPS := (1 / framesPerSec) - 1
 
 	go func() {

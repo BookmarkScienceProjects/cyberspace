@@ -43,7 +43,7 @@ func main() {
 
 	Println("Starting the game loop")
 	// @todo fix race condition on the global Frame var
-	DebugFPS(frameRate)
+	printFPS(frameRate)
 
 	for {
 

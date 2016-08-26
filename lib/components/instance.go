@@ -3,8 +3,8 @@ package components
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
-	"github.com/stojg/vivere/lib/vector"
 	"math"
 	"strings"
 )

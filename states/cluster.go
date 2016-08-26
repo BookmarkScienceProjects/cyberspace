@@ -3,11 +3,11 @@ package states
 import (
 	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/steering"
+	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
-	. "github.com/stojg/vivere/lib/vector"
 )
 
-func NewCluster(e *Entity, i *Instance, m *Model, r *RigidBody, target *Vector3) *Cluster {
+func NewCluster(e *Entity, i *Instance, m *Model, r *RigidBody, target *vector.Vector3) *Cluster {
 	return &Cluster{
 		entity:   e,
 		instance: i,
@@ -22,7 +22,7 @@ type Cluster struct {
 	instance     *Instance
 	body         *RigidBody
 	model        *Model
-	target       *Vector3
+	target       *vector.Vector3
 	prevSteering float64
 }
 

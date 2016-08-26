@@ -6,7 +6,7 @@ import (
 	. "github.com/stojg/vivere/lib/components"
 )
 
-func NewAI(ent *Entity, model *Model, body *RigidBody) *ai {
+func newAI(ent *Entity, model *Model, body *RigidBody) *ai {
 	inst := monitor.FindByEntityID(*ent)
 	return &ai{
 		instance: inst,

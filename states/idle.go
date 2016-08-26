@@ -3,8 +3,8 @@ package states
 import (
 	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/steering"
+	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
-	. "github.com/stojg/vivere/lib/vector"
 )
 
 func NewIdle(e *Entity, i *Instance, m *Model, r *RigidBody) *Idle {
@@ -30,7 +30,7 @@ func (s *Idle) Update() State {
 		return nil
 	}
 
-	midpoint := &Vector3{}
+	midpoint := &vector.Vector3{}
 	for i := range positions {
 		midpoint.Add(positions[i])
 	}
@@ -50,7 +50,7 @@ func (s *Idle) Steering() *SteeringOutput {
 	}
 	if s.body.Rotation.Length() < s.instance.CPUUtilization/80 {
 		steer := NewSteeringOutput()
-		steer.SetAngular(&Vector3{0, 1, 0})
+		steer.SetAngular(&vector.Vector3{0, 1, 0})
 		return steer
 	}
 	return nil

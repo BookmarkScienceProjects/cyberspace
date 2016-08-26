@@ -3,8 +3,8 @@ package states
 import (
 	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/steering"
+	. "github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
-	. "github.com/stojg/vivere/lib/vector"
 )
 
 type State interface {
