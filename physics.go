@@ -4,9 +4,9 @@ import (
 	"math"
 )
 
-type PhysicSystem struct{}
+type physicSystem struct{}
 
-func (s *PhysicSystem) Update(elapsed float64) {
+func (s *physicSystem) Update(elapsed float64) {
 
 	for i, body := range rigidList.All() {
 

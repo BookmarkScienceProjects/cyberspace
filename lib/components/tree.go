@@ -14,7 +14,6 @@ func NewTree(name string, level int) *TreeNode {
 }
 
 type TreeNode struct {
-	parent    *TreeNode
 	level     int
 	name      string
 	children  []*TreeNode
@@ -27,9 +26,7 @@ func (c *TreeNode) Siblings(name string) []*Instance {
 	if len(names) == 1 {
 		var sib []*Instance
 		for _, child := range c.children {
-			for _, instance := range child.instances {
-				sib = append(sib, instance)
-			}
+			sib = append(sib, child.instances...)
 		}
 		return sib
 	}

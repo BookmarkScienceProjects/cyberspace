@@ -22,7 +22,6 @@ type Cluster struct {
 	instance     *Instance
 	body         *RigidBody
 	model        *Model
-	steering     Steering
 	target       *Vector3
 	prevSteering float64
 }

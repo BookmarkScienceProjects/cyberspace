@@ -8,15 +8,11 @@ import (
 )
 
 const (
-	SEC_PER_UPDATE float64 = 0.016
+	frameRate float64 = 0.016
 )
 
-type Updatable interface {
-	Update(elapsed float64)
-}
-
 var (
-	Frame uint
+	currentFrame uint
 )
 
 func init() {
@@ -40,14 +36,14 @@ func handleMessage(c *client.Client, msg client.ClientCommand) {
 
 func main() {
 
-	level := NewLevel(monitor)
+	level := newLevel(monitor)
 
-	var previous time.Time = time.Now()
-	var lag float64 = 0
+	previous := time.Now()
+	lag := 0.0
 
 	Println("Starting the game loop")
 	// @todo fix race condition on the global Frame var
-	DebugFPS(SEC_PER_UPDATE)
+	DebugFPS(frameRate)
 
 	for {
 
@@ -59,7 +55,7 @@ func main() {
 			}
 		}
 
-		Frame += 1
+		currentFrame++
 		now := time.Now()
 		elapsed := now.Sub(previous).Seconds()
 		previous = now
@@ -73,9 +69,9 @@ func main() {
 				client.Update(buf, 1)
 			}
 		}
-		lag -= SEC_PER_UPDATE
+		lag -= frameRate
 
 		// save some CPU cycles by sleeping for a while
-		time.Sleep(time.Duration((SEC_PER_UPDATE-lag)*1000) * time.Millisecond)
+		time.Sleep(time.Duration((frameRate-lag)*1000) * time.Millisecond)
 	}
 }

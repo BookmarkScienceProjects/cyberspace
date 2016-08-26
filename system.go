@@ -1,16 +1,16 @@
 package main
 
-type Literal byte
+type literal byte
 
 const (
-	INST_ENTITY_ID       Literal = 1
-	INST_SET_POSITION    Literal = 2
-	INST_SET_ORIENTATION Literal = 3
-	INST_SET_TYPE        Literal = 4
-	INST_SET_SCALE       Literal = 5
-	INST_SET_HEALTH      Literal = 6
+	instEntityID    literal = 1
+	instPosition    literal = 2
+	instOrientation literal = 3
+	instType        literal = 4
+	instScale       literal = 5
+	instHealth      literal = 6
 )
 
-type System interface {
+type system interface {
 	Update(elapsed float64)
 }

@@ -4,32 +4,29 @@ import (
 	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/cyberspace/states"
 	. "github.com/stojg/vivere/lib/components"
-	"github.com/stojg/vivere/lib/vector"
 )
 
-func NewAI(ent *Entity, model *Model, body *RigidBody) *AI {
+func NewAI(ent *Entity, model *Model, body *RigidBody) *ai {
 	inst := monitor.FindByEntityID(*ent)
-	ai := &AI{
+	return &ai{
 		instance: inst,
 		entity:   ent,
 		model:    model,
 		body:     body,
 		state:    NewIdle(ent, inst, model, body),
 	}
-	return ai
 }
 
-type AI struct {
+type ai struct {
 	entity   *Entity
 	instance *Instance
 	model    *Model
 	body     *RigidBody
-	target   *vector.Vector3
 	state    State
 	reminder float64
 }
 
-func (s *AI) Update(elapsed float64) {
+func (s *ai) Update(elapsed float64) {
 
 	//we only update the state every 100ms
 	s.reminder += elapsed

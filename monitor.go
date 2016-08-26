@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,11 +17,11 @@ import (
 	"time"
 )
 
-var monitor *Monitor
+var monitor *awsMonitor
 
 func init() {
 
-	monitor = &Monitor{
+	monitor = &awsMonitor{
 		instances: make(map[string]*Instance),
 	}
 
@@ -48,19 +47,19 @@ func init() {
 		if err != nil {
 			Printf("Error during info json marshalling: %s", err)
 		}
-		w.Write(t)
+
+		if _, err := w.Write(t); err != nil {
+			Printf("error for /monitor endpoint %s", err)
+		}
 	})
 }
 
-type Monitor struct {
+type awsMonitor struct {
 	sync.Mutex
 	instances map[string]*Instance
-	clusters  map[string]*TreeNode
-	position  *vector.Vector3
-	area      float64
 }
 
-func (m *Monitor) FindByEntityID(id Entity) *Instance {
+func (m *awsMonitor) FindByEntityID(id Entity) *Instance {
 	m.Lock()
 	defer m.Unlock()
 	for _, inst := range m.instances {
@@ -74,7 +73,7 @@ func (m *Monitor) FindByEntityID(id Entity) *Instance {
 	return nil
 }
 
-func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
+func (m *awsMonitor) UpdateInstances(rootNode *TreeNode) {
 
 	regions := []*string{
 		aws.String("us-east-1"),
@@ -159,7 +158,7 @@ func (m *Monitor) UpdateInstances(rootNode *TreeNode) {
 	Printf("%d instance found", instanceCount)
 }
 
-func (m *Monitor) SetMetrics(inst *Instance, region *string) {
+func (m *awsMonitor) SetMetrics(inst *Instance, region *string) {
 
 	if inst.State != "running" {
 		inst.CPUUtilization = 0
@@ -188,7 +187,7 @@ func (m *Monitor) SetMetrics(inst *Instance, region *string) {
 	}
 }
 
-func (m *Monitor) GetEc2Metric(instanceID, metricName string, cw *cloudwatch.CloudWatch) (float64, error) {
+func (m *awsMonitor) GetEc2Metric(instanceID, metricName string, cw *cloudwatch.CloudWatch) (float64, error) {
 	endTime := time.Now()
 	startTime := endTime.Add(-10 * time.Minute)
 	period := int64(3600)
@@ -217,5 +216,5 @@ func (m *Monitor) GetEc2Metric(instanceID, metricName string, cw *cloudwatch.Clo
 		return *metrics.Datapoints[0].Average, nil
 
 	}
-	return 0, errors.New(fmt.Sprintf("No datapoints for %s and metric %s", instanceID, metricName))
+	return 0, fmt.Errorf("No datapoints for %s and metric %s", instanceID, metricName)
 }

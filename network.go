@@ -1,21 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
-	"fmt"
 	"github.com/stojg/vivere/lib/client"
-	. "github.com/stojg/vivere/lib/components"
-	. "github.com/stojg/vivere/lib/vector"
 	"golang.org/x/net/websocket"
 	"net/http"
 )
 
 var clients []*client.Client
-
-type ServerInfo struct {
-	Name string
-}
 
 func init() {
 	Println("Inititalising Network")
@@ -39,44 +30,9 @@ func init() {
 	}()
 
 	go func(client chan *client.Client) {
-		for {
-			select {
-			case newClient := <-client:
-				Println("New client connected")
-				clients = append(clients, newClient)
-			}
+		for newClient := range client {
+			Println("New client connected")
+			clients = append(clients, newClient)
 		}
 	}(ch.NewClients())
-}
-
-func binaryStream(buf *bytes.Buffer, lit Literal, val interface{}) {
-	binary.Write(buf, binary.LittleEndian, lit)
-	switch val.(type) {
-	case uint8:
-		binary.Write(buf, binary.LittleEndian, byte(val.(uint8)))
-	case uint16:
-		binary.Write(buf, binary.LittleEndian, float32(val.(uint16)))
-	case uint32:
-		binary.Write(buf, binary.LittleEndian, float32(val.(uint32)))
-	case EntityType:
-		binary.Write(buf, binary.LittleEndian, float32(val.(EntityType)))
-	case float32:
-		binary.Write(buf, binary.LittleEndian, float32(val.(float32)))
-	case float64:
-		binary.Write(buf, binary.LittleEndian, float32(val.(float64)))
-	case Entity:
-		binary.Write(buf, binary.LittleEndian, float32(val.(Entity)))
-	case *Vector3:
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Vector3)[0]))
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Vector3)[1]))
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Vector3)[2]))
-	case *Quaternion:
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).R))
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).I))
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).J))
-		binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).K))
-	default:
-		panic(fmt.Errorf("Havent found out how to serialise literal %v with value of type '%T'", lit, val))
-	}
-
 }

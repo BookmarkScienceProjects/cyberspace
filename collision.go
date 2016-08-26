@@ -22,9 +22,9 @@ func (a collisonBody) BoundingBox() quadtree.BoundingBox {
 	}
 }
 
-type CollisionSystem struct{}
+type collisionSystem struct{}
 
-func (s *CollisionSystem) Update(elapsed float64) {
+func (s *collisionSystem) Update(elapsed float64) {
 	// @todo sort collisions in the order of the most severe
 	for i := 0; i < 2; i++ {
 		collisions := s.Check()
@@ -34,7 +34,7 @@ func (s *CollisionSystem) Update(elapsed float64) {
 	}
 }
 
-func (s *CollisionSystem) Check() []*Contact {
+func (s *collisionSystem) Check() []*Contact {
 	collisions := make([]*Contact, 0)
 
 	tree := quadtree.NewQuadTree(
@@ -103,7 +103,7 @@ func (s *CollisionSystem) Check() []*Contact {
 
 }
 
-func (c *CollisionSystem) Detect(pair *Contact) (*Contact, bool) {
+func (c *collisionSystem) Detect(pair *Contact) (*Contact, bool) {
 
 	switch pair.a.geometry.(type) {
 	case *components.Circle:

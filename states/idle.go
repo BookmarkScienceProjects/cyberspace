@@ -21,7 +21,6 @@ type Idle struct {
 	instance *Instance
 	body     *RigidBody
 	model    *Model
-	steering Steering
 }
 
 func (s *Idle) Update() State {

@@ -40,11 +40,11 @@ func TestDefensiveCirclePattern_DriftOffset(t *testing.T) {
 
 	expects := vector.NewVector3(-10, 0, 0)
 	if !firstChar.target.Position().Equals(expects) {
-		t.Errorf("Pos should be %s, got %s", expects, firstChar.target.Position())
+		t.Errorf("Pos should be %v, got %v", expects, firstChar.target.Position())
 	}
 	expects = vector.NewVector3(10, 0, 0)
 	if !secondChar.target.Position().Equals(expects) {
-		t.Errorf("Pos should be %s, got %s", expects, secondChar.target.Position())
+		t.Errorf("Pos should be %v, got %v", expects, secondChar.target.Position())
 	}
 
 }
@@ -71,7 +71,7 @@ func TestDefensiveCirclePattern_SlotLocation(t *testing.T) {
 		pattern := formation.NewDefensiveCircle(10, tt.initSlotNumber)
 		loc := pattern.SlotLocation(tt.slotNumber)
 		if !loc.Position().Equals(tt.expected) {
-			t.Errorf("Pos should be %s, got %s", tt.expected, loc.Position())
+			t.Errorf("Pos should be %v, got %v", tt.expected, loc.Position())
 		}
 	}
 }

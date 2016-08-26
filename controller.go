@@ -1,8 +1,8 @@
 package main
 
-type ControllerSystem struct{}
+type controllerSystem struct{}
 
-func (s *ControllerSystem) Update(elapsed float64) {
+func (s *controllerSystem) Update(elapsed float64) {
 
 	for _, move := range controllerList.All() {
 		move.Update(elapsed)

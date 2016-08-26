@@ -3,8 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/vivere/lib/components"
+	. "github.com/stojg/vivere/lib/vector"
+	"io"
 	"time"
 )
 
@@ -16,7 +19,7 @@ var (
 	controllerList *ControllerList
 )
 
-func NewLevel(monitor *Monitor) *Level {
+func newLevel(monitor *awsMonitor) *level {
 	entities = NewEntityManager()
 	modelList = NewModelList()
 	rigidList = NewRigidBodyManager()
@@ -34,36 +37,86 @@ func NewLevel(monitor *Monitor) *Level {
 		}
 	}()
 
-	lvl := &Level{}
-	lvl.systems = append(lvl.systems, &PhysicSystem{})
-	lvl.systems = append(lvl.systems, &ControllerSystem{})
-	lvl.systems = append(lvl.systems, &CollisionSystem{})
+	lvl := &level{}
+	lvl.systems = append(lvl.systems, &physicSystem{})
+	lvl.systems = append(lvl.systems, &controllerSystem{})
+	lvl.systems = append(lvl.systems, &collisionSystem{})
 	return lvl
 }
 
-type Level struct {
-	systems []System
+type level struct {
+	systems []system
 }
 
-func (l *Level) Update(elapsed float64) {
+func (l *level) Update(elapsed float64) {
 	for i := range l.systems {
 		l.systems[i].Update(elapsed)
 	}
 }
 
-func (l *Level) Draw() *bytes.Buffer {
+func (l *level) Draw() *bytes.Buffer {
 	buf := &bytes.Buffer{}
-	binary.Write(buf, binary.LittleEndian, float32(Frame))
+	err := binary.Write(buf, binary.LittleEndian, float32(currentFrame))
+	if err != nil {
+		Printf("Draw() error %s", err)
+	}
 
 	for id, component := range modelList.All() {
-		binaryStream(buf, INST_ENTITY_ID, *id)
-		binaryStream(buf, INST_SET_POSITION, component.Position())
-		binaryStream(buf, INST_SET_ORIENTATION, component.Orientation())
-		binaryStream(buf, INST_SET_TYPE, component.Model)
-		binaryStream(buf, INST_SET_SCALE, component.Scale)
+		if err := binaryStream(buf, instEntityID, *id); err != nil {
+			Printf("binarystream error %s", err)
+		}
+		if err := binaryStream(buf, instPosition, component.Position()); err != nil {
+			Printf("binarystream error %s", err)
+		}
+		if err := binaryStream(buf, instOrientation, component.Orientation()); err != nil {
+			Printf("binarystream error %s", err)
+		}
+		if err := binaryStream(buf, instType, component.Model); err != nil {
+			Printf("binarystream error %s", err)
+		}
+		if err := binaryStream(buf, instScale, component.Scale); err != nil {
+			Printf("binarystream error %s", err)
+		}
 		inst := monitor.FindByEntityID(*id)
-		binaryStream(buf, INST_SET_HEALTH, inst.Health())
+		if err := binaryStream(buf, instHealth, inst.Health()); err != nil {
+			Printf("binarystream error %s", err)
+		}
 	}
 
 	return buf
+}
+
+func binaryStream(buf io.Writer, lit literal, val interface{}) error {
+	var err error
+	if err = binary.Write(buf, binary.LittleEndian, lit); err != nil {
+		return err
+	}
+	switch val.(type) {
+	case uint8:
+		err = binary.Write(buf, binary.LittleEndian, val.(uint8))
+	case uint16:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(uint16)))
+	case uint32:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(uint32)))
+	case EntityType:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(EntityType)))
+	case float32:
+		err = binary.Write(buf, binary.LittleEndian, val.(float32))
+	case float64:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(float64)))
+	case Entity:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(Entity)))
+	case *Vector3:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Vector3)[0]))
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Vector3)[1]))
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Vector3)[2]))
+	case *Quaternion:
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).R))
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).I))
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).J))
+		err = binary.Write(buf, binary.LittleEndian, float32(val.(*Quaternion).K))
+	default:
+		panic(fmt.Errorf("Havent found out how to serialise literal %v with value of type '%T'", lit, val))
+	}
+	return err
 }
