@@ -9,7 +9,7 @@ func NewTree(name string, level int) *TreeNode {
 		level:     level,
 		name:      name,
 		children:  make([]*TreeNode, 0),
-		instances: make([]*Instance, 0),
+		instances: make([]*AWSInstance, 0),
 	}
 }
 
@@ -17,14 +17,14 @@ type TreeNode struct {
 	level     int
 	name      string
 	children  []*TreeNode
-	instances []*Instance
+	instances []*AWSInstance
 }
 
-func (c *TreeNode) Siblings(name string) []*Instance {
+func (c *TreeNode) Siblings(name string) []*AWSInstance {
 	names := strings.Split(name, ".")
 
 	if len(names) == 1 {
-		var sib []*Instance
+		var sib []*AWSInstance
 		for _, child := range c.children {
 			sib = append(sib, child.instances...)
 		}
@@ -38,7 +38,7 @@ func (c *TreeNode) Siblings(name string) []*Instance {
 	return nil
 }
 
-func (c *TreeNode) Add(i *Instance) {
+func (c *TreeNode) Add(i *AWSInstance) {
 	names := strings.Split(i.Name, ".")
 
 	if len(names) <= c.level+1 {

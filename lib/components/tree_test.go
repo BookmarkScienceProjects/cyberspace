@@ -9,15 +9,15 @@ func TestTreeAdd(t *testing.T) {
 
 	tree := NewTree("asd", -1)
 
-	tree.Add(&Instance{
+	tree.Add(&AWSInstance{
 		Name:       "first.stack",
 		InstanceID: "i-1",
 	})
-	tree.Add(&Instance{
+	tree.Add(&AWSInstance{
 		Name:       "first.rds",
 		InstanceID: "i-2",
 	})
-	tree.Add(&Instance{
+	tree.Add(&AWSInstance{
 		Name:       "second.stack",
 		InstanceID: "i-2",
 	})

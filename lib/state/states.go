@@ -1,4 +1,4 @@
-package states
+package state
 
 import (
 	. "github.com/stojg/cyberspace/lib/components"
@@ -12,7 +12,7 @@ type State interface {
 	Update() State
 }
 
-func FindSiblings(instance *Instance, model *Model, inclusive bool) []*Vector3 {
+func siblings(instance *AWSInstance, model *Model, inclusive bool) []*Vector3 {
 	var positions []*Vector3
 	for _, i := range instance.Tree.Siblings(instance.Name) {
 		if i == instance && !inclusive {

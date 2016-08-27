@@ -2,7 +2,7 @@ package main
 
 import (
 	. "github.com/stojg/cyberspace/lib/components"
-	. "github.com/stojg/cyberspace/states"
+	"github.com/stojg/cyberspace/lib/state"
 	. "github.com/stojg/vivere/lib/components"
 )
 
@@ -13,16 +13,16 @@ func newAI(ent *Entity, model *Model, body *RigidBody) *ai {
 		entity:   ent,
 		model:    model,
 		body:     body,
-		state:    NewIdle(ent, inst, model, body),
+		state:    state.NewIdle(ent, inst, model, body),
 	}
 }
 
 type ai struct {
 	entity   *Entity
-	instance *Instance
+	instance *AWSInstance
 	model    *Model
 	body     *RigidBody
-	state    State
+	state    state.State
 	reminder float64
 }
 
@@ -39,7 +39,7 @@ func (s *ai) Update(elapsed float64) {
 	}
 
 	if s.state == nil {
-		s.state = NewIdle(s.entity, s.instance, s.model, s.body)
+		s.state = state.NewIdle(s.entity, s.instance, s.model, s.body)
 	}
 
 	steering := s.state.Steering()

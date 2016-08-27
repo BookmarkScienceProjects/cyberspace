@@ -22,7 +22,7 @@ var monitor *awsMonitor
 func init() {
 
 	monitor = &awsMonitor{
-		instances: make(map[string]*Instance),
+		instances: make(map[string]*AWSInstance),
 	}
 
 	http.HandleFunc("/monitor", func(w http.ResponseWriter, r *http.Request) {
@@ -56,10 +56,10 @@ func init() {
 
 type awsMonitor struct {
 	sync.Mutex
-	instances map[string]*Instance
+	instances map[string]*AWSInstance
 }
 
-func (m *awsMonitor) FindByEntityID(id Entity) *Instance {
+func (m *awsMonitor) FindByEntityID(id Entity) *AWSInstance {
 	m.Lock()
 	defer m.Unlock()
 	for _, inst := range m.instances {
@@ -107,7 +107,7 @@ func (m *awsMonitor) UpdateInstances(rootNode *TreeNode) {
 				inst, ok := m.instances[*ec2Inst.InstanceId]
 				if !ok {
 					e := entities.Create()
-					inst = &Instance{
+					inst = &AWSInstance{
 						ID:               e,
 						CPUCreditBalance: 100,
 					}
@@ -158,7 +158,7 @@ func (m *awsMonitor) UpdateInstances(rootNode *TreeNode) {
 	Printf("%d instance found", instanceCount)
 }
 
-func (m *awsMonitor) SetMetrics(inst *Instance, region *string) {
+func (m *awsMonitor) SetMetrics(inst *AWSInstance, region *string) {
 
 	if inst.State != "running" {
 		inst.CPUUtilization = 0

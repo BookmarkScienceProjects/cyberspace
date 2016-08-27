@@ -1,4 +1,4 @@
-package states
+package state
 
 import (
 	. "github.com/stojg/cyberspace/lib/components"
@@ -7,7 +7,7 @@ import (
 	. "github.com/stojg/vivere/lib/components"
 )
 
-func NewIdle(e *Entity, i *Instance, m *Model, r *RigidBody) *Idle {
+func NewIdle(e *Entity, i *AWSInstance, m *Model, r *RigidBody) *Idle {
 	return &Idle{
 		entity:   e,
 		instance: i,
@@ -18,13 +18,13 @@ func NewIdle(e *Entity, i *Instance, m *Model, r *RigidBody) *Idle {
 
 type Idle struct {
 	entity   *Entity
-	instance *Instance
+	instance *AWSInstance
 	body     *RigidBody
 	model    *Model
 }
 
 func (s *Idle) Update() State {
-	positions := FindSiblings(s.instance, s.model, true)
+	positions := siblings(s.instance, s.model, true)
 
 	if len(positions) < 2 {
 		return nil

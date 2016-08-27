@@ -8,6 +8,7 @@ import (
 	. "github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"io"
+	"sync/atomic"
 	"time"
 )
 
@@ -56,7 +57,7 @@ func (l *level) Update(elapsed float64) {
 
 func (l *level) Draw() *bytes.Buffer {
 	buf := &bytes.Buffer{}
-	err := binary.Write(buf, binary.LittleEndian, float32(currentFrame))
+	err := binary.Write(buf, binary.LittleEndian, float32(atomic.LoadUint64(&currentFrame)))
 	if err != nil {
 		Printf("Draw() error %s", err)
 	}

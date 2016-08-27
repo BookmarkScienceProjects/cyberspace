@@ -1,4 +1,4 @@
-package states
+package state
 
 import (
 	. "github.com/stojg/cyberspace/lib/components"
@@ -7,7 +7,7 @@ import (
 	. "github.com/stojg/vivere/lib/components"
 )
 
-func NewCluster(e *Entity, i *Instance, m *Model, r *RigidBody, target *vector.Vector3) *Cluster {
+func NewCluster(e *Entity, i *AWSInstance, m *Model, r *RigidBody, target *vector.Vector3) *Cluster {
 	return &Cluster{
 		entity:   e,
 		instance: i,
@@ -19,7 +19,7 @@ func NewCluster(e *Entity, i *Instance, m *Model, r *RigidBody, target *vector.V
 
 type Cluster struct {
 	entity       *Entity
-	instance     *Instance
+	instance     *AWSInstance
 	body         *RigidBody
 	model        *Model
 	target       *vector.Vector3
@@ -33,7 +33,7 @@ func (s *Cluster) Steering() *SteeringOutput {
 	arrive := NewArrive(s.model, s.body, s.target, 100, s.model.Scale[0]*1, s.model.Scale[0]*4).Get()
 	steering.Linear().Add(arrive.Linear())
 
-	targets := FindSiblings(s.instance, s.model, false)
+	targets := siblings(s.instance, s.model, false)
 	if len(targets) > 0 {
 		separation := NewSeparation(s.model, s.body, targets, s.model.Scale[0]*2).Get()
 		steering.Linear().Add(separation.Linear())

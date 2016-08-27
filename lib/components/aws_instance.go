@@ -27,7 +27,7 @@ func init() {
 	}
 }
 
-type Instance struct {
+type AWSInstance struct {
 	ID               *Entity
 	Cluster          string
 	Stack            string
@@ -48,7 +48,7 @@ type Instance struct {
 	Position *vector.Vector3
 }
 
-func (inst *Instance) Health() float64 {
+func (inst *AWSInstance) Health() float64 {
 
 	maxHealth := 1.0
 
@@ -61,7 +61,7 @@ func (inst *Instance) Health() float64 {
 	return maxHealth - inst.CPUUtilization/100.0
 }
 
-func (inst *Instance) Update(ec2Inst *ec2.Instance) {
+func (inst *AWSInstance) Update(ec2Inst *ec2.Instance) {
 
 	inst.InstanceID = *ec2Inst.InstanceId
 	inst.InstanceType = *ec2Inst.InstanceType
@@ -104,6 +104,6 @@ func (inst *Instance) Update(ec2Inst *ec2.Instance) {
 	}
 }
 
-func (i *Instance) String() string {
+func (i *AWSInstance) String() string {
 	return fmt.Sprintf("%s %s %s\t%s\t%s", i.Cluster, i.Stack, i.Environment, i.InstanceType, i.InstanceID)
 }
