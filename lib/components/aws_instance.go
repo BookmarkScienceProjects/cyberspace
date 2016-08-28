@@ -1,12 +1,14 @@
 package components
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"math"
 	"strings"
+	"sync"
 )
 
 var typeToCost map[string]float64
@@ -28,6 +30,7 @@ func init() {
 }
 
 type AWSInstance struct {
+	sync.Mutex
 	ID               *Entity
 	Cluster          string
 	Stack            string
@@ -38,14 +41,54 @@ type AWSInstance struct {
 	Scale            vector.Vector3
 	State            string
 	Name             string
-	CPUUtilization   float64
-	CPUCreditBalance float64
+	cpuUtilization   float64
+	cpuCreditBalance float64
 	PrivateIP        string
 	PublicIP         string
 	Tree             *TreeNode
 
 	// Position is cached here from the model
 	Position *vector.Vector3
+}
+
+func (inst *AWSInstance) MarshalJSON() ([]byte, error) {
+	inst.Lock()
+	defer inst.Unlock()
+	
+	return json.Marshal(map[string]interface{}{
+		"Name":             inst.Name,
+		"InstanceID":       inst.InstanceID,
+		"InstanceType":     inst.InstanceType,
+		"HasCredits":       inst.HasCredits,
+		"CPUUtilization":   inst.cpuUtilization,
+		"CPUCreditBalance": inst.cpuCreditBalance,
+		"PrivateIP":        inst.PrivateIP,
+		"PublicIP":         inst.PublicIP,
+	})
+}
+
+func (inst *AWSInstance) SetCPUUtilization(v float64) {
+	inst.Lock()
+	defer inst.Unlock()
+	inst.cpuUtilization = v
+}
+
+func (inst *AWSInstance) CPUUtilization() float64 {
+	inst.Lock()
+	defer inst.Unlock()
+	return inst.cpuUtilization
+}
+
+func (inst *AWSInstance) SetCPUCreditBalance(v float64) {
+	inst.Lock()
+	defer inst.Unlock()
+	inst.cpuCreditBalance = v
+}
+
+func (inst *AWSInstance) CPUCreditBalance() float64 {
+	inst.Lock()
+	defer inst.Unlock()
+	return inst.cpuCreditBalance
 }
 
 func (inst *AWSInstance) Health() float64 {
@@ -55,10 +98,10 @@ func (inst *AWSInstance) Health() float64 {
 	if inst.State != "running" {
 		return maxHealth
 	}
-	if inst.HasCredits && inst.CPUCreditBalance < 10 {
+	if inst.HasCredits && inst.CPUCreditBalance() < 10 {
 		return 0.0
 	}
-	return maxHealth - inst.CPUUtilization/100.0
+	return maxHealth - inst.CPUUtilization()/100.0
 }
 
 func (inst *AWSInstance) Update(ec2Inst *ec2.Instance) {

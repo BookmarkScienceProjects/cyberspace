@@ -45,10 +45,10 @@ func (s *Idle) Update() State {
 }
 
 func (s *Idle) Steering() *SteeringOutput {
-	if s.instance.CPUUtilization < 5.0 {
+	if s.instance.CPUUtilization() < 5.0 {
 		return nil
 	}
-	if s.body.Rotation.Length() < s.instance.CPUUtilization/80 {
+	if s.body.Rotation.Length() < s.instance.CPUUtilization()/80 {
 		steer := NewSteeringOutput()
 		steer.SetAngular(&vector.Vector3{0, 1, 0})
 		return steer

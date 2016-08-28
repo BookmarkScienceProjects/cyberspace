@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -43,7 +42,7 @@ func init() {
 
 		found := monitor.FindByEntityID(Entity(realID))
 
-		t, err := json.Marshal(found)
+		t, err := found.MarshalJSON()
 		if err != nil {
 			Printf("Error during info json marshalling: %s", err)
 		}
@@ -108,9 +107,9 @@ func (m *awsMonitor) UpdateInstances(rootNode *TreeNode) {
 				if !ok {
 					e := entities.Create()
 					inst = &AWSInstance{
-						ID:               e,
-						CPUCreditBalance: 100,
+						ID: e,
 					}
+					inst.SetCPUCreditBalance(100)
 				}
 				m.Lock()
 				m.instances[*ec2Inst.InstanceId] = inst
@@ -161,7 +160,7 @@ func (m *awsMonitor) UpdateInstances(rootNode *TreeNode) {
 func (m *awsMonitor) SetMetrics(inst *AWSInstance, region *string) {
 
 	if inst.State != "running" {
-		inst.CPUUtilization = 0
+		inst.SetCPUUtilization(0)
 		return
 	}
 
@@ -171,7 +170,7 @@ func (m *awsMonitor) SetMetrics(inst *AWSInstance, region *string) {
 	if err != nil {
 		Printf("%s", err)
 	} else {
-		inst.CPUUtilization = point
+		inst.SetCPUUtilization(point)
 	}
 
 	time.Sleep(10 * time.Millisecond)
@@ -181,7 +180,7 @@ func (m *awsMonitor) SetMetrics(inst *AWSInstance, region *string) {
 		if err != nil {
 			Printf("%s", err)
 		} else {
-			inst.CPUCreditBalance = point
+			inst.SetCPUCreditBalance(point)
 		}
 		time.Sleep(1000 * time.Millisecond)
 	}

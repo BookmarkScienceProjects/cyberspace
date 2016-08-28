@@ -2,6 +2,7 @@ package components
 
 import (
 	"strings"
+	"sync"
 )
 
 func NewTree(name string, level int) *TreeNode {
@@ -14,17 +15,23 @@ func NewTree(name string, level int) *TreeNode {
 }
 
 type TreeNode struct {
-	level     int
-	name      string
-	children  []*TreeNode
+	level int
+	name  string
+
 	instances []*AWSInstance
+
+	sync.Mutex
+	children []*TreeNode
 }
 
 func (c *TreeNode) Siblings(name string) []*AWSInstance {
 	names := strings.Split(name, ".")
 
+	c.Lock()
+	defer c.Unlock()
 	if len(names) == 1 {
 		var sib []*AWSInstance
+
 		for _, child := range c.children {
 			sib = append(sib, child.instances...)
 		}
@@ -40,6 +47,9 @@ func (c *TreeNode) Siblings(name string) []*AWSInstance {
 
 func (c *TreeNode) Add(i *AWSInstance) {
 	names := strings.Split(i.Name, ".")
+
+	c.Lock()
+	defer c.Unlock()
 
 	if len(names) <= c.level+1 {
 		c.instances = append(c.instances, i)
