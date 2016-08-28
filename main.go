@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/stojg/vivere/lib/client"
-	"github.com/stojg/vivere/lib/components"
 	"math/rand"
 	"sync/atomic"
 	"time"
@@ -24,6 +22,8 @@ func main() {
 
 	level := newLevel(monitor)
 
+	hub := initNetwork()
+
 	previous := time.Now()
 	lag := 0.0
 
@@ -33,13 +33,13 @@ func main() {
 
 	for {
 
-		for _, client := range clients {
-			select {
-			case msg := <-client.Input():
-				handleInput(client, msg)
-			default:
-			}
-		}
+		//for _, client := range clients {
+		//	select {
+		//	case msg := <-client.Input():
+		//		handleInput(client, msg)
+		//	default:
+		//	}
+		//}
 
 		atomic.AddUint64(&currentFrame, 1)
 		now := time.Now()
@@ -51,8 +51,8 @@ func main() {
 
 		buf := level.Draw()
 		if buf.Len() > 0 {
-			for _, client := range clients {
-				client.Update(buf, 1)
+			if _, err := hub.Write(buf.Bytes()); err != nil {
+				Printf("network error: %s", err)
 			}
 		}
 		lag -= frameRate
@@ -62,17 +62,17 @@ func main() {
 	}
 }
 
-func handleInput(c *client.Client, msg client.ClientCommand) {
-	Printf("received message type: %d seq %d, Actions %d", msg.Type, msg.Sequence, msg.Data)
-	switch msg.Type {
-	case 2:
-		inst := monitor.FindByEntityID(components.Entity(msg.Data))
-		Printf("%v", inst)
-	//buf := &bytes.Buffer{}
-	//binary.Write(buf, binary.LittleEndian, float32(Frame))
-	//binaryStream(buf, INST_ENTITY_ID, msg.Data)
-	//c.Update(buf, msg.Type)
-	default:
-		Printf("Can't handle message type: %d ", msg.Type)
-	}
-}
+//func handleInput(c *client.Client, msg client.ClientCommand) {
+//	Printf("received message type: %d seq %d, Actions %d", msg.Type, msg.Sequence, msg.Data)
+//	switch msg.Type {
+//	case 2:
+//		inst := monitor.FindByEntityID(components.Entity(msg.Data))
+//		Printf("%v", inst)
+//	//buf := &bytes.Buffer{}
+//	//binary.Write(buf, binary.LittleEndian, float32(Frame))
+//	//binaryStream(buf, INST_ENTITY_ID, msg.Data)
+//	//c.Update(buf, msg.Type)
+//	default:
+//		Printf("Can't handle message type: %d ", msg.Type)
+//	}
+//}
