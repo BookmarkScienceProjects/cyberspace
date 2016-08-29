@@ -19,6 +19,7 @@ type DefensiveCirclePattern struct {
 
 // Makes sure we can support the given number of slots, in this case we support any number of slots
 func (p *DefensiveCirclePattern) SupportsSlots(slotCount int) bool {
+	p.numberOfSlots = slotCount
 	return true
 }
 

@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	. "github.com/stojg/cyberspace/lib/components"
+	//. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"io"
 	"sync/atomic"
-	"time"
+	//"time"
 )
 
 var (
@@ -18,6 +18,7 @@ var (
 	collisionList  *CollisionList
 	rigidList      *RigidBodyList
 	controllerList *ControllerList
+	instanceList   *InstanceList
 )
 
 func newLevel(monitor *awsMonitor) *level {
@@ -26,17 +27,20 @@ func newLevel(monitor *awsMonitor) *level {
 	rigidList = NewRigidBodyManager()
 	collisionList = NewCollisionList()
 	controllerList = NewControllerList()
+	instanceList = NewInstanceList()
 
-	ticker := time.NewTicker(time.Second * 60)
-	rootNode := NewTree("root", -1)
-	go func() {
-		for {
-			Println("Updating instances")
-			monitor.UpdateInstances(rootNode)
-			Println("Instances updated")
-			<-ticker.C
-		}
-	}()
+	instanceList.Fetch()
+
+	//ticker := time.NewTicker(time.Second * 60)
+	//rootNode := NewTree("root", -1)
+	//go func() {
+	//	for {
+	//		Println("Updating instances")
+	//		monitor.UpdateInstances(rootNode)
+	//		Println("Instances updated")
+	//		<-ticker.C
+	//	}
+	//}()
 
 	lvl := &level{}
 	lvl.systems = append(lvl.systems, &physicSystem{})
@@ -78,10 +82,10 @@ func (l *level) Draw() *bytes.Buffer {
 		if err := binaryStream(buf, instScale, component.Scale); err != nil {
 			Printf("binarystream error %s", err)
 		}
-		inst := monitor.FindByEntityID(*id)
-		if err := binaryStream(buf, instHealth, inst.Health()); err != nil {
-			Printf("binarystream error %s", err)
-		}
+		//inst := monitor.FindByEntityID(*id)
+		//if err := binaryStream(buf, instHealth, inst.Health()); err != nil {
+		//	Printf("binarystream error %s", err)
+		//}
 	}
 
 	return buf

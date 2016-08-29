@@ -19,7 +19,7 @@ func TestTreeAdd(t *testing.T) {
 	})
 	tree.Add(&AWSInstance{
 		Name:       "second.stack",
-		InstanceID: "i-2",
+		InstanceID: "i-3",
 	})
 
 	siblings := tree.Siblings("first.stack")

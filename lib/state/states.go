@@ -18,7 +18,7 @@ func siblings(instance *AWSInstance, model *Model, inclusive bool) []*Vector3 {
 		if i == instance && !inclusive {
 			continue
 		}
-		positions = append(positions, i.Position)
+		positions = append(positions, i.Position())
 	}
 	return positions
 }

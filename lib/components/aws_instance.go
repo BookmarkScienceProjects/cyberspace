@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/stojg/cyberspace/lib/formation"
 	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"math"
@@ -29,7 +30,22 @@ func init() {
 	}
 }
 
+type Target struct {
+	position    *vector.Vector3
+	orientation *vector.Quaternion
+}
+
+func (m *Target) Position() *vector.Vector3 {
+	return m.position
+}
+
+func (m *Target) Orientation() *vector.Quaternion {
+	return m.orientation
+}
+
 type AWSInstance struct {
+	*Model
+	*RigidBody
 	sync.Mutex
 	ID               *Entity
 	Cluster          string
@@ -46,15 +62,21 @@ type AWSInstance struct {
 	PrivateIP        string
 	PublicIP         string
 	Tree             *TreeNode
+	target           formation.Static
+}
 
-	// Position is cached here from the model
-	Position *vector.Vector3
+func (inst *AWSInstance) SetTarget(t formation.Static) {
+	inst.target = t
+}
+
+func (inst *AWSInstance) Target() formation.Static {
+	return inst.target
 }
 
 func (inst *AWSInstance) MarshalJSON() ([]byte, error) {
 	inst.Lock()
 	defer inst.Unlock()
-	
+
 	return json.Marshal(map[string]interface{}{
 		"Name":             inst.Name,
 		"InstanceID":       inst.InstanceID,
