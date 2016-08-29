@@ -12,19 +12,25 @@ type clientHub struct {
 	clients []*client.Client
 }
 
+func (network *clientHub) remove(i int) {
+	network.clients = append(network.clients[:i], network.clients[i+1:]...)
+}
+
 func (network *clientHub) add(c *client.Client) {
 	network.Lock()
-	defer network.Unlock()
 	network.clients = append(network.clients, c)
+	network.Unlock()
 }
 
 func (network *clientHub) Write(data []byte) (n int, err error) {
 	network.Lock()
 	defer network.Unlock()
-	for _, client := range network.clients {
+	for i, client := range network.clients {
 		nc, err := client.Update(data, 1)
 		n += nc
 		if err != nil {
+			Println("network error, closing connection..")
+			network.remove(i)
 			return n, err
 		}
 	}
