@@ -46,6 +46,7 @@ func (m *Target) Orientation() *vector.Quaternion {
 type AWSInstance struct {
 	*Model
 	*RigidBody
+	*Collision
 	sync.Mutex
 	ID               *Entity
 	Cluster          string
@@ -161,11 +162,14 @@ func (inst *AWSInstance) Update(ec2Inst *ec2.Instance) {
 
 	if t, ok := typeToCost[*ec2Inst.InstanceType]; !ok {
 		fmt.Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
-		inst.Scale = vector.Vector3{10, 10, 10}
+		inst.Model.Scale = &vector.Vector3{10, 10, 10}
 	} else {
 		costToDimension := t * 10000
 		size := math.Pow(costToDimension, 1/3.0)
-		inst.Scale = vector.Vector3{size, size, size}
+		inst.Model.Scale = &vector.Vector3{size, size, size}
+	}
+	inst.Collision.Geometry = &Rectangle{
+		HalfSize: vector.Vector3{inst.Model.Scale[1] / 2, inst.Model.Scale[1] / 2, inst.Model.Scale[2] / 2},
 	}
 }
 

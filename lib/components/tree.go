@@ -1,6 +1,8 @@
 package components
 
 import (
+	"github.com/stojg/cyberspace/lib/formation"
+	"github.com/stojg/vector"
 	"strings"
 	"sync"
 )
@@ -11,6 +13,7 @@ func NewTree(name string, level int) *TreeNode {
 		name:      name,
 		children:  make([]*TreeNode, 0),
 		instances: make([]*AWSInstance, 0),
+		manager:   formation.NewManager(formation.NewDefensiveCircle(10, 0)),
 	}
 }
 
@@ -22,6 +25,19 @@ type TreeNode struct {
 
 	sync.Mutex
 	children []*TreeNode
+	manager  *formation.Manager
+}
+
+func (c *TreeNode) Position() *vector.Vector3 {
+	return vector.NewVector3(0, 0, 0)
+}
+
+func (c *TreeNode) Orientation() *vector.Quaternion {
+	return vector.NewQuaternion(1, 0, 0, 0)
+}
+
+func (c *TreeNode) SetTarget(t *vector.Vector3) {
+
 }
 
 func (c *TreeNode) Siblings(name string) []*AWSInstance {
@@ -51,11 +67,13 @@ func (c *TreeNode) Add(i *AWSInstance) {
 	c.Lock()
 	defer c.Unlock()
 
+	// We hit the final level
 	if len(names) <= c.level+1 {
 		c.instances = append(c.instances, i)
 		return
 	}
 
+	// check if there already is a child node
 	var existingChild *TreeNode
 	for _, child := range c.children {
 		if child.name == names[c.level+1] {

@@ -49,24 +49,24 @@ func TestDefensiveCirclePattern_DriftOffset(t *testing.T) {
 
 }
 
-var slotLocationTests = []struct {
-	initSlotNumber int
-	slotNumber     int
-	expected       *vector.Vector3
-}{
-	{1, 1, vector.NewVector3(0, 0, 0)},
-	{2, 1, vector.NewVector3(-10, 0, 0)},
-	{2, 2, vector.NewVector3(10, 0, 0)},
-	{3, 1, vector.NewVector3(-5.77350, 0, 10)},
-	{3, 2, vector.NewVector3(-5.77350, 0, -10)},
-	{3, 3, vector.NewVector3(11.54701, 0, 0)},
-	{4, 1, vector.NewVector3(0, 0, 14.14214)},
-	{4, 2, vector.NewVector3(-14.14214, 0, 0)},
-	{4, 3, vector.NewVector3(0, 0, -14.14214)},
-	{4, 4, vector.NewVector3(14.14214, 0, 0)},
-}
-
 func TestDefensiveCirclePattern_SlotLocation(t *testing.T) {
+	var slotLocationTests = []struct {
+		initSlotNumber int
+		slotNumber     int
+		expected       *vector.Vector3
+	}{
+		{1, 1, vector.NewVector3(0, 0, 0)},
+		{2, 1, vector.NewVector3(-10, 0, 0)},
+		{2, 2, vector.NewVector3(10, 0, 0)},
+		{3, 1, vector.NewVector3(-5.77350, 0, 10)},
+		{3, 2, vector.NewVector3(-5.77350, 0, -10)},
+		{3, 3, vector.NewVector3(11.54701, 0, 0)},
+		{4, 1, vector.NewVector3(0, 0, 14.14214)},
+		{4, 2, vector.NewVector3(-14.14214, 0, 0)},
+		{4, 3, vector.NewVector3(0, 0, -14.14214)},
+		{4, 4, vector.NewVector3(14.14214, 0, 0)},
+	}
+
 	for _, tt := range slotLocationTests {
 		pattern := formation.NewDefensiveCircle(10, tt.initSlotNumber)
 		loc := pattern.SlotLocation(tt.slotNumber)

@@ -21,7 +21,7 @@ func init() {
 
 func main() {
 
-	level := newLevel(monitor)
+	level := newLevel()
 
 	hub := initNetwork()
 

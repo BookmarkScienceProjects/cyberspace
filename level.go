@@ -21,7 +21,7 @@ var (
 	instanceList   *InstanceList
 )
 
-func newLevel(monitor *awsMonitor) *level {
+func newLevel() *level {
 	entities = NewEntityManager()
 	modelList = NewModelList()
 	rigidList = NewRigidBodyManager()
@@ -30,17 +30,6 @@ func newLevel(monitor *awsMonitor) *level {
 	instanceList = NewInstanceList()
 
 	instanceList.Fetch()
-
-	//ticker := time.NewTicker(time.Second * 60)
-	//rootNode := NewTree("root", -1)
-	//go func() {
-	//	for {
-	//		Println("Updating instances")
-	//		monitor.UpdateInstances(rootNode)
-	//		Println("Instances updated")
-	//		<-ticker.C
-	//	}
-	//}()
 
 	lvl := &level{}
 	lvl.systems = append(lvl.systems, &physicSystem{})
@@ -82,10 +71,13 @@ func (l *level) Draw() *bytes.Buffer {
 		if err := binaryStream(buf, instScale, component.Scale); err != nil {
 			Printf("binarystream error %s", err)
 		}
-		//inst := monitor.FindByEntityID(*id)
-		//if err := binaryStream(buf, instHealth, inst.Health()); err != nil {
-		//	Printf("binarystream error %s", err)
-		//}
+		inst, ok := instanceList.Get(id)
+		if ok {
+			if err := binaryStream(buf, instHealth, inst.Health()); err != nil {
+				Printf("binarystream error %s", err)
+			}
+		}
+
 	}
 
 	return buf

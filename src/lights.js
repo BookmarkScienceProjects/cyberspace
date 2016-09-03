@@ -1,0 +1,16 @@
+const BABYLON = require('babylonjs');
+
+const scene = require('./scene.js');
+
+const lightPosition = new BABYLON.Vector3(200, 400, 200);
+const light = new BABYLON.HemisphericLight('Hemi0', lightPosition, scene);
+light.intensity = 0.5;
+light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
+
+const mainLight = new BABYLON.PointLight('light1', lightPosition, scene);
+mainLight.intensity = 0.5;
+mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
+mainLight.specular = new BABYLON.Color3(1, 1, 1);
+mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+module.exports = mainLight;

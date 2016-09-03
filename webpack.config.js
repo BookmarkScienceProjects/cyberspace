@@ -2,9 +2,16 @@ module.exports = {
   entry: './src/entry.js',
   output: {
     path: __dirname + '/static/dist',
-    filename: 'bundle.js',
+    filename: 'bundle.js'
   },
   module: {
+    preLoaders: [
+      {
+        test: /\.js$/,
+        loader: 'eslint-loader',
+        exclude: /node_modules/
+      }
+    ],
     loaders: [
       {
         test: /\.js$/,
@@ -12,14 +19,13 @@ module.exports = {
         exclude: /node_modules/,
         query: {
           presets: ['es2015'],
-          cacheDirectory: true,
-        },
-      },
-      {
-        test: /\.js$/,
-        loader: 'eslint-loader',
-        exclude: /node_modules/,
+          cacheDirectory: true
+        }
       }
-    ],
+    ]
   },
+  eslint: {
+    failOnWarning: false,
+    failOnError: false
+  }
 };

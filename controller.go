@@ -13,7 +13,7 @@ func (s *controllerSystem) Update(elapsed float64) {
 			steering := arrive.Get()
 			instance.RigidBody.AddForce(steering.Linear())
 		}
-		instance.Model.Position()[1] = 5
+		instance.Model.Position()[1] = instance.Model.Scale[1] / 2
 
 	}
 

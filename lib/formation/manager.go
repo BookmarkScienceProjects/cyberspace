@@ -68,7 +68,7 @@ func (m *Manager) RemoveCharacter(char Character) {
 
 // UpdateSlots
 func (m *Manager) UpdateSlots() {
-	anchor := m.getAnchorPoint()
+	anchor := m.AnchorPoint()
 
 	anchorOrientation := anchor.Orientation()
 
@@ -93,17 +93,7 @@ func (m *Manager) UpdateSlots() {
 	}
 }
 
-// updates the assignments of characters to slots
-func (m *Manager) updateSlotAssignments() {
-	// a very simple assignment algorithm; we simple go through each assignment in the list and
-	// assign sequential slot numbers
-	for i := range m.slotAssignments {
-		m.slotAssignments[i].slotNumber = i
-	}
-	m.driftOffset = m.pattern.DriftOffset(m.slotAssignments)
-}
-
-func (m *Manager) getAnchorPoint() Static {
+func (m *Manager) AnchorPoint() Static {
 	anchor := &Model{
 		orientation: NewQuaternion(0, 0, 0, 1),
 		position:    NewVector3(0, 0, 0),
@@ -113,4 +103,14 @@ func (m *Manager) getAnchorPoint() Static {
 	}
 	anchor.position.Scale(1 / float64(len(m.slotAssignments)))
 	return anchor
+}
+
+// updates the assignments of characters to slots
+func (m *Manager) updateSlotAssignments() {
+	// a very simple assignment algorithm; we simple go through each assignment in the list and
+	// assign sequential slot numbers
+	for i := range m.slotAssignments {
+		m.slotAssignments[i].slotNumber = i
+	}
+	m.driftOffset = m.pattern.DriftOffset(m.slotAssignments)
 }
