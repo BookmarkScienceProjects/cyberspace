@@ -57,6 +57,7 @@ func NewInstanceList() *InstanceList {
 	return &InstanceList{
 		instances:  make(map[*components.Entity]*AWSInstance),
 		formations: formation.NewManager(formation.NewDefensiveCircle(8, 0)),
+		tree:       NewTree("root", 0),
 	}
 }
 
@@ -64,6 +65,7 @@ type InstanceList struct {
 	sync.Mutex
 	instances  map[*components.Entity]*AWSInstance
 	formations *formation.Manager
+	tree       *TreeNode
 }
 
 func (i *InstanceList) All() map[*components.Entity]*AWSInstance {
@@ -108,6 +110,7 @@ func (i *InstanceList) SetInstance(t *ec2.Instance) *AWSInstance {
 		if *t.State.Name == "running" {
 			modelID = 2
 		}
+
 		inst = &AWSInstance{
 			ID:        eID,
 			Model:     modelList.New(eID, 10, 10, 10, components.EntityType(modelID)),
@@ -119,6 +122,7 @@ func (i *InstanceList) SetInstance(t *ec2.Instance) *AWSInstance {
 		i.Lock()
 		i.instances[eID] = inst
 		i.Unlock()
+		i.tree.Add(inst)
 		i.formations.AddCharacter(inst)
 		i.formations.UpdateSlots()
 	}
@@ -127,7 +131,6 @@ func (i *InstanceList) SetInstance(t *ec2.Instance) *AWSInstance {
 }
 
 func fetchInstances(list *InstanceList) {
-
 	regions := []*string{
 		aws.String("us-east-1"),
 		aws.String("us-west-2"),

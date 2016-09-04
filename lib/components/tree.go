@@ -1,90 +1,82 @@
 package components
 
 import (
-	"github.com/stojg/cyberspace/lib/formation"
-	"github.com/stojg/vector"
 	"strings"
-	"sync"
 )
 
 func NewTree(name string, level int) *TreeNode {
 	return &TreeNode{
-		level:     level,
-		name:      name,
-		children:  make([]*TreeNode, 0),
-		instances: make([]*AWSInstance, 0),
-		manager:   formation.NewManager(formation.NewDefensiveCircle(10, 0)),
+		level:    level,
+		name:     name,
+		children: make([]*TreeNode, 0),
 	}
 }
 
 type TreeNode struct {
+	parent *TreeNode
+
 	level int
 	name  string
 
-	instances []*AWSInstance
+	instance *AWSInstance
 
-	sync.Mutex
 	children []*TreeNode
-	manager  *formation.Manager
 }
 
-func (c *TreeNode) Position() *vector.Vector3 {
-	return vector.NewVector3(0, 0, 0)
+func (node *TreeNode) Children() []*TreeNode {
+	return node.children
 }
 
-func (c *TreeNode) Orientation() *vector.Quaternion {
-	return vector.NewQuaternion(1, 0, 0, 0)
-}
-
-func (c *TreeNode) SetTarget(t *vector.Vector3) {
-
-}
-
-func (c *TreeNode) Siblings(name string) []*AWSInstance {
-	names := strings.Split(name, ".")
-
-	c.Lock()
-	defer c.Unlock()
-	if len(names) == 1 {
-		var sib []*AWSInstance
-
-		for _, child := range c.children {
-			sib = append(sib, child.instances...)
-		}
-		return sib
+func (node *TreeNode) Siblings() []*AWSInstance {
+	if node.parent == nil {
+		return nil
 	}
-	for _, child := range c.children {
-		if child.name == names[0] {
-			return child.Siblings(strings.Join(names[1:], "."))
+	return node.parent.Leafs()
+}
+
+func (node *TreeNode) Leafs() []*AWSInstance {
+	var i []*AWSInstance
+	for _, child := range node.children {
+		if child.instance != nil {
+			i = append(i, child.instance)
+		} else {
+			i = append(i, child.Leafs()...)
 		}
 	}
-	return nil
+	return i
 }
 
-func (c *TreeNode) Add(i *AWSInstance) {
-	names := strings.Split(i.Name, ".")
+func (node *TreeNode) Name() string {
+	return node.name
+}
 
-	c.Lock()
-	defer c.Unlock()
+func (node *TreeNode) Parent() *TreeNode {
+	return node.parent
+}
 
-	// We hit the final level
-	if len(names) <= c.level+1 {
-		c.instances = append(c.instances, i)
-		return
+func (node *TreeNode) Instance() *AWSInstance {
+	return node.instance
+}
+
+func (node *TreeNode) Add(instance *AWSInstance) *TreeNode {
+	names := strings.Split(instance.Name, ".")
+
+	// check if we are at the leaf
+	if len(names) == node.level {
+		node.instance = instance
+		return node
 	}
 
-	// check if there already is a child node
-	var existingChild *TreeNode
-	for _, child := range c.children {
-		if child.name == names[c.level+1] {
-			existingChild = child
-			break
+	// try to find a pre existing child node
+	for _, childNode := range node.Children() {
+		if childNode.name == names[node.level] {
+			return childNode.Add(instance)
 		}
 	}
 
-	if existingChild == nil {
-		existingChild = NewTree(names[c.level+1], c.level+1)
-		c.children = append(c.children, existingChild)
-	}
-	existingChild.Add(i)
+	child := NewTree(names[node.level], node.level+1)
+	child.parent = node
+
+	node.children = append(node.children, child)
+	return child.Add(instance)
 }

@@ -14,7 +14,7 @@ type State interface {
 
 func siblings(instance *AWSInstance, model *Model, inclusive bool) []*Vector3 {
 	var positions []*Vector3
-	for _, i := range instance.Tree.Siblings(instance.Name) {
+	for _, i := range instance.Tree.Siblings() {
 		if i == instance && !inclusive {
 			continue
 		}
