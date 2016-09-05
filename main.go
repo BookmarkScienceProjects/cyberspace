@@ -30,7 +30,6 @@ func main() {
 	netLag := 0.0
 
 	Println("Starting the game loop")
-	// @todo fix race condition on the global Frame var
 	printFPS(frameRate)
 
 	for {
@@ -53,8 +52,6 @@ func main() {
 				}
 			}
 			netLag -= netRate
-
-			instanceList.Update(elapsed)
 		}
 
 		frameLag -= frameRate

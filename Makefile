@@ -1,8 +1,8 @@
 
 build:
-	go fmt . ./lib/...
-	go vet . ./lib/...
-	go test . ./lib/...
+	go fmt .
+	go vet .
+	go test .
 	go install .
 	cyberspace
 

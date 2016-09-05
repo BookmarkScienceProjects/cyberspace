@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	//. "github.com/stojg/cyberspace/lib/components"
 	. "github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"io"
 	"sync/atomic"
-	//"time"
 )
 
 var (
@@ -18,7 +16,6 @@ var (
 	collisionList  *CollisionList
 	rigidList      *RigidBodyList
 	controllerList *ControllerList
-	instanceList   *InstanceList
 )
 
 func newLevel() *level {
@@ -27,14 +24,12 @@ func newLevel() *level {
 	rigidList = NewRigidBodyManager()
 	collisionList = NewCollisionList()
 	controllerList = NewControllerList()
-	instanceList = NewInstanceList()
-
-	instanceList.Fetch()
 
 	lvl := &level{}
 	lvl.systems = append(lvl.systems, &physicSystem{})
 	lvl.systems = append(lvl.systems, &controllerSystem{})
 	lvl.systems = append(lvl.systems, &collisionSystem{})
+	lvl.systems = append(lvl.systems, &game{})
 	return lvl
 }
 
@@ -71,13 +66,6 @@ func (l *level) Draw() *bytes.Buffer {
 		if err := binaryStream(buf, instScale, component.Scale); err != nil {
 			Printf("binarystream error %s", err)
 		}
-		inst, ok := instanceList.Get(id)
-		if ok {
-			if err := binaryStream(buf, instHealth, inst.Health()); err != nil {
-				Printf("binarystream error %s", err)
-			}
-		}
-
 	}
 
 	return buf
