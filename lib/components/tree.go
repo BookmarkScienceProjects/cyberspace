@@ -3,7 +3,6 @@ package components
 import (
 	"github.com/stojg/formation"
 	"github.com/stojg/vector"
-	"math"
 	"strings"
 )
 
@@ -21,10 +20,9 @@ func NewTree(name string, level int) *TreeNode {
 type TreeNode struct {
 	parent *TreeNode
 
-	formation       *formation.Manager
-	pattern         *formation.DefensiveCirclePattern
-	position        *vector.Vector3
-	characterRadius float64
+	formation *formation.Manager
+	pattern   *formation.DefensiveCirclePattern
+	position  *vector.Vector3
 
 	level int
 	name  string
@@ -99,9 +97,6 @@ func (node *TreeNode) Instances() []*AWSInstance {
 func (node *TreeNode) Update(elapsed float64) {
 	for _, child := range node.Children() {
 		child.Update(elapsed)
-		if child.pattern.Radius() > node.characterRadius {
-			node.characterRadius = child.pattern.Radius()
-		}
 	}
 	node.formation.UpdateSlots()
 }
@@ -113,11 +108,6 @@ func (node *TreeNode) Add(instance *AWSInstance) *TreeNode {
 	if len(names) == node.level {
 		node.instances = append(node.instances, instance)
 		if instance.Model != nil {
-			instRadius := math.Sqrt(instance.Scale[0]*2 + instance.Scale[2]*2)
-			if instRadius > node.characterRadius {
-				node.characterRadius = instRadius
-				node.pattern.SetCharacterRadius(node.characterRadius)
-			}
 			node.formation.AddCharacter(instance)
 		}
 		return node
