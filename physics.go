@@ -10,6 +10,8 @@ func (s *physicSystem) Update(elapsed float64) {
 
 	for i, body := range rigidList.All() {
 
+		// @todo exclude dead entities
+
 		if !body.Awake() {
 			continue
 		}

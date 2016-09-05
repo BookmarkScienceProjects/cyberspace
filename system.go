@@ -8,7 +8,7 @@ const (
 	instOrientation literal = 3
 	instType        literal = 4
 	instScale       literal = 5
-	instHealth      literal = 6
+	instState       literal = 6
 )
 
 type system interface {

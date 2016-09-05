@@ -48,6 +48,9 @@ func (c *collisionSystem) Check() []*contact {
 
 	var bodies []collisonBody
 	for aID, a := range collisionList.All() {
+
+		// @todo exclude dead entities
+
 		body := collisonBody{
 			geometry: a.Geometry,
 			model:    modelList.Get(aID),

@@ -54,7 +54,7 @@
 	var level = __webpack_require__(/*! ./level.js */ 4);
 	var scene = __webpack_require__(/*! ./scene.js */ 5);
 	
-	__webpack_require__(/*! ./lights.js */ 8);
+	__webpack_require__(/*! ./lights.js */ 9);
 	
 	BABYLON.Engine.ShadersRepository = '/assets/shaders/';
 	
@@ -1679,7 +1679,7 @@
 	var scene = __webpack_require__(/*! ./scene.js */ 5);
 	//const materials = require('./materials.js');
 	var models = __webpack_require__(/*! ./models.js */ 6);
-	var shadowGenerator = __webpack_require__(/*! ./shadow.js */ 7);
+	var shadowGenerator = __webpack_require__(/*! ./shadow.js */ 8);
 	
 	function Update(id) {
 	  return {
@@ -1719,7 +1719,7 @@
 	
 	function onMeshClick(meshId) {
 	  var xhr = new XMLHttpRequest();
-	  xhr.open('POST', encodeURI('/monitor'));
+	  xhr.open('POST', encodeURI('/click'));
 	  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 	  xhr.onload = function infoOnload() {
 	    if (xhr.status !== 200) {
@@ -1743,46 +1743,24 @@
 	    var update = updates[key];
 	    var id = update.id;
 	
+	    if (update.state === 0) {
+	      if (typeof objects[id] !== 'undefined') {
+	        objects[id].dispose();
+	        return;
+	      }
+	    }
+	
 	    if (typeof objects[id] === 'undefined') {
-	      objects[id] = models[1].clone(id);
+	      if (typeof update.model === 'number') {
+	        objects[id] = models[update.model].clone(id);
+	      } else {
+	        objects[id] = models[0].clone(id);
+	      }
 	      objects[id].id = id;
 	      objects[id].isVisible = true;
 	      objects[id].actionManager = new BABYLON.ActionManager(scene);
 	      shadowGenerator.getShadowMap().renderList.push(objects[id]);
-	      objects[id].material = new BABYLON.StandardMaterial(id, scene);
-	      objects[id].material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
 	      setupOnClickAction(objects[id]);
-	    }
-	
-	    if (update.model && objects[id].model !== update.model) {
-	      objects[id].model = update.model;
-	      objects[id].material.dispose();
-	      var material = new BABYLON.StandardMaterial(id, scene);
-	      switch (update.model) {
-	        case 0:
-	          material.diffuseTexture = new BABYLON.Texture('/assets/square_black.jpg', scene);
-	          break;
-	        case 1:
-	          material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
-	          break;
-	        default:
-	          material.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
-	      }
-	      objects[id].material = material;
-	    }
-	
-	    if (typeof objects[id].model !== 'undefined' || objects[id].model !== 0) {
-	      if (update.health > 0.90) {
-	        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 1.0, 0.0);
-	      } else if (update.health > 0.50) {
-	        objects[id].material.emissiveColor = new BABYLON.Color3(1.0, 1.0, 0.1);
-	      } else if (update.health > 0.60) {
-	        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.5, 1.0);
-	      } else if (update.health > 0.10) {
-	        objects[id].material.emissiveColor = new BABYLON.Color3(1.0, 0.0, 0.3);
-	      } else {
-	        objects[id].material.emissiveColor = new BABYLON.Color3(1, 0.0, 0.0);
-	      }
 	    }
 	
 	    objects[id].position = update.position;
@@ -1843,7 +1821,7 @@
 	        }
 	      case 6:
 	        {
-	          updates[objectId].health = buf.readFloat32();
+	          updates[objectId].state = buf.readFloat32();
 	          break;
 	        }
 	      default:
@@ -1932,25 +1910,61 @@
 	
 	var BABYLON = __webpack_require__(/*! babylonjs */ 1);
 	var scn = __webpack_require__(/*! ./scene.js */ 5);
+	var materials = __webpack_require__(/*! ./materials.js */ 7);
 	
 	var models = [];
 	
 	models[0] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	models[0].scaling = new BABYLON.Vector3(10, 10, 10);
 	models[0].isVisible = false;
+	models[0].material = materials.gray.clone();
 	
 	models[1] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
-	models[1].scaling = new BABYLON.Vector3(30, 30, 30);
+	models[1].scaling = new BABYLON.Vector3(10, 10, 10);
 	models[1].isVisible = false;
+	models[1].material = materials.cyan.clone();
 	
 	models[2] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	models[2].scaling = new BABYLON.Vector3(10, 10, 10);
 	models[2].isVisible = false;
+	models[2].material = materials.sepia.clone();
 	
 	module.exports = models;
 
 /***/ },
 /* 7 */
+/*!**************************!*\
+  !*** ./src/materials.js ***!
+  \**************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var BABYLON = __webpack_require__(/*! babylonjs */ 1);
+	var scene = __webpack_require__(/*! ./scene.js */ 5);
+	
+	var materials = {};
+	
+	materials.gray = new BABYLON.StandardMaterial('gray', scene);
+	materials.gray.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	materials.gray.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+	
+	materials.cyan = new BABYLON.StandardMaterial('purle', scene);
+	materials.cyan.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	materials.cyan.diffuseColor = new BABYLON.Color3(0.2, 0.9, 1);
+	
+	materials.blue = new BABYLON.StandardMaterial('texture1', scene);
+	materials.blue.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	materials.blue.diffuseColor = new BABYLON.Color3(0.4, 0.4, 1);
+	
+	materials.sepia = new BABYLON.StandardMaterial('yellow', scene);
+	materials.sepia.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	materials.sepia.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
+	
+	module.exports = materials;
+
+/***/ },
+/* 8 */
 /*!***********************!*\
   !*** ./src/shadow.js ***!
   \***********************/
@@ -1959,13 +1973,13 @@
 	'use strict';
 	
 	var BABYLON = __webpack_require__(/*! babylonjs */ 1);
-	var light = __webpack_require__(/*! ./lights.js */ 8);
+	var light = __webpack_require__(/*! ./lights.js */ 9);
 	
 	var shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
 	module.exports = shadowGenerator;
 
 /***/ },
-/* 8 */
+/* 9 */
 /*!***********************!*\
   !*** ./src/lights.js ***!
   \***********************/

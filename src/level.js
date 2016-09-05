@@ -43,7 +43,7 @@ function parseInstanceInfo(inText) {
 
 function onMeshClick(meshId) {
   const xhr = new XMLHttpRequest();
-  xhr.open('POST', encodeURI('/monitor'));
+  xhr.open('POST', encodeURI('/click'));
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
   xhr.onload = function infoOnload() {
     if (xhr.status !== 200) {
@@ -71,46 +71,24 @@ const updateScene = function sceneUpdater(updates) {
     const update = updates[key];
     const id = update.id;
 
+    if(update.state === 0) {
+      if (typeof objects[id] !== 'undefined') {
+        objects[id].dispose();
+        return
+      }
+    }
+
     if (typeof objects[id] === 'undefined') {
-      objects[id] = models[1].clone(id);
+      if(typeof update.model === 'number') {
+        objects[id] = models[update.model].clone(id);
+      } else {
+        objects[id] = models[0].clone(id);
+      }
       objects[id].id = id;
       objects[id].isVisible = true;
       objects[id].actionManager = new BABYLON.ActionManager(scene);
       shadowGenerator.getShadowMap().renderList.push(objects[id]);
-      objects[id].material = new BABYLON.StandardMaterial(id, scene);
-      objects[id].material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
       setupOnClickAction(objects[id]);
-    }
-
-    if (update.model && objects[id].model !== update.model) {
-      objects[id].model = update.model;
-      objects[id].material.dispose();
-      const material = new BABYLON.StandardMaterial(id, scene);
-      switch (update.model) {
-        case 0:
-          material.diffuseTexture = new BABYLON.Texture('/assets/square_black.jpg', scene);
-          break;
-        case 1:
-          material.diffuseTexture = new BABYLON.Texture('/assets/square_gray.jpg', scene);
-          break;
-        default:
-          material.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
-      }
-      objects[id].material = material;
-    }
-
-    if (typeof objects[id].model !== 'undefined' || objects[id].model !== 0) {
-      if (update.health > 0.90) {
-        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 1.0, 0.0);
-      } else if (update.health > 0.50) {
-        objects[id].material.emissiveColor = new BABYLON.Color3(1.0, 1.0, 0.1);
-      } else if (update.health > 0.60) {
-        objects[id].material.emissiveColor = new BABYLON.Color3(0.0, 0.5, 1.0);
-      } else if (update.health > 0.10) {
-        objects[id].material.emissiveColor = new BABYLON.Color3(1.0, 0.0, 0.3);
-      } else {
-        objects[id].material.emissiveColor = new BABYLON.Color3(1, 0.0, 0.0);
-      }
     }
 
     objects[id].position = update.position;
@@ -170,7 +148,7 @@ const entityUpdate = function entUpdate(buf) {
         break;
       }
       case 6: {
-        updates[objectId].health = buf.readFloat32();
+        updates[objectId].state = buf.readFloat32();
         break;
       }
       default: {
