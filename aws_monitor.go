@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/stojg/cyberspace/lib/components"
-	"github.com/stojg/cyberspace/lib/formation"
 	"github.com/stojg/vivere/lib/components"
 	"math/rand"
 	"net/http"
@@ -55,17 +54,15 @@ func init() {
 
 func NewInstanceList() *InstanceList {
 	return &InstanceList{
-		instances:  make(map[*components.Entity]*AWSInstance),
-		formations: formation.NewManager(formation.NewDefensiveCircle(8, 0)),
-		tree:       NewTree("root", 0),
+		instances: make(map[*components.Entity]*AWSInstance),
+		tree:      NewTree("root", 0),
 	}
 }
 
 type InstanceList struct {
 	sync.Mutex
-	instances  map[*components.Entity]*AWSInstance
-	formations *formation.Manager
-	tree       *TreeNode
+	instances map[*components.Entity]*AWSInstance
+	tree      *TreeNode
 }
 
 func (i *InstanceList) All() map[*components.Entity]*AWSInstance {
@@ -106,28 +103,32 @@ func (i *InstanceList) SetInstance(t *ec2.Instance) *AWSInstance {
 	}
 	if inst == nil {
 		eID := entities.Create()
-		modelID := 0
+		modelType := 0
 		if *t.State.Name == "running" {
-			modelID = 2
+			modelType = 2
 		}
 
 		inst = &AWSInstance{
 			ID:        eID,
-			Model:     modelList.New(eID, 10, 10, 10, components.EntityType(modelID)),
+			Model:     modelList.New(eID, 10, 10, 10, components.EntityType(modelType)),
 			RigidBody: rigidList.New(eID, 1),
 			Collision: collisionList.New(eID, 10, 10, 10),
 			State:     "",
 		}
-		inst.Model.Position().Set(rand.Float64()*100-50, inst.Scale[2]/2, rand.Float64()*100-50)
+		inst.SetName(t)
+		inst.SetScale(t)
+		inst.Model.Position().Set(rand.Float64()*1000-500, inst.Scale[2]/2, rand.Float64()*1000-500)
 		i.Lock()
 		i.instances[eID] = inst
 		i.Unlock()
 		i.tree.Add(inst)
-		i.formations.AddCharacter(inst)
-		i.formations.UpdateSlots()
 	}
 	inst.Update(t)
 	return inst
+}
+
+func (list *InstanceList) Update(elapsed float64) {
+	list.tree.Update(elapsed)
 }
 
 func fetchInstances(list *InstanceList) {
@@ -156,7 +157,7 @@ func fetchInstances(list *InstanceList) {
 			for _, ec2Inst := range resp.Reservations[idx].Instances {
 				instance := list.SetInstance(ec2Inst)
 				fetchMetrics(instance, region)
-				time.Sleep(1000 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 			}
 		}
 		time.Sleep(time.Second)
@@ -197,7 +198,7 @@ func getEc2Metric(instanceID, metricName string, cw *cloudwatch.CloudWatch) (flo
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String(metricName),
 		Dimensions: []*cloudwatch.Dimension{
-			&cloudwatch.Dimension{
+			{
 				Name:  aws.String("InstanceId"),
 				Value: aws.String(instanceID),
 			},

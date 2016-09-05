@@ -1,26 +1,64 @@
 package components
 
 import (
+	"github.com/stojg/formation"
+	"github.com/stojg/vector"
+	"math"
 	"strings"
 )
 
 func NewTree(name string, level int) *TreeNode {
+	pattern := formation.NewDefensiveCircle(10, 0).(*formation.DefensiveCirclePattern)
 	return &TreeNode{
-		level:    level,
-		name:     name,
-		children: make([]*TreeNode, 0),
+		level:     level,
+		name:      name,
+		children:  make([]*TreeNode, 0),
+		pattern:   pattern,
+		formation: formation.NewManager(pattern),
 	}
 }
 
 type TreeNode struct {
 	parent *TreeNode
 
+	formation       *formation.Manager
+	pattern         *formation.DefensiveCirclePattern
+	position        *vector.Vector3
+	characterRadius float64
+
 	level int
 	name  string
 
-	instance *AWSInstance
+	instances []*AWSInstance
 
 	children []*TreeNode
+}
+
+func (node *TreeNode) Orientation() *vector.Quaternion {
+	return vector.NewQuaternion(1, 0, 0, 0)
+}
+
+func (node *TreeNode) Position() *vector.Vector3 {
+
+	anchor := vector.NewVector3(0, 0, 0)
+
+	leafs := node.Leafs()
+
+	if len(leafs) == 0 {
+		return anchor
+	}
+
+	for _, instance := range leafs {
+		if instance.Model != nil {
+			anchor.Add(instance.Position())
+		}
+	}
+	anchor.Scale(1 / float64(len(leafs)))
+	return anchor
+}
+
+func (node *TreeNode) SetTarget(t formation.Static) {
+	//fmt.Printf("%s %s\n", node.Name(), t.Position())
 }
 
 func (node *TreeNode) Children() []*TreeNode {
@@ -37,8 +75,8 @@ func (node *TreeNode) Siblings() []*AWSInstance {
 func (node *TreeNode) Leafs() []*AWSInstance {
 	var i []*AWSInstance
 	for _, child := range node.children {
-		if child.instance != nil {
-			i = append(i, child.instance)
+		if len(child.instances) > 0 {
+			i = append(i, child.instances...)
 		} else {
 			i = append(i, child.Leafs()...)
 		}
@@ -54,8 +92,18 @@ func (node *TreeNode) Parent() *TreeNode {
 	return node.parent
 }
 
-func (node *TreeNode) Instance() *AWSInstance {
-	return node.instance
+func (node *TreeNode) Instances() []*AWSInstance {
+	return node.instances
+}
+
+func (node *TreeNode) Update(elapsed float64) {
+	for _, child := range node.Children() {
+		child.Update(elapsed)
+		if child.pattern.Radius() > node.characterRadius {
+			node.characterRadius = child.pattern.Radius()
+		}
+	}
+	node.formation.UpdateSlots()
 }
 
 func (node *TreeNode) Add(instance *AWSInstance) *TreeNode {
@@ -63,7 +111,15 @@ func (node *TreeNode) Add(instance *AWSInstance) *TreeNode {
 
 	// check if we are at the leaf
 	if len(names) == node.level {
-		node.instance = instance
+		node.instances = append(node.instances, instance)
+		if instance.Model != nil {
+			instRadius := math.Sqrt(instance.Scale[0]*2 + instance.Scale[2]*2)
+			if instRadius > node.characterRadius {
+				node.characterRadius = instRadius
+				node.pattern.SetCharacterRadius(node.characterRadius)
+			}
+			node.formation.AddCharacter(instance)
+		}
 		return node
 	}
 
@@ -76,6 +132,8 @@ func (node *TreeNode) Add(instance *AWSInstance) *TreeNode {
 
 	child := NewTree(names[node.level], node.level+1)
 	child.parent = node
+
+	node.formation.AddCharacter(child)
 
 	node.children = append(node.children, child)
 	return child.Add(instance)

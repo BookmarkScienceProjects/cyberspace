@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/stojg/cyberspace/lib/formation"
+	"github.com/stojg/formation"
 	"github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"math"
@@ -55,7 +55,6 @@ type AWSInstance struct {
 	InstanceID       string
 	HasCredits       bool
 	InstanceType     string
-	Scale            vector.Vector3
 	State            string
 	Name             string
 	cpuUtilization   float64
@@ -143,6 +142,26 @@ func (inst *AWSInstance) Update(ec2Inst *ec2.Instance) {
 		inst.HasCredits = true
 	}
 
+	inst.SetName(ec2Inst)
+	inst.SetScale(ec2Inst)
+
+	inst.Collision.Geometry = &Rectangle{
+		HalfSize: vector.Vector3{inst.Model.Scale[1] / 2, inst.Model.Scale[1] / 2, inst.Model.Scale[2] / 2},
+	}
+}
+
+func (inst *AWSInstance) SetScale(ec2Inst *ec2.Instance) {
+	if t, ok := typeToCost[*ec2Inst.InstanceType]; !ok {
+		fmt.Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
+		inst.Model.Scale = &vector.Vector3{10, 10, 10}
+	} else {
+		costToDimension := t * 10000
+		size := math.Pow(costToDimension, 1/3.0)
+		inst.Model.Scale = &vector.Vector3{size, size, size}
+	}
+}
+
+func (inst *AWSInstance) SetName(ec2Inst *ec2.Instance) {
 	for _, tag := range ec2Inst.Tags {
 		if *tag.Key == "Name" && len(*tag.Value) > 0 {
 			inst.Name = *tag.Value
@@ -159,20 +178,8 @@ func (inst *AWSInstance) Update(ec2Inst *ec2.Instance) {
 			break
 		}
 	}
-
-	if t, ok := typeToCost[*ec2Inst.InstanceType]; !ok {
-		fmt.Printf("No typeToCost found for '%s'", *ec2Inst.InstanceType)
-		inst.Model.Scale = &vector.Vector3{10, 10, 10}
-	} else {
-		costToDimension := t * 10000
-		size := math.Pow(costToDimension, 1/3.0)
-		inst.Model.Scale = &vector.Vector3{size, size, size}
-	}
-	inst.Collision.Geometry = &Rectangle{
-		HalfSize: vector.Vector3{inst.Model.Scale[1] / 2, inst.Model.Scale[1] / 2, inst.Model.Scale[2] / 2},
-	}
 }
 
-func (i *AWSInstance) String() string {
-	return fmt.Sprintf("%s %s %s\t%s\t%s", i.Cluster, i.Stack, i.Environment, i.InstanceType, i.InstanceID)
+func (inst *AWSInstance) String() string {
+	return fmt.Sprintf("%s %s %s\t%s\t%s", inst.Cluster, inst.Stack, inst.Environment, inst.InstanceType, inst.InstanceID)
 }

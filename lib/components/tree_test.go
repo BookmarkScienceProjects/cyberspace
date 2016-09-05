@@ -18,7 +18,7 @@ func TestTreeNode_Add(t *testing.T) {
 		t.Errorf("Expected name 'child1', got %s", node.Name())
 	}
 
-	if node.Instance().InstanceID != instance.InstanceID {
+	if node.Instances()[0].InstanceID != instance.InstanceID {
 		t.Error("expected the node instance to be the same as the added instance")
 	}
 }

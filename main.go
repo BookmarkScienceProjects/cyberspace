@@ -53,6 +53,8 @@ func main() {
 				}
 			}
 			netLag -= netRate
+
+			instanceList.Update(elapsed)
 		}
 
 		frameLag -= frameRate
