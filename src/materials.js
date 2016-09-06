@@ -2,7 +2,7 @@ const BABYLON = require('babylonjs');
 const scene = require('./scene.js');
 
 
-let materials = {};
+const materials = {};
 
 materials.gray = new BABYLON.StandardMaterial('gray', scene);
 materials.gray.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
@@ -20,4 +20,4 @@ materials.sepia = new BABYLON.StandardMaterial('yellow', scene);
 materials.sepia.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 materials.sepia.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
 
-module.exports =materials;
+module.exports = materials;

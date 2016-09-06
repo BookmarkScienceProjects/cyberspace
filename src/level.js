@@ -71,15 +71,12 @@ const updateScene = function sceneUpdater(updates) {
     const update = updates[key];
     const id = update.id;
 
-    if(update.state === 0) {
-      if (typeof objects[id] !== 'undefined') {
-        objects[id].dispose();
-        return
-      }
+    if (update.state === 0) {
+      return;
     }
 
     if (typeof objects[id] === 'undefined') {
-      if(typeof update.model === 'number') {
+      if (typeof update.model === 'number') {
         objects[id] = models[update.model].clone(id);
       } else {
         objects[id] = models[0].clone(id);
@@ -100,6 +97,29 @@ const updateScene = function sceneUpdater(updates) {
     );
     objects[id].scaling = update.scale;
   });
+};
+
+const entityRemove = function entityRemove(buf) {
+  const updates = {};
+  let objectId;
+  while (!buf.isEof()) {
+    const cmd = buf.readUint8();
+    switch (cmd) {
+      case 1: {
+        // INST_ENTITY_ID - we are switching the object we wish to update
+        objectId = buf.readFloat32();
+        // check if object exists before disposing
+        objects[objectId].dispose();
+        break;
+      }
+
+      default: {
+        console.log(`unknown command ${cmd}`); // eslint-disable-line
+      }
+    }
+  }
+
+  updateScene(updates);
 };
 
 const entityUpdate = function entUpdate(buf) {
@@ -169,6 +189,10 @@ module.exports = {
     switch (msgType) {
       case 1: {
         entityUpdate(buf);
+        break;
+      }
+      case 2: {
+        entityRemove(buf);
         break;
       }
       default: {

@@ -6,6 +6,7 @@ import (
 	"github.com/stojg/vivere/lib/components"
 	"math"
 	"math/rand"
+	"sync"
 )
 
 type State int
@@ -38,16 +39,62 @@ const (
 	Gunk
 )
 
-type stuffList []Object
+type stuffList struct {
+	next uint16
+
+	sync.Mutex
+	items   [math.MaxUint16]Object
+	deleted []Object
+}
+
+func (l *stuffList) Add(o Object) {
+	// dont add anymore, we are full
+	if l.next+1 == math.MaxUint16 {
+		Println("stuff list full")
+		return
+	}
+	l.Lock()
+	l.items[l.next] = o
+	l.next++
+	l.Unlock()
+}
+
+func (l *stuffList) Remove(i uint16) {
+	l.Lock()
+	// decrement the current next
+	l.next--
+	// keep a record of deleted entities so they can be flushed to the view
+	l.deleted = append(l.deleted, l.items[i])
+	// take the object that was last and replace it with object to be removed
+	l.items[i] = l.items[l.next]
+	l.Unlock()
+
+	modelList.Delete(l.items[i].ID())
+	rigidList.Delete(l.items[i].ID())
+	collisionList.Delete(l.items[i].ID())
+
+}
+
+func (l *stuffList) All() map[uint16]Object {
+	result := make(map[uint16]Object, 0)
+	l.Lock()
+	for i := uint16(0); i < l.next; i++ {
+		result[i] = l.items[i]
+	}
+	l.Unlock()
+	return result
+}
 
 // idea for the future, let k be a bitmask
-func (l stuffList) ofKind(k Kind) stuffList {
-	result := make(stuffList, 0)
-	for _, o := range l {
-		if o.Kind() == k && o.State() != stateDead {
-			result = append(result, o)
+func (l *stuffList) ofKind(k Kind) map[uint16]Object {
+	result := make(map[uint16]Object, 0)
+	l.Lock()
+	for i := uint16(0); i < l.next; i++ {
+		if l.items[i].Kind() == k && l.items[i].State() != stateDead {
+			result[i] = l.items[i]
 		}
 	}
+	l.Unlock()
 	return result
 }
 
@@ -78,35 +125,6 @@ func createMonster(width, height, depth float64) *GameObject {
 	return monster
 }
 
-type GameObject struct {
-	id *components.Entity
-	*components.Model
-	*components.RigidBody
-	*components.Collision
-	state State
-	kind  Kind
-}
-
-func (o *GameObject) ID() *components.Entity {
-	return o.id
-}
-
-func (o *GameObject) Size() *vector.Vector3 {
-	return o.Scale
-}
-
-func (o *GameObject) Kind() Kind {
-	return o.kind
-}
-
-func (o *GameObject) State() State {
-	return o.state
-}
-
-func (o *GameObject) SetState(s State) {
-	o.state = s
-}
-
 type World struct {
 	timer float64
 	list  stuffList
@@ -115,44 +133,45 @@ type World struct {
 func (w *World) Update(elapsed float64) {
 
 	w.timer += elapsed
-	if w.timer > 0.1 {
-		w.timer -= 0.1
+	if w.timer > 60 {
+		w.timer -= 60
+		Printf("There are currently %d items in the stuff list", len(w.list.All()))
 	}
 
-	if len(w.list.ofKind(Gunk)) <= 40 {
-		w.list = append(w.list, createFood(3, 3, 3))
+	if len(w.list.ofKind(Gunk)) < 50 {
+		w.list.Add(createFood(3, 3, 3))
 	}
 
-	if len(w.list.ofKind(Monster)) <= 10 {
+	if len(w.list.ofKind(Monster)) < 10 {
 		monster := createMonster(10, 10, 10)
 		monster.state = stateIdle
-		w.list = append(w.list, monster)
+		w.list.Add(monster)
 	}
 
 	// run the AI for the individual entities
 	for _, obj := range w.list.ofKind(Monster) {
 		// @todo exclude dead entities
-		monster, ok := obj.(*GameObject)
-		if !ok {
-			continue
-		}
-		var closestF Object
+		monster := obj.(*GameObject)
+		found := false
+		var closestIndex uint16
 		closestDistance := math.MaxFloat64
-		for _, f := range w.list.ofKind(Gunk) {
-			distance := monster.Position().NewSub(f.Position()).SquareLength()
-			if obj.Position().NewSub(f.Position()).SquareLength() < closestDistance {
-				closestF = f
+		gunks := w.list.ofKind(Gunk)
+		for i := range gunks {
+			distance := monster.Position().NewSub(gunks[i].Position()).SquareLength()
+			if obj.Position().NewSub(gunks[i].Position()).SquareLength() < closestDistance {
+				found = true
+				closestIndex = i
 				closestDistance = distance
 			}
 		}
-		if closestF != nil {
-
+		if found {
 			if math.Sqrt(closestDistance) < monster.Scale[0] {
-				closestF.SetState(stateDead)
-				monster.MaxAcceleration.Add(vector.NewVector3(5, 5, 5))
+				gunks[closestIndex].SetState(stateDead)
+				w.list.Remove(closestIndex)
+				monster.MaxAcceleration.Add(vector.NewVector3(1, 1, 1))
 			}
 
-			arrive := steering.NewSeek(monster.Model, monster.RigidBody, closestF.Position())
+			arrive := steering.NewSeek(monster.Model, monster.RigidBody, gunks[closestIndex].Position())
 			st := arrive.Get()
 			monster.AddForce(st.Linear())
 			monster.AddTorque(st.Angular())

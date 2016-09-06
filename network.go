@@ -22,11 +22,11 @@ func (network *clientHub) add(c *client.Client) {
 	network.Unlock()
 }
 
-func (network *clientHub) Write(data []byte) (n int, err error) {
+func (network *clientHub) Write(cmd client.MessageType, data []byte) (n int, err error) {
 	network.Lock()
 	defer network.Unlock()
 	for i, client := range network.clients {
-		nc, err := client.Update(data, 1)
+		nc, err := client.Update(data, cmd)
 		n += nc
 		if err != nil {
 			Println("network error, closing connection..")

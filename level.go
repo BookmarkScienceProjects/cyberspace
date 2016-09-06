@@ -45,14 +45,14 @@ func (l *level) Update(elapsed float64) {
 	}
 }
 
-func (l *level) Draw() *bytes.Buffer {
+func (l *level) draw() *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	err := binary.Write(buf, binary.LittleEndian, float32(atomic.LoadUint64(&currentFrame)))
 	if err != nil {
 		Printf("Draw() error %s", err)
 	}
 
-	for _, model := range l.world.list {
+	for _, model := range l.world.list.All() {
 		if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
 			Printf("binarystream error %s", err)
 		}
@@ -72,6 +72,23 @@ func (l *level) Draw() *bytes.Buffer {
 			Printf("binarystream error %s", err)
 		}
 	}
+
+	return buf
+}
+
+func (l *level) drawDead() *bytes.Buffer {
+	buf := &bytes.Buffer{}
+	err := binary.Write(buf, binary.LittleEndian, float32(atomic.LoadUint64(&currentFrame)))
+	if err != nil {
+		Printf("Draw() error %s", err)
+	}
+
+	for _, model := range l.world.list.deleted {
+		if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
+			Printf("binarystream error %s", err)
+		}
+	}
+	l.world.list.deleted = make([]Object, 0)
 
 	return buf
 }

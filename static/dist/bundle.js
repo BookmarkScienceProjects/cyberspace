@@ -1744,10 +1744,7 @@
 	    var id = update.id;
 	
 	    if (update.state === 0) {
-	      if (typeof objects[id] !== 'undefined') {
-	        objects[id].dispose();
-	        return;
-	      }
+	      return;
 	    }
 	
 	    if (typeof objects[id] === 'undefined') {
@@ -1767,6 +1764,31 @@
 	    objects[id].rotationQuaternion = new BABYLON.Quaternion(update.orientation[1], update.orientation[2], update.orientation[3], update.orientation[0]);
 	    objects[id].scaling = update.scale;
 	  });
+	};
+	
+	var entityRemove = function entityRemove(buf) {
+	  var updates = {};
+	  var objectId = void 0;
+	  while (!buf.isEof()) {
+	    var cmd = buf.readUint8();
+	    switch (cmd) {
+	      case 1:
+	        {
+	          // INST_ENTITY_ID - we are switching the object we wish to update
+	          objectId = buf.readFloat32();
+	          // check if object exists before disposing
+	          objects[objectId].dispose();
+	          break;
+	        }
+	
+	      default:
+	        {
+	          console.log('unknown command ' + cmd); // eslint-disable-line
+	        }
+	    }
+	  }
+	
+	  updateScene(updates);
 	};
 	
 	var entityUpdate = function entUpdate(buf) {
@@ -1843,6 +1865,11 @@
 	      case 1:
 	        {
 	          entityUpdate(buf);
+	          break;
+	        }
+	      case 2:
+	        {
+	          entityRemove(buf);
 	          break;
 	        }
 	      default:

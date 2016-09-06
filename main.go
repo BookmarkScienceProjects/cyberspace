@@ -44,11 +44,17 @@ func main() {
 		level.Update(elapsed)
 
 		if netLag > netRate {
-			buf := level.Draw()
+			buf := level.draw()
 			if buf.Len() > 0 {
-				if _, err := hub.Write(buf.Bytes()); err != nil {
+				if _, err := hub.Write(1, buf.Bytes()); err != nil {
 					Printf("%s", err)
 
+				}
+			}
+			deadbuf := level.drawDead()
+			if deadbuf.Len() > 0 {
+				if _, err := hub.Write(2, deadbuf.Bytes()); err != nil {
+					Printf("%s", err)
 				}
 			}
 			netLag -= netRate
