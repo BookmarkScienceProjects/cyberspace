@@ -100,16 +100,16 @@ const updateScene = function sceneUpdater(updates) {
 };
 
 const entityRemove = function entityRemove(buf) {
-  const updates = {};
-  let objectId;
   while (!buf.isEof()) {
     const cmd = buf.readUint8();
     switch (cmd) {
       case 1: {
         // INST_ENTITY_ID - we are switching the object we wish to update
-        objectId = buf.readFloat32();
+        const objectId = buf.readFloat32();
         // check if object exists before disposing
-        objects[objectId].dispose();
+        if(objects[objectId] !== undefined) {
+          objects[objectId].dispose();
+        }
         break;
       }
 
@@ -119,7 +119,6 @@ const entityRemove = function entityRemove(buf) {
     }
   }
 
-  updateScene(updates);
 };
 
 const entityUpdate = function entUpdate(buf) {

@@ -37,7 +37,7 @@ func (network *clientHub) Write(cmd client.MessageType, data []byte) (n int, err
 	return n, err
 }
 
-func initNetwork() *clientHub {
+func initNetwork(lvl *level) *clientHub {
 	Println("Inititalising Network")
 
 	hub := &clientHub{
@@ -60,7 +60,13 @@ func initNetwork() *clientHub {
 	go func(client chan *client.Client, h *clientHub) {
 		for newClient := range client {
 			Println("New client connected")
-			h.add(newClient)
+			_, err := newClient.Update(lvl.fulldraw().Bytes(), 1)
+			if err != nil {
+				Println("network error, ignoring new client..")
+			} else {
+				h.add(newClient)
+			}
+
 		}
 	}(ch.NewClients(), hub)
 

@@ -28,6 +28,7 @@ type Object interface {
 	Kind() Kind
 	Position() *vector.Vector3
 	Orientation() *vector.Quaternion
+	Awake() bool
 	Size() *vector.Vector3
 }
 
@@ -61,18 +62,18 @@ func (l *stuffList) Add(o Object) {
 
 func (l *stuffList) Remove(i uint16) {
 	l.Lock()
+	modelList.Delete(l.items[i].ID())
+	rigidList.Delete(l.items[i].ID())
+	collisionList.Delete(l.items[i].ID())
+
 	// decrement the current next
 	l.next--
 	// keep a record of deleted entities so they can be flushed to the view
 	l.deleted = append(l.deleted, l.items[i])
 	// take the object that was last and replace it with object to be removed
 	l.items[i] = l.items[l.next]
+
 	l.Unlock()
-
-	modelList.Delete(l.items[i].ID())
-	rigidList.Delete(l.items[i].ID())
-	collisionList.Delete(l.items[i].ID())
-
 }
 
 func (l *stuffList) All() map[uint16]Object {
@@ -90,7 +91,7 @@ func (l *stuffList) ofKind(k Kind) map[uint16]Object {
 	result := make(map[uint16]Object, 0)
 	l.Lock()
 	for i := uint16(0); i < l.next; i++ {
-		if l.items[i].Kind() == k && l.items[i].State() != stateDead {
+		if l.items[i].Kind() == k {
 			result[i] = l.items[i]
 		}
 	}
@@ -127,22 +128,21 @@ func createMonster(width, height, depth float64) *GameObject {
 
 type World struct {
 	timer float64
-	list  stuffList
+	list  *stuffList
 }
 
 func (w *World) Update(elapsed float64) {
 
 	w.timer += elapsed
-	if w.timer > 60 {
-		w.timer -= 60
-		Printf("There are currently %d items in the stuff list", len(w.list.All()))
+	if w.timer > 10 {
+		w.timer -= 10
 	}
 
-	if len(w.list.ofKind(Gunk)) < 50 {
+	for len(w.list.ofKind(Gunk)) < 1000 {
 		w.list.Add(createFood(3, 3, 3))
 	}
 
-	if len(w.list.ofKind(Monster)) < 10 {
+	for len(w.list.ofKind(Monster)) < 10 {
 		monster := createMonster(10, 10, 10)
 		monster.state = stateIdle
 		w.list.Add(monster)
@@ -168,13 +168,15 @@ func (w *World) Update(elapsed float64) {
 			if math.Sqrt(closestDistance) < monster.Scale[0] {
 				gunks[closestIndex].SetState(stateDead)
 				w.list.Remove(closestIndex)
-				monster.MaxAcceleration.Add(vector.NewVector3(1, 1, 1))
+				//monster.MaxAcceleration.Add(vector.NewVector3(1, 1, 1))
 			}
 
 			arrive := steering.NewSeek(monster.Model, monster.RigidBody, gunks[closestIndex].Position())
 			st := arrive.Get()
 			monster.AddForce(st.Linear())
 			monster.AddTorque(st.Angular())
+		} else {
+
 		}
 		monster.Position()[1] = monster.Scale[1] / 2
 	}

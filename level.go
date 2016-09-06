@@ -29,7 +29,13 @@ func newLevel() *level {
 	lvl.systems = append(lvl.systems, &physicSystem{})
 	lvl.systems = append(lvl.systems, &controllerSystem{})
 	lvl.systems = append(lvl.systems, &collisionSystem{})
-	lvl.world = &World{}
+	lvl.world = &World{
+		list: &stuffList{},
+	}
+
+	//for i := 0; i < 1000; i++ {
+	//	lvl.world.list.Add(createFood(3, 3, 3))
+	//}
 	lvl.systems = append(lvl.systems, lvl.world)
 	return lvl
 }
@@ -49,30 +55,26 @@ func (l *level) draw() *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	err := binary.Write(buf, binary.LittleEndian, float32(atomic.LoadUint64(&currentFrame)))
 	if err != nil {
-		Printf("Draw() error %s", err)
+		Printf("draw() error %s", err)
 	}
+	for _, object := range l.world.list.All() {
+		if !object.Awake() {
+			continue
+		}
+		serialize(buf, object)
+	}
+	return buf
+}
 
+func (l *level) fulldraw() *bytes.Buffer {
+	buf := &bytes.Buffer{}
+	err := binary.Write(buf, binary.LittleEndian, float32(atomic.LoadUint64(&currentFrame)))
+	if err != nil {
+		Printf("draw() error %s", err)
+	}
 	for _, model := range l.world.list.All() {
-		if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
-			Printf("binarystream error %s", err)
-		}
-		if err := binaryStream(buf, instPosition, model.Position()); err != nil {
-			Printf("binarystream error %s", err)
-		}
-		if err := binaryStream(buf, instOrientation, model.Orientation()); err != nil {
-			Printf("binarystream error %s", err)
-		}
-		if err := binaryStream(buf, instType, model.Kind()); err != nil {
-			Printf("binarystream error %s", err)
-		}
-		if err := binaryStream(buf, instScale, model.Size()); err != nil {
-			Printf("binarystream error %s", err)
-		}
-		if err := binaryStream(buf, instState, model.State()); err != nil {
-			Printf("binarystream error %s", err)
-		}
+		serialize(buf, model)
 	}
-
 	return buf
 }
 
@@ -80,7 +82,7 @@ func (l *level) drawDead() *bytes.Buffer {
 	buf := &bytes.Buffer{}
 	err := binary.Write(buf, binary.LittleEndian, float32(atomic.LoadUint64(&currentFrame)))
 	if err != nil {
-		Printf("Draw() error %s", err)
+		Printf("drawDead() error %s", err)
 	}
 
 	for _, model := range l.world.list.deleted {
@@ -91,6 +93,27 @@ func (l *level) drawDead() *bytes.Buffer {
 	l.world.list.deleted = make([]Object, 0)
 
 	return buf
+}
+
+func serialize(buf *bytes.Buffer, model Object) {
+	if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
+		Printf("binarystream error %s", err)
+	}
+	if err := binaryStream(buf, instPosition, model.Position()); err != nil {
+		Printf("binarystream error %s", err)
+	}
+	if err := binaryStream(buf, instOrientation, model.Orientation()); err != nil {
+		Printf("binarystream error %s", err)
+	}
+	if err := binaryStream(buf, instType, model.Kind()); err != nil {
+		Printf("binarystream error %s", err)
+	}
+	if err := binaryStream(buf, instScale, model.Size()); err != nil {
+		Printf("binarystream error %s", err)
+	}
+	if err := binaryStream(buf, instState, model.State()); err != nil {
+		Printf("binarystream error %s", err)
+	}
 }
 
 func binaryStream(buf io.Writer, lit literal, value interface{}) error {

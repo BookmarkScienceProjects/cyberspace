@@ -23,7 +23,7 @@ func main() {
 
 	level := newLevel()
 
-	hub := initNetwork()
+	hub := initNetwork(level)
 
 	previous := time.Now()
 	frameLag := 0.0
