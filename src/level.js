@@ -96,6 +96,9 @@ const updateScene = function sceneUpdater(updates) {
       update.orientation[0]
     );
     objects[id].scaling = update.scale;
+    // we are going to ignore any height offset just because I don't want to deal with the
+    // steering output in the backen
+    objects[id].position.y = objects[id].scaling.y/2;
   });
 };
 

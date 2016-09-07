@@ -44,10 +44,10 @@ func (w *World) Update(elapsed float64) {
 		w.timer -= 10
 	}
 
-	for len(w.objects.ofKind(Gunk)) < 100 {
+	for len(w.objects.ofKind(Gunk)) < 500 {
 		food := create("food")
 		if food != nil {
-			food.Position().Set(rand.Float64()*1000-500, food.Scale[1]/2, rand.Float64()*1000-500)
+			food.Position().Set(rand.Float64()*1000-500, 0, rand.Float64()*1000-500)
 			w.Add(food)
 		}
 	}
@@ -55,7 +55,7 @@ func (w *World) Update(elapsed float64) {
 	for len(w.objects.ofKind(Monster)) < 10 {
 		monster := create("monster")
 		if monster != nil {
-			monster.Position().Set(rand.Float64()*500-250, monster.Scale[1]/2, rand.Float64()*500-250)
+			monster.Position().Set(rand.Float64()*500-250, 0, rand.Float64()*500-250)
 			w.Add(monster)
 		}
 	}
@@ -86,9 +86,7 @@ func (w *World) Update(elapsed float64) {
 			st := arrive.Get()
 			monster.AddForce(st.Linear())
 			monster.AddTorque(st.Angular())
-		} else {
-
 		}
-		monster.Position()[1] = monster.Scale[1] / 2
+		//monster.Position()[1] = monster.Scale[1] / 2
 	}
 }
