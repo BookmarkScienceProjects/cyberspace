@@ -30,7 +30,7 @@ func newLevel() *level {
 	lvl.systems = append(lvl.systems, &controllerSystem{})
 	lvl.systems = append(lvl.systems, &collisionSystem{})
 	lvl.world = &World{
-		list: &stuffList{},
+		objects: &objectList{},
 	}
 
 	lvl.systems = append(lvl.systems, lvl.world)
@@ -54,7 +54,7 @@ func (l *level) draw() *bytes.Buffer {
 	if err != nil {
 		Printf("draw() error %s", err)
 	}
-	for _, object := range l.world.list.All() {
+	for _, object := range l.world.objects.All() {
 		if object.Rendered() && !object.Awake() {
 			continue
 		}
@@ -70,7 +70,7 @@ func (l *level) fulldraw() *bytes.Buffer {
 	if err != nil {
 		Printf("draw() error %s", err)
 	}
-	for _, model := range l.world.list.All() {
+	for _, model := range l.world.objects.All() {
 		serialize(buf, model)
 	}
 	return buf
@@ -83,12 +83,12 @@ func (l *level) drawDead() *bytes.Buffer {
 		Printf("drawDead() error %s", err)
 	}
 
-	for _, model := range l.world.list.deleted {
+	for _, model := range l.world.objects.deleted {
 		if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
 			Printf("binarystream error %s", err)
 		}
 	}
-	l.world.list.deleted = make([]Object, 0)
+	l.world.objects.deleted = make([]Object, 0)
 
 	return buf
 }
