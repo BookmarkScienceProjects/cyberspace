@@ -2,42 +2,9 @@ package main
 
 import (
 	"github.com/stojg/steering"
-	"github.com/stojg/vector"
-	"github.com/stojg/vivere/lib/components"
 	"math"
 	"math/rand"
 	"sync"
-)
-
-type State int
-
-const (
-	stateDead State = iota
-	stateIdle
-	stateMoving
-)
-
-type Stateful interface {
-	State() State
-	SetState(State)
-}
-
-type Object interface {
-	Stateful
-	ID() *components.Entity
-	Kind() Kind
-	Position() *vector.Vector3
-	Orientation() *vector.Quaternion
-	Awake() bool
-	Size() *vector.Vector3
-}
-
-type Kind byte
-
-const (
-	_ Kind = iota
-	Monster
-	Gunk
 )
 
 type stuffList struct {
@@ -66,12 +33,12 @@ func (l *stuffList) Remove(i uint16) {
 	rigidList.Delete(l.items[i].ID())
 	collisionList.Delete(l.items[i].ID())
 
-	// decrement the current next
-	l.next--
 	// keep a record of deleted entities so they can be flushed to the view
 	l.deleted = append(l.deleted, l.items[i])
-	// take the object that was last and replace it with object to be removed
-	l.items[i] = l.items[l.next]
+	// Take the last element in the list and replace the object to be deleted with that one
+	l.items[i] = l.items[l.next-1]
+	// we now have one more spot
+	l.next--
 
 	l.Unlock()
 }
@@ -99,36 +66,42 @@ func (l *stuffList) ofKind(k Kind) map[uint16]Object {
 	return result
 }
 
-func createFood(width, height, depth float64) *GameObject {
+func createFood() *GameObject {
 	eID := entities.Create()
 	f := &GameObject{
 		id:        eID,
 		state:     stateIdle,
 		kind:      Gunk,
-		Model:     modelList.New(eID, width, height, depth, 2),
+		Model:     modelList.New(eID, 3, 3, 3, 2),
 		RigidBody: rigidList.New(eID, 10),
-		Collision: collisionList.New(eID, width, height, depth),
+		Collision: collisionList.New(eID, 3, 3, 3),
 	}
-	f.Position().Set(rand.Float64()*1000-500, height/2, rand.Float64()*1000-500)
 	return f
 }
 
-func createMonster(width, height, depth float64) *GameObject {
+func createMonster() *GameObject {
 	eID := entities.Create()
 	monster := &GameObject{
-		kind:      Monster,
 		id:        eID,
-		Model:     modelList.New(eID, width, height, depth, 1),
+		kind:      Monster,
+		Model:     modelList.New(eID, 10, 10, 10, 1),
 		RigidBody: rigidList.New(eID, 1),
-		Collision: collisionList.New(eID, width, height, depth),
+		Collision: collisionList.New(eID, 10, 10, 10),
 	}
-	monster.Position().Set(rand.Float64()*500-250, height/2, rand.Float64()*500-250)
 	return monster
 }
 
 type World struct {
 	timer float64
 	list  *stuffList
+}
+
+func (w *World) Add(o Object) {
+	w.list.Add(o)
+}
+
+func (w *World) Remove(i uint16) {
+	w.list.Remove(i)
 }
 
 func (w *World) Update(elapsed float64) {
@@ -138,19 +111,21 @@ func (w *World) Update(elapsed float64) {
 		w.timer -= 10
 	}
 
-	for len(w.list.ofKind(Gunk)) < 1000 {
-		w.list.Add(createFood(3, 3, 3))
+	for len(w.list.ofKind(Gunk)) < 2 {
+		food := createFood()
+		food.Position().Set(rand.Float64()*1000-500, food.Scale[1]/2, rand.Float64()*1000-500)
+		w.Add(food)
 	}
 
-	for len(w.list.ofKind(Monster)) < 10 {
-		monster := createMonster(10, 10, 10)
+	for len(w.list.ofKind(Monster)) < 2 {
+		monster := createMonster()
 		monster.state = stateIdle
-		w.list.Add(monster)
+		monster.Position().Set(rand.Float64()*500-250, monster.Scale[1]/2, rand.Float64()*500-250)
+		w.Add(monster)
 	}
 
 	// run the AI for the individual entities
 	for _, obj := range w.list.ofKind(Monster) {
-		// @todo exclude dead entities
 		monster := obj.(*GameObject)
 		found := false
 		var closestIndex uint16
@@ -167,7 +142,7 @@ func (w *World) Update(elapsed float64) {
 		if found {
 			if math.Sqrt(closestDistance) < monster.Scale[0] {
 				gunks[closestIndex].SetState(stateDead)
-				w.list.Remove(closestIndex)
+				w.Remove(closestIndex)
 				//monster.MaxAcceleration.Add(vector.NewVector3(1, 1, 1))
 			}
 

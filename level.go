@@ -33,9 +33,6 @@ func newLevel() *level {
 		list: &stuffList{},
 	}
 
-	//for i := 0; i < 1000; i++ {
-	//	lvl.world.list.Add(createFood(3, 3, 3))
-	//}
 	lvl.systems = append(lvl.systems, lvl.world)
 	return lvl
 }
@@ -58,10 +55,11 @@ func (l *level) draw() *bytes.Buffer {
 		Printf("draw() error %s", err)
 	}
 	for _, object := range l.world.list.All() {
-		if !object.Awake() {
+		if object.Rendered() && !object.Awake() {
 			continue
 		}
 		serialize(buf, object)
+		object.SetRendered()
 	}
 	return buf
 }
