@@ -66,7 +66,7 @@ func (w *World) Update(elapsed float64) {
 }
 
 func (w *World) CreateEntities() {
-	for len(w.objects.ofKind(Food)) < 500 {
+	for len(w.objects.ofKind(Food)) < 200 {
 		food := create("food")
 		if food != nil {
 			food.Position().Set(rand.Float64()*1000-500, 0, rand.Float64()*1000-500)
