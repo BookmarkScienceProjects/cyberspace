@@ -35,7 +35,7 @@ type Kind byte
 const (
 	_ Kind = iota
 	Monster
-	Gunk
+	Food
 )
 
 type GameObject struct {

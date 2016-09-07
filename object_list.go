@@ -31,6 +31,9 @@ func (l *objectList) Remove(i uint16) {
 	rigidList.Delete(l.items[i].ID())
 	collisionList.Delete(l.items[i].ID())
 
+	// this might trigger call backs or something
+	l.items[i].SetState(stateDead)
+
 	// keep a record of deleted entities so they can be flushed to the view
 	l.deleted = append(l.deleted, l.items[i])
 	// Take the last element in the list and replace the object to be deleted with that one
@@ -62,4 +65,19 @@ func (l *objectList) ofKind(k Kind) map[uint16]Object {
 	}
 	l.Unlock()
 	return result
+}
+
+func nearest(monster Object, gunks map[uint16]Object) (uint16, bool) {
+	var closestIndex uint16
+	found := false
+	closestDistance := math.MaxFloat64
+	for i := range gunks {
+		distance := monster.Position().NewSub(gunks[i].Position()).SquareLength()
+		if monster.Position().NewSub(gunks[i].Position()).SquareLength() < closestDistance {
+			found = true
+			closestIndex = i
+			closestDistance = distance
+		}
+	}
+	return closestIndex, found
 }
