@@ -1,22 +1,37 @@
-package main
+package object
 
 import (
+	"fmt"
+	"github.com/stojg/vivere/lib/components"
 	"math"
 	"sync"
 )
 
-type objectList struct {
+var List list
+
+func init() {
+
+}
+
+type Deletable interface {
+	Delete(*components.Entity)
+}
+
+type list struct {
 	next uint16
 
 	sync.Mutex
-	items   [math.MaxUint16]Object
-	deleted []Object
+	items      [math.MaxUint16]Object
+	Deleted    []Object
+	Models     Deletable
+	Rigids     Deletable
+	Collisions Deletable
 }
 
-func (l *objectList) Add(o Object) {
+func (l *list) Add(o Object) {
 	// dont add anymore, we are full
 	if l.next+1 == math.MaxUint16 {
-		Println("stuff list full")
+		fmt.Println("stuff list full")
 		return
 	}
 	l.Lock()
@@ -25,17 +40,17 @@ func (l *objectList) Add(o Object) {
 	l.Unlock()
 }
 
-func (l *objectList) Remove(i uint16) {
+func (l *list) Remove(i uint16) {
 	l.Lock()
-	modelList.Delete(l.items[i].ID())
-	rigidList.Delete(l.items[i].ID())
-	collisionList.Delete(l.items[i].ID())
+	l.Models.Delete(l.items[i].ID())
+	l.Rigids.Delete(l.items[i].ID())
+	l.Collisions.Delete(l.items[i].ID())
 
 	// this might trigger call backs or something
-	l.items[i].SetState(stateDead)
+	//l.items[i].SetState(stateDead)
 
 	// keep a record of deleted entities so they can be flushed to the view
-	l.deleted = append(l.deleted, l.items[i])
+	l.Deleted = append(l.Deleted, l.items[i])
 	// Take the last element in the list and replace the object to be deleted with that one
 	l.items[i] = l.items[l.next-1]
 	// we now have one more spot
@@ -44,7 +59,7 @@ func (l *objectList) Remove(i uint16) {
 	l.Unlock()
 }
 
-func (l *objectList) All() map[uint16]Object {
+func (l *list) All() map[uint16]Object {
 	result := make(map[uint16]Object, 0)
 	l.Lock()
 	for i := uint16(0); i < l.next; i++ {
@@ -55,7 +70,7 @@ func (l *objectList) All() map[uint16]Object {
 }
 
 // idea for the future, let k be a bitmask
-func (l *objectList) ofKind(k Kind) map[uint16]Object {
+func (l *list) OfKind(k Kind) map[uint16]Object {
 	result := make(map[uint16]Object, 0)
 	l.Lock()
 	for i := uint16(0); i < l.next; i++ {
@@ -67,15 +82,18 @@ func (l *objectList) ofKind(k Kind) map[uint16]Object {
 	return result
 }
 
-func nearest(monster Object, gunks map[uint16]Object) (uint16, bool) {
+func (l *list) Nearest(monster Object, kind Kind) (uint16, bool) {
 	var closestIndex uint16
 	found := false
 	closestDistance := math.MaxFloat64
-	for i := range gunks {
-		distance := monster.Position().NewSub(gunks[i].Position()).SquareLength()
-		if monster.Position().NewSub(gunks[i].Position()).SquareLength() < closestDistance {
+	for i := range l.items {
+		if monster.Kind() != kind {
+			continue
+		}
+		distance := monster.Position().NewSub(l.items[i].Position()).SquareLength()
+		if monster.Position().NewSub(l.items[i].Position()).SquareLength() < closestDistance {
 			found = true
-			closestIndex = i
+			closestIndex = uint16(i)
 			closestDistance = distance
 		}
 	}

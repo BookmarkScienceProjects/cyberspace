@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stojg/cyberspace/lib/object"
 	"github.com/stojg/vector"
 	"io/ioutil"
 	"os"
 )
 
 type fileModel struct {
-	Kind   Kind            `json:"kind"`
+	Kind   object.Kind     `json:"kind"`
 	Scale  *vector.Vector3 `json:"scale"`
 	Weight float64         `json:"weight"`
 }

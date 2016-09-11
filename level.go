@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/stojg/cyberspace/lib/object"
+	"github.com/stojg/goap"
 	. "github.com/stojg/vector"
 	. "github.com/stojg/vivere/lib/components"
 	"io"
@@ -30,8 +32,12 @@ func newLevel() *level {
 	lvl.systems = append(lvl.systems, &controllerSystem{})
 	lvl.systems = append(lvl.systems, &collisionSystem{})
 	lvl.world = &World{
-		objects: &objectList{},
+		state: make(goap.StateList, 0),
 	}
+
+	object.List.Models = modelList
+	object.List.Rigids = rigidList
+	object.List.Collisions = collisionList
 
 	lvl.systems = append(lvl.systems, lvl.world)
 	return lvl
@@ -54,7 +60,7 @@ func (l *level) draw() *bytes.Buffer {
 	if err != nil {
 		Printf("draw() error %s", err)
 	}
-	for _, object := range l.world.objects.All() {
+	for _, object := range object.List.All() {
 		if object.Rendered() && !object.Awake() {
 			continue
 		}
@@ -70,7 +76,7 @@ func (l *level) fulldraw() *bytes.Buffer {
 	if err != nil {
 		Printf("draw() error %s", err)
 	}
-	for _, model := range l.world.objects.All() {
+	for _, model := range object.List.All() {
 		serialize(buf, model)
 	}
 	return buf
@@ -83,17 +89,17 @@ func (l *level) drawDead() *bytes.Buffer {
 		Printf("drawDead() error %s", err)
 	}
 
-	for _, model := range l.world.objects.deleted {
+	for _, model := range object.List.Deleted {
 		if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
 			Printf("binarystream error %s", err)
 		}
 	}
-	l.world.objects.deleted = make([]Object, 0)
+	object.List.Deleted = make([]object.Object, 0)
 
 	return buf
 }
 
-func serialize(buf *bytes.Buffer, model Object) {
+func serialize(buf *bytes.Buffer, model object.Object) {
 	if err := binaryStream(buf, instEntityID, *model.ID()); err != nil {
 		Printf("binarystream error %s", err)
 	}
@@ -109,9 +115,9 @@ func serialize(buf *bytes.Buffer, model Object) {
 	if err := binaryStream(buf, instScale, model.Size()); err != nil {
 		Printf("binarystream error %s", err)
 	}
-	if err := binaryStream(buf, instState, model.State()); err != nil {
-		Printf("binarystream error %s", err)
-	}
+	//if err := binaryStream(buf, instState, model.State()); err != nil {
+	//	Printf("binarystream error %s", err)
+	//}
 }
 
 func binaryStream(buf io.Writer, lit literal, value interface{}) error {
@@ -126,7 +132,7 @@ func binaryStream(buf io.Writer, lit literal, value interface{}) error {
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
 	case uint32:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
-	case Kind:
+	case object.Kind:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
 	case float32:
 		err = binary.Write(buf, binary.LittleEndian, val)

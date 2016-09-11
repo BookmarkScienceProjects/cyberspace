@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"github.com/stojg/cyberspace/lib/object"
+	"github.com/stojg/goap"
 	"github.com/stojg/vector"
 	"github.com/stojg/vivere/lib/components"
 )
@@ -18,34 +21,15 @@ type Stateful interface {
 	SetState(State)
 }
 
-type Object interface {
-	Stateful
-	ID() *components.Entity
-	Kind() Kind
-	Position() *vector.Vector3
-	Orientation() *vector.Quaternion
-	Awake() bool
-	Size() *vector.Vector3
-	Rendered() bool
-	SetRendered()
-}
-
-type Kind byte
-
-const (
-	_ Kind = iota
-	Monster
-	Food
-)
-
 type GameObject struct {
 	id *components.Entity
 	*components.Model
 	*components.RigidBody
 	*components.Collision
-	state State
-	kind  Kind
+	kind  object.Kind
 	sent  bool
+	agent *goap.GoapAgent
+	state goap.StateList
 	// @todo idea, add tags for searching
 }
 
@@ -64,14 +48,40 @@ func (o *GameObject) Size() *vector.Vector3 {
 	return o.Scale
 }
 
-func (o *GameObject) Kind() Kind {
+func (o *GameObject) Kind() object.Kind {
 	return o.kind
 }
 
-func (o *GameObject) State() State {
-	return o.state
+func (p *GameObject) GetWorldState() goap.StateList {
+	return p.state
 }
 
-func (o *GameObject) SetState(s State) {
-	o.state = s
+func (p *GameObject) CreateGoalState() goap.StateList {
+	goal := make(goap.StateList, 0)
+	goal["is_full"] = false
+	return goal
+}
+
+func (p *GameObject) Update() {
+	p.agent.Update()
+}
+
+func (p *GameObject) PlanFailed(failedGoal goap.StateList) {
+	//fmt.Printf("Planning failed: %v\n", failedGoal)
+}
+
+func (p *GameObject) PlanFound(goal goap.StateList, actions []goap.Actionable) {
+	fmt.Printf("Planning success to goal %v with actions %v\n", goal, actions)
+}
+
+func (p *GameObject) ActionsFinished() {
+	fmt.Println("all actions finished")
+}
+
+func (p *GameObject) PlanAborted(aborter goap.Actionable) {
+	fmt.Printf("plan aborted by %v\n", aborter)
+}
+
+func (p *GameObject) MoveAgent(nextAction goap.Actionable) bool {
+	return true
 }
