@@ -8,22 +8,36 @@ import (
 	"github.com/stojg/vector"
 	"github.com/stojg/vivere/lib/components"
 	"io"
-	"math/rand"
+	"math"
 	"sync/atomic"
 )
 
 func newLevel() *level {
 	lvl := &level{}
-	for i := 0; i < 10; i++ {
-		obj := spawn("monster")
-		t := obj.Transform()
-		t.Position().Set(rand.Float64()*100-50, 0, rand.Float64()*100-50)
-	}
+	obj := spawn("monster")
+	obj.Transform().Position().Set(10, 0, 0)
+	obj2 := spawn("monster")
+	obj2.Transform().Position().Set(-10, 0, 0)
 
-	for i := 0; i < 200; i++ {
-		obj := spawn("food")
-		obj.Transform().Position().Set(rand.Float64()*100-50, 0, rand.Float64()*100-50)
+	direction := vector.NewVector3(1, 1, 1)
+
+	direction.Normalize()
+	baseOrientation := vector.NewQuaternion(1, 0, 0, 0)
+	baseXVector := vector.X().Rotate(baseOrientation)
+	var result *vector.Quaternion
+	if baseXVector.Equals(direction) {
+		result = baseOrientation.Clone()
+	} else if baseXVector.Equals(direction.NewInverse()) {
+		// @todo need to fix this is the base orientation isn't 1,0,0,0?
+		result = vector.NewQuaternion(0, 0, 1, 0)
+	} else {
+		// find the minimal rotation from the base to the target
+		angle := math.Acos(baseXVector.Dot(direction))
+		axis := baseXVector.NewCross(direction).Normalize()
+		result = vector.QuaternionFromAxisAngle(axis, angle)
 	}
+	obj.Transform().Orientation().Set(result.R, result.I, result.J, result.K)
+	obj2.Transform().Orientation().Set(result.R, result.I, result.J, result.K)
 	return lvl
 }
 
@@ -31,13 +45,11 @@ type level struct {
 }
 
 func (l *level) Update(elapsed float64) {
-	for _, body := range core.List.Bodies() {
-		body.AddForce(vector.NewVector3(rand.Float64()*10-5, 0, rand.Float64()*10-5))
-	}
+	core.List.Bodies()[0].AddForce(vector.NewVector3(-20, 0, 0))
+	core.List.Bodies()[1].AddForce(vector.NewVector3(20, 0, 0))
 
 	UpdatePhysics(elapsed)
 	UpdateCollisions(elapsed)
-
 }
 
 const (
