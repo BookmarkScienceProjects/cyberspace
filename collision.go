@@ -8,13 +8,6 @@ import (
 )
 
 func UpdateCollisions(elapsed float64) {
-	collisions := GetCollisions()
-	for i := range collisions {
-		collisions[i].resolve(elapsed)
-	}
-}
-
-func GetCollisions() []*contact {
 	var collisions []*contact
 
 	tree := quadtree.NewQuadTree(
@@ -69,14 +62,15 @@ func GetCollisions() []*contact {
 			pair := &contact{
 				a:           a,
 				b:           b.(*core.Collision),
-				restitution: 0.2, // hard coded restitution for nowx
+				restitution: 0.99, // hard coded restitution for nowx
 				normal:      &vector.Vector3{},
 			}
 			potentialCollisions = append(potentialCollisions, pair)
 		}
 	}
 
-	// now it's time for the narrow phase of collision detection
+	// now it's time for the narrow phase of collision detection where we check if
+	// objects are colliding and calculate the contact point and interpenetration
 	for _, pair := range potentialCollisions {
 		rectangleVsRectangle(pair)
 		if pair.IsIntersecting {
@@ -84,7 +78,81 @@ func GetCollisions() []*contact {
 		}
 	}
 
-	return collisions
+	// now it's time to resolve the collision
+	for _, contact := range collisions {
+
+		contact.aBody = contact.a.GameObject().Body()
+		if contact.b != nil {
+			contact.bBody = contact.b.GameObject().Body()
+		}
+
+		// calculate the total inverse mass
+		totalInvMass := contact.aBody.InvMass
+		if contact.b != nil {
+			totalInvMass += contact.bBody.InvMass
+		}
+
+		// if both object have infinate mass we cannot move them
+		if totalInvMass == 0 {
+			continue
+		}
+
+		// first fix the change in velocities that comes from things bouncing together
+
+		// Find the velocity in the direction of the contact normal
+		separatingVelocity := contact.separatingVelocity()
+
+		// If the objects are already separating, we don't need to change the velocity
+		if separatingVelocity < 0 {
+
+			// Calculate the new separating velocity
+			newSepVelocity := -separatingVelocity * contact.restitution
+
+			// Check the velocity build up due to acceleration only
+			accCausedVelocity := contact.aBody.Forces.Clone()
+			if contact.b != nil {
+				accCausedVelocity.Sub(contact.bBody.Forces)
+			}
+
+			// If we have closing velocity due to acceleration buildup,
+			// remove it from the new separating velocity
+			accCausedSepVelocity := accCausedVelocity.Dot(contact.normal) * elapsed
+			if accCausedSepVelocity < 0 {
+				newSepVelocity += contact.restitution * accCausedSepVelocity
+
+				// make sure that we haven't removed more than was there to begin with
+				if newSepVelocity < 0 {
+					newSepVelocity = 0
+				}
+			}
+
+			deltaVelocity := newSepVelocity - separatingVelocity
+
+			// Only if either of the objects have mass that isn't infinite can we change the velocities
+			impulsePerIMass := contact.normal.NewScale(deltaVelocity / totalInvMass)
+			velocityChangeA := impulsePerIMass.NewScale(contact.aBody.InvMass)
+			contact.aBody.Velocity.Add(velocityChangeA)
+
+			if contact.b != nil {
+				velocityChangeB := impulsePerIMass.NewScale(-contact.bBody.InvMass)
+				contact.bBody.Velocity.Add(velocityChangeB)
+			}
+
+			contact.aBody = contact.a.GameObject().Body()
+			if contact.b != nil {
+				contact.bBody = contact.b.GameObject().Body()
+			}
+		}
+
+		// now it's time to resolve the interpenetration issue of the colliding objects
+		if contact.penetration > 0 {
+			movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
+			contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.aBody.InvMass))
+			if contact.b != nil {
+				contact.b.Transform().Position().Add(movePerIMass.NewScale(-contact.bBody.InvMass))
+			}
+		}
+	}
 }
 
 func rectangleVsRectangle(contact *contact) {
@@ -180,101 +248,10 @@ type contact struct {
 	bBody          *core.Body
 }
 
-func (contact *contact) resolve(duration float64) {
-
-	// we are going to need the contact struct with the rigid bodies
-
-	contact.aBody = contact.a.GameObject().Body()
-
-	if contact.b != nil {
-		contact.bBody = contact.b.GameObject().Body()
-	}
-
-	contact.resolveVelocity(duration)
-	contact.resolveInterpenetration()
-}
-
-// resolveVelocity calculates the new velocity that is the result of the collision
-func (contact *contact) resolveVelocity(duration float64) {
-
-	// Find the velocity in the direction of the contact normal
-	separatingVelocity := contact.separatingVelocity()
-
-	// The objects are already separating, NOP
-	if separatingVelocity > 0 {
-		return
-	}
-
-	// Calculate the new separating velocity
-	newSepVelocity := -separatingVelocity * contact.restitution
-
-	// Check the velocity build up due to acceleration only
-	accCausedVelocity := contact.aBody.Forces.Clone()
-	if contact.b != nil {
-		accCausedVelocity.Sub(contact.bBody.Forces)
-	}
-
-	// If we have closing velocity due to acceleration buildup,
-	// remove it from the new separating velocity
-	accCausedSepVelocity := accCausedVelocity.Dot(contact.normal) * duration
-	if accCausedSepVelocity < 0 {
-		newSepVelocity += contact.restitution * accCausedSepVelocity
-		// make sure that we haven't removed more than was there to begin with
-		if newSepVelocity < 0 {
-			newSepVelocity = 0
-		}
-	}
-
-	deltaVelocity := newSepVelocity - separatingVelocity
-
-	totalInvMass := contact.aBody.InvMass
-	if contact.b != nil {
-		totalInvMass += contact.bBody.InvMass
-	}
-
-	// Both objects have infinite mass, so they can't actually move
-	if totalInvMass == 0 {
-		return
-	}
-
-	impulsePerIMass := contact.normal.NewScale(deltaVelocity / totalInvMass)
-
-	velocityChangeA := impulsePerIMass.NewScale(contact.aBody.InvMass)
-	contact.aBody.Velocity.Add(velocityChangeA)
-	if contact.b != nil {
-		velocityChangeB := impulsePerIMass.NewScale(-contact.bBody.InvMass)
-		contact.bBody.Velocity.Add(velocityChangeB)
-	}
-}
-
 func (contact *contact) separatingVelocity() float64 {
 	relativeVel := contact.aBody.Velocity.Clone()
 	if contact.b != nil {
 		relativeVel.Sub(contact.bBody.Velocity)
 	}
 	return relativeVel.Dot(contact.normal)
-}
-
-// resolveInterpenetration separates two objects that has penetrated
-func (contact *contact) resolveInterpenetration() {
-
-	if contact.penetration <= 0 {
-		return
-	}
-
-	totalInvMass := contact.aBody.InvMass
-	if contact.b != nil {
-		totalInvMass += contact.bBody.InvMass
-	}
-	// Both objects have infinite mass, so no velocity
-	if totalInvMass == 0 {
-		return
-	}
-
-	movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
-
-	contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.aBody.InvMass))
-	if contact.b != nil {
-		contact.b.Transform().Position().Add(movePerIMass.NewScale(-contact.bBody.InvMass))
-	}
 }
