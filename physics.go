@@ -1,24 +1,18 @@
 package main
 
 import (
+	"github.com/stojg/cyberspace/lib/core"
 	"math"
 )
 
 type physicSystem struct{}
 
-func (s *physicSystem) Update(elapsed float64) {
+func UpdatePhysics(elapsed float64) {
 
-	for i, body := range rigidList.All() {
-
-		// @todo exclude dead entities
+	for _, body := range core.List.Bodies() {
 
 		if !body.Awake() {
 			continue
-		}
-
-		model := modelList.Get(i)
-		if model == nil {
-			panic("Physic system requires that a *Model have been set")
 		}
 
 		// Calculate linear acceleration from force inputs.
@@ -45,12 +39,12 @@ func (s *physicSystem) Update(elapsed float64) {
 
 		// Adjust positions
 		// Update linear position
-		model.Position().AddScaledVector(body.Velocity, elapsed)
+		body.Transform().Position().AddScaledVector(body.Velocity, elapsed)
 		// Update angular position
-		model.Orientation().AddScaledVector(body.Rotation, elapsed)
+		body.Transform().Orientation().AddScaledVector(body.Rotation, elapsed)
 
 		// Normalise the orientation, and update the matrices with the new position and orientation
-		body.CalculateDerivedData(model)
+		body.CalculateDerivedData(body.Transform())
 
 		// Clear accumulators.
 		body.ClearAccumulators()

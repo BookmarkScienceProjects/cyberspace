@@ -1,18 +1,11 @@
-/*
-Copyright 2013 Volker Poplawski
-*/
-
-
 package quadtree
 
 import "math"
-
 
 // Use NewBoundingBox() to construct a BoundingBox object
 type BoundingBox struct {
   MinX, MaxX, MinY, MaxY float64
 }
-
 
 func NewBoundingBox(xa, xb, ya, yb float64) BoundingBox {
   return BoundingBox{ math.Min(xa, xb), math.Max(xa, xb), math.Min(ya, yb), math.Max(ya, yb) }

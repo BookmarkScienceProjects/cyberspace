@@ -1,8 +1,8 @@
 package actions
 
 import (
-	"github.com/stojg/goap"
 	"github.com/stojg/cyberspace/lib/object"
+	"github.com/stojg/goap"
 )
 
 func NewGetFood(cost float64) *getFood {

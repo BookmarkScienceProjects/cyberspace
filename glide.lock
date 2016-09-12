@@ -1,5 +1,5 @@
-hash: 5904942dee2fc76d6c50a3da8e35925f74d802df6572bc592bddf876bfba95af
-updated: 2016-09-12T08:53:51.402829796+12:00
+hash: 38da3151e00ae5e445f1cb6f04b0adff6736f03f739061e40fa56029046efc5f
+updated: 2016-09-12T23:47:38.489240511+12:00
 imports:
 - name: github.com/stojg/formation
   version: aad5820b288237bba62e24b3903e01bc0d950fa6
@@ -14,10 +14,6 @@ imports:
   subpackages:
   - lib/client
   - lib/components
-- name: github.com/volkerp/goquadtree
-  version: eccf12729e3e0f9542a1109f6d7cc85de0eab771
-  subpackages:
-  - quadtree
 - name: golang.org/x/net
   version: cfe3c2a7525b50c3d707256e371c90938cfef98a
   subpackages:

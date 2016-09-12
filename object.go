@@ -63,7 +63,7 @@ func (p *GameObject) CreateGoalState() goap.StateList {
 }
 
 func (p *GameObject) Update() {
-	p.agent.Update()
+	//p.agent.Update()
 }
 
 func (p *GameObject) PlanFailed(failedGoal goap.StateList) {

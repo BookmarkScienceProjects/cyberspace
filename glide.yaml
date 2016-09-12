@@ -7,9 +7,6 @@ import:
   subpackages:
   - lib/client
   - lib/components
-- package: github.com/volkerp/goquadtree
-  subpackages:
-  - quadtree
 - package: golang.org/x/net
   subpackages:
   - websocket

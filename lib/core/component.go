@@ -1,4 +1,4 @@
-package GameObject
+package core
 
 // Base class for everything attached to GameObjects.
 //
@@ -6,11 +6,18 @@ package GameObject
 // attach the script to a GameObject. See Also: ScriptableObject as a way to create scripts that do
 // not attach to any GameObject.
 type Component struct {
-	gameobject *GameObject
+	// pointer to the parent class
+	gameObject *GameObject
+	//
 	tag string
+
 	transform *Transform
 }
 
-func (c *Component) Attach(g *GameObject) {
-	c.gameobject = g
+func (c *Component) GameObject() *GameObject {
+	return c.gameObject
+}
+
+func (c *Component) Transform() *Transform {
+	return c.transform
 }

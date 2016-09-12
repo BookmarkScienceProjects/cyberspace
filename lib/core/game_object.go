@@ -1,20 +1,65 @@
-package GameObject
+package core
 
-func New(name string) *GameObject {
-	return &GameObject{
+import (
+	"github.com/stojg/vector"
+	"github.com/stojg/vivere/lib/components"
+)
+
+func NewGameObject(name string) *GameObject {
+
+	g := &GameObject{
 		name: name,
+		transform: &Transform{
+			position: vector.Zero(),
+			rotation: vector.NewQuaternion(1, 0, 0, 0),
+			scale:    vector.NewVector3(1, 1, 1),
+		},
 	}
+	g.transform.parent = g
+	List.Add(g)
+	// link the transform back to the parent object
+	return g
 }
 
 type GameObject struct {
-	name string
-	components []Component
+	id         components.Entity
+	name       string
+	transform  *Transform
 }
 
-// Adds a component class named className to the game object.
-func (g *GameObject) AddComponent(c Component) {
-	g.components = append(g.components, c)
-	c.Attach(g)
+func (g *GameObject) ID() components.Entity {
+	return g.id
+}
+
+func (g *GameObject) Transform() *Transform {
+	return g.transform
+}
+
+func (g *GameObject) AddGraphic(graphic *Graphic) {
+	graphic.transform = g.transform
+	List.AddGraphic(g.id, graphic)
+}
+
+func (g *GameObject) Graphic() *Graphic {
+	return List.Graphic(g.id)
+}
+
+func (g *GameObject) AddBody(body *Body) {
+	body.transform = g.transform
+	List.AddBody(g.id, body)
+}
+
+func (g *GameObject) Body() *Body {
+	return List.Body(g.id)
+}
+
+func (g *GameObject) AddCollision(collision *Collision) {
+	collision.transform = g.transform
+	List.AddCollision(g.id, collision)
+}
+
+func (g *GameObject) Collision() *Collision {
+	return List.Collision(g.id)
 }
 
 // Calls the method named methodName on every MonoBehaviour in this game object or any of its children.
@@ -71,6 +116,3 @@ func (g *GameObject) SendMessageUpwards() {
 func (g *GameObject) SetActive() {
 
 }
-
-
-

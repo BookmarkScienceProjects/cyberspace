@@ -1,11 +1,5 @@
-/*
-Copyright 2013 Volker Poplawski
-*/
-
 // Package quadtree is a simple 2D implementation of the Quad-Tree data structure.
 package quadtree
-
-import _ "fmt"
 
 // Number of entries until a quad is split
 const MAX_ENTRIES_PER_TILE = 16
@@ -14,7 +8,7 @@ const MAX_ENTRIES_PER_TILE = 16
 const MAX_LEVELS = 10
 
 // some constants for tile-indeces, for clarity
-const ( 
+const (
   _TOPRIGHT    = 0
   _TOPLEFT     = 1
   _BOTTOMLEFT  = 2
@@ -24,9 +18,8 @@ const (
 
 // QuadTree exspects its values to implement the BoundingBoxer interface.
 type BoundingBoxer interface {
-  BoundingBox() BoundingBox
+	BoundingBox() BoundingBox
 }
-
 
 type QuadTree struct {
   root qtile
@@ -132,20 +125,20 @@ func (tile *qtile) query(qbox BoundingBox, ret []BoundingBoxer) []BoundingBoxer 
   if ! tile.Intersects(qbox) {
     return ret
   }
-  
+
   // return candidates at this tile
   for _, v := range tile.contents {
     if qbox.Intersects(v.BoundingBox()) {
       ret = append(ret, v)
     }
   }
-  
+
   // recurse into childs (if any)
   if tile.childs[_TOPRIGHT] != nil {
     for _, child := range tile.childs {
       ret = child.query(qbox, ret)
     }
-  } 
+  }
 
   return ret
 }

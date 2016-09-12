@@ -16,6 +16,6 @@ const ground = BABYLON.Mesh.CreateGround('ground', 20000, 20000, 1, scene);
 ground.material = groundMaterial;
 ground.receiveShadows = true;
 
-scene.registerBeforeRender(() => { scene.activeCamera.position.y = 100; });
+scene.registerBeforeRender(() => { scene.activeCamera.position.y = 10; });
 
 client.connect(level.update);

@@ -60,7 +60,7 @@ func initNetwork(lvl *level) *clientHub {
 	go func(client chan *client.Client, h *clientHub) {
 		for newClient := range client {
 			Println("New client connected")
-			_, err := newClient.Update(lvl.fulldraw().Bytes(), 1)
+			_, err := newClient.Update(lvl.fullDraw().Bytes(), 1)
 			if err != nil {
 				Println("network error, ignoring new client..")
 			} else {

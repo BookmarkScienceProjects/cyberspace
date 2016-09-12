@@ -157,7 +157,7 @@ const entityUpdate = function entUpdate(buf) {
       }
       case 4: {
         // INST_SET_MODEL
-        updates[objectId].model = buf.readFloat32();
+        updates[objectId].model = buf.readInt32();
         break;
       }
       case 5: {
