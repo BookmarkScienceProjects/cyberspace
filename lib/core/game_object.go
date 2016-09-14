@@ -11,7 +11,7 @@ func NewGameObject(name string) *GameObject {
 		name: name,
 		transform: &Transform{
 			position: vector.Zero(),
-			rotation: vector.NewQuaternion(1, 0, 0, 0),
+			orientation: vector.NewQuaternion(1, 0, 0, 0),
 			scale:    vector.NewVector3(1, 1, 1),
 		},
 	}

@@ -36,7 +36,7 @@ func newLevel() *level {
 		axis := baseXVector.NewCross(direction).Normalize()
 		result = vector.QuaternionFromAxisAngle(axis, angle)
 	}
-	obj.Transform().Orientation().Set(result.R, result.I, result.J, result.K)
+	//obj.Transform().Orientation().Set(result.R, result.I, result.J, result.K)
 	obj2.Transform().Orientation().Set(result.R, result.I, result.J, result.K)
 	return lvl
 }

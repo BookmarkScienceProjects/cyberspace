@@ -30,17 +30,22 @@ func (c *Collision) BoundingBox() quadtree.BoundingBox {
 // OBB returns the Oriented Bounding Box for this volume
 func (c *Collision) OBB() *OBB {
 	// @todo cache this so it's not re-calculate for every SAT test
-	r := &OBB{
-		MinPoint: vector.Zero(),
-		MaxPoint: vector.Zero(),
+
+	volume := vector.NewVector3(c.halfWidth[0]*2, c.halfWidth[1]*2, c.halfWidth[2]*2)
+	volume.Add(c.transform.position)
+	//u := vector.NewVector3(c.transform.orientation.I, c.transform.orientation.J, c.transform.orientation.K)
+	//s := c.transform.orientation.R;
+	//a := u.Scale(2.0*u.Dot(volume))
+	//b := volume.Scale(s*s - u.Dot(u))
+	//d := u.NewCross(volume).Scale(2.0 * s)
+	//z := a.Add(b).Add(d)
+
+	z := volume.Rotate(c.transform.orientation)
+
+	return &OBB{
+		MinPoint: c.transform.position.NewSub(z),
+		MaxPoint: c.transform.position.NewAdd(z),
 	}
-	r.MinPoint[0] = c.transform.position[0] - c.halfWidth[0]
-	r.MaxPoint[0] = c.transform.position[0] + c.halfWidth[0]
-	r.MinPoint[1] = c.transform.position[1] - c.halfWidth[1]
-	r.MaxPoint[1] = c.transform.position[1] + c.halfWidth[1]
-	r.MinPoint[2] = c.transform.position[2] - c.halfWidth[2]
-	r.MaxPoint[2] = c.transform.position[2] + c.halfWidth[2]
-	return r
 }
 
 type OBB struct {

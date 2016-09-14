@@ -62,7 +62,7 @@ func UpdateCollisions(elapsed float64) {
 			pair := &contact{
 				a:           a,
 				b:           b.(*core.Collision),
-				restitution: 0.99, // hard coded restitution for nowx
+				restitution: 0.5, // hard coded restitution for now
 				normal:      &vector.Vector3{},
 			}
 			potentialCollisions = append(potentialCollisions, pair)
@@ -92,7 +92,7 @@ func UpdateCollisions(elapsed float64) {
 			totalInvMass += contact.bBody.InvMass
 		}
 
-		// if both object have infinate mass we cannot move them
+		// if both object have infinite mass we cannot move them
 		if totalInvMass == 0 {
 			continue
 		}
@@ -146,6 +146,7 @@ func UpdateCollisions(elapsed float64) {
 
 		// now it's time to resolve the interpenetration issue of the colliding objects
 		if contact.penetration > 0 {
+			Println(contact.penetration)
 			movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
 			contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.aBody.InvMass))
 			if contact.b != nil {
@@ -179,7 +180,7 @@ func rectangleVsRectangle(contact *contact) {
 		return
 	}
 
-	contact.penetration = mtvDistance * 1.001
+	contact.penetration = mtvDistance
 	contact.normal = mtvAxis.Normalize()
 	contact.IsIntersecting = true
 }
