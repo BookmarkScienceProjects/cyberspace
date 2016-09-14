@@ -170,7 +170,7 @@ const entityUpdate = function entUpdate(buf) {
         break;
       }
       case 6: {
-        updates[objectId].state = buf.readFloat32();
+	updates[objectId].state = buf.readFloat32();
         break;
       }
       default: {

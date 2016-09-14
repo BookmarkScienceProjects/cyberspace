@@ -231,7 +231,7 @@ func testAxisSeparation(axis vector.Vector3, minA, maxA, minB, maxB float64, mtv
 	// If that vector is smaller than our computed Minimum Translation
 	// Distance use that vector as our current MTV distance
 	if sepLengthSquared < *mtvDistance {
-		*mtvDistance = math.Sqrt(sepLengthSquared)
+		*mtvDistance = math.Sqrt(sepLengthSquared) / 2
 		mtvAxis.Set(sep[0], sep[1], sep[2])
 	}
 	return true

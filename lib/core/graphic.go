@@ -9,7 +9,7 @@ func NewGraphic(model int) *Graphic {
 type Graphic struct {
 	Component
 	isRendered bool
-	model int
+	model      int
 }
 
 func (g *Graphic) IsRendered() bool {

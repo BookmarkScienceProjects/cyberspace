@@ -9,21 +9,21 @@ var List *ObjectList
 
 func init() {
 	List = &ObjectList{
-		entities: make(map[components.Entity]*GameObject),
-		graphics:  make(map[components.Entity]*Graphic),
-		bodies:  make(map[components.Entity]*Body),
+		entities:   make(map[components.Entity]*GameObject),
+		graphics:   make(map[components.Entity]*Graphic),
+		bodies:     make(map[components.Entity]*Body),
 		collisions: make(map[components.Entity]*Collision),
-		deleted: make([]components.Entity, 0),
+		deleted:    make([]components.Entity, 0),
 	}
 }
 
 type ObjectList struct {
-	nextID   components.Entity
-	entities map[components.Entity]*GameObject
-	graphics map[components.Entity]*Graphic
-	bodies   map[components.Entity]*Body
-	collisions   map[components.Entity]*Collision
-	deleted []components.Entity
+	nextID     components.Entity
+	entities   map[components.Entity]*GameObject
+	graphics   map[components.Entity]*Graphic
+	bodies     map[components.Entity]*Body
+	collisions map[components.Entity]*Collision
+	deleted    []components.Entity
 }
 
 func (l *ObjectList) Add(g *GameObject) {
@@ -35,7 +35,7 @@ func (l *ObjectList) Add(g *GameObject) {
 	l.entities[g.id] = g
 }
 
-func (l *ObjectList) Remove(g* GameObject) {
+func (l *ObjectList) Remove(g *GameObject) {
 	if _, found := l.entities[g.id]; found {
 		delete(l.entities, g.id)
 	}
@@ -102,7 +102,7 @@ func (l *ObjectList) Collision(id components.Entity) *Collision {
 	return l.collisions[id]
 }
 
-func (l *ObjectList) Collisions() []*Collision{
+func (l *ObjectList) Collisions() []*Collision {
 	var result []*Collision
 	for i := range l.collisions {
 		result = append(result, l.collisions[i])

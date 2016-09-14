@@ -6,11 +6,11 @@ import "github.com/stojg/vector"
 // Every object in a scene has a Transform. It's used to store and manipulate the position, rotation
 // and scale of the object.
 type Transform struct {
-	position *vector.Vector3
-	rotation *vector.Quaternion
-	scale    *vector.Vector3
+	position    *vector.Vector3
+	orientation *vector.Quaternion
+	scale       *vector.Vector3
 	// parent object
-	parent *GameObject
+	parent      *GameObject
 }
 
 func (t *Transform) Position() *vector.Vector3 {
@@ -18,7 +18,7 @@ func (t *Transform) Position() *vector.Vector3 {
 }
 
 func (t *Transform) Orientation() *vector.Quaternion {
-	return t.rotation
+	return t.orientation
 }
 
 func (t *Transform) Scale() *vector.Vector3 {
