@@ -17,12 +17,12 @@ func newLevel() *level {
 	for i := 0; i < 10; i++ {
 		obj := spawn("monster")
 		t := obj.Transform()
-		t.Position().Set(rand.Float64()*100-50, 0, rand.Float64()*100-50)
+		t.Position().Set(rand.Float64()*25-12, 0, rand.Float64()*25-12)
 	}
 
 	for i := 0; i < 200; i++ {
 		obj := spawn("food")
-		obj.Transform().Position().Set(rand.Float64()*100-50, 0, rand.Float64()*100-50)
+		obj.Transform().Position().Set(rand.Float64()*25-12, 0, rand.Float64()*25-12)
 	}
 	return lvl
 }
@@ -33,6 +33,7 @@ type level struct {
 func (l *level) Update(elapsed float64) {
 	for _, body := range core.List.Bodies() {
 		body.AddForce(vector.NewVector3(rand.Float64()*10-5, 0, rand.Float64()*10-5))
+		body.AddTorque(vector.NewVector3(0, rand.Float64()*10, 0))
 	}
 
 	UpdatePhysics(elapsed)
