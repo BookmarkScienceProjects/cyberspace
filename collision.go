@@ -146,7 +146,6 @@ func UpdateCollisions(elapsed float64) {
 
 		// now it's time to resolve the interpenetration issue of the colliding objects
 		if contact.penetration > 0 {
-			Println(contact.penetration)
 			movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
 			contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.aBody.InvMass))
 			if contact.b != nil {
@@ -232,7 +231,7 @@ func testAxisSeparation(axis vector.Vector3, minA, maxA, minB, maxB float64, mtv
 	// If that vector is smaller than our computed Minimum Translation
 	// Distance use that vector as our current MTV distance
 	if sepLengthSquared < *mtvDistance {
-		*mtvDistance = math.Sqrt(sepLengthSquared)
+		*mtvDistance = math.Sqrt(sepLengthSquared) / 2
 		mtvAxis.Set(sep[0], sep[1], sep[2])
 	}
 	return true

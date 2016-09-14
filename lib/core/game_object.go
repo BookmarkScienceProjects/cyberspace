@@ -10,9 +10,9 @@ func NewGameObject(name string) *GameObject {
 	g := &GameObject{
 		name: name,
 		transform: &Transform{
-			position: vector.Zero(),
+			position:    vector.Zero(),
 			orientation: vector.NewQuaternion(1, 0, 0, 0),
-			scale:    vector.NewVector3(1, 1, 1),
+			scale:       vector.NewVector3(1, 1, 1),
 		},
 	}
 	g.transform.parent = g
@@ -22,9 +22,9 @@ func NewGameObject(name string) *GameObject {
 }
 
 type GameObject struct {
-	id         components.Entity
-	name       string
-	transform  *Transform
+	id        components.Entity
+	name      string
+	transform *Transform
 }
 
 func (g *GameObject) ID() components.Entity {
