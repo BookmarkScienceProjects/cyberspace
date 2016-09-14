@@ -14,6 +14,9 @@ func (a byPenetration) Len() int           { return len(a) }
 func (a byPenetration) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byPenetration) Less(i, j int) bool { return a[i].penetration < a[j].penetration }
 
+// UpdateCollisions resolves collisions by using a impulse based collision resolution, ie it moves
+// entities with impulses (instant velocity change) instead of using a force based collision
+// resolution.
 func UpdateCollisions(elapsed float64) {
 
 	tree := quadtree.NewQuadTree(
@@ -156,14 +159,9 @@ func UpdateCollisions(elapsed float64) {
 				contact.bodies[1].Velocity.Add(velocityChangeB)
 				contact.bodies[1].SetAwake(true)
 			}
-
-			contact.bodies[0] = contact.a.GameObject().Body()
-			if contact.b != nil {
-				contact.bodies[1] = contact.b.GameObject().Body()
-			}
 		}
 
-		// now it's time to resolve the interpenetration issue of the colliding objects
+		// 2. now it's time to resolve the interpenetration issue of the colliding objects
 		if contact.penetration > 0 {
 			movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
 			contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.bodies[0].InvMass))
@@ -259,13 +257,60 @@ func testAxisSeparation(axis vector.Vector3, minA, maxA, minB, maxB float64, mtv
 }
 
 type contact struct {
+	IsIntersecting bool
 	bodies         [2]*core.Body
 	a              *core.Collision
 	b              *core.Collision
 	restitution    float64
 	penetration    float64
-	normal         *vector.Vector3
-	IsIntersecting bool
+	// the contact normal in world space
+	normal *vector.Vector3
+
+	toWorld *vector.Matrix3
+}
+
+// calculateContactBasis calculates an orthonormal basis for the contact point, based on the
+// primary friction direction (for anisotropic friction) or a random orientation (for isotropic
+// friction)
+//
+// Constructs an arbitrary orthonormal basis for the contact.  This is stored as a 3x3 matrix, where
+// each vector is a column (in other words the matrix transforms contact space into world space).
+// The x // direction is generated from the contact normal, and the y and z directionss are set so
+// they are at right angles to it.
+func (contact *contact) calculateContactBasis() {
+
+	var contactTangent [2]*vector.Vector3
+
+	// Check whether the Z-axis is nearer to the X or Y axis
+	if math.Abs(contact.normal[0]) > math.Abs(contact.normal[1]) {
+		// Scaling factor to ensure the results are normalised
+		s := 1.0 / math.Sqrt(contact.normal[2]*contact.normal[2]+contact.normal[0]*contact.normal[0])
+
+		// The new X-axis is at right angles to the world Y-axis
+		contactTangent[0][0] = contact.normal[2] * s
+		contactTangent[0][1] = 0
+		contactTangent[0][2] = -contact.normal[0] * s
+
+		// The new Y-axis is at right angles to the new X- and Z- axes
+		contactTangent[1][0] = contact.normal[1] * contactTangent[0][0]
+		contactTangent[1][1] = contact.normal[2]*contactTangent[0][0] - contact.normal[0]*contactTangent[0][2]
+		contactTangent[1][2] = -contact.normal[1] * contactTangent[0][0]
+	} else {
+		// Scaling factor to ensure the results are normalised
+		s := 1.0 / math.Sqrt(contact.normal[2]*contact.normal[2]+contact.normal[1]*contact.normal[1])
+
+		// The new X-axis is at right angles to the world X-axis
+		contactTangent[0][0] = 0
+		contactTangent[0][1] = -contact.normal[2] * s
+		contactTangent[0][2] = contact.normal[1] * s
+
+		// The new Y-axis is at right angles to the new X- and Z- axes
+		contactTangent[1][0] = contact.normal[1]*contactTangent[0][2] - contact.normal[2]*contactTangent[0][1]
+		contactTangent[1][1] = -contact.normal[0] * contactTangent[0][2]
+		contactTangent[1][2] = contact.normal[0] * contactTangent[0][1]
+	}
+
+	contact.toWorld.SetFromComponents(contact.normal, contactTangent[0], contactTangent[1])
 }
 
 func (contact *contact) separatingVelocity() float64 {
