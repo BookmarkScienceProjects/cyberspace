@@ -5,10 +5,16 @@ import (
 	"github.com/stojg/cyberspace/lib/quadtree"
 	"github.com/stojg/vector"
 	"math"
+	"sort"
 )
 
+type byPenetration []*contact
+
+func (a byPenetration) Len() int           { return len(a) }
+func (a byPenetration) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byPenetration) Less(i, j int) bool { return a[i].penetration < a[j].penetration }
+
 func UpdateCollisions(elapsed float64) {
-	var collisions []*contact
 
 	tree := quadtree.NewQuadTree(
 		quadtree.BoundingBox{
@@ -62,7 +68,7 @@ func UpdateCollisions(elapsed float64) {
 			pair := &contact{
 				a:           a,
 				b:           b.(*core.Collision),
-				restitution: 0.99, // hard coded restitution for nowx
+				restitution: 0.99, // hard coded restitution for now
 				normal:      &vector.Vector3{},
 			}
 			potentialCollisions = append(potentialCollisions, pair)
@@ -71,6 +77,8 @@ func UpdateCollisions(elapsed float64) {
 
 	// now it's time for the narrow phase of collision detection where we check if
 	// objects are colliding and calculate the contact point and interpenetration
+
+	var collisions []*contact
 	for _, pair := range potentialCollisions {
 		rectangleVsRectangle(pair)
 		if pair.IsIntersecting {
@@ -78,18 +86,28 @@ func UpdateCollisions(elapsed float64) {
 		}
 	}
 
+	if len(collisions) == 0 {
+		return
+	}
+
+	sort.Sort(byPenetration(collisions))
+
 	// now it's time to resolve the collision
 	for _, contact := range collisions {
 
-		contact.aBody = contact.a.GameObject().Body()
+		// add a bit leeway so that contacts are separating a bit more and don't constantly
+		// get stuck in collision, kinda hacky TBH
+		contact.penetration += 0.001
+
+		contact.bodies[0] = contact.a.GameObject().Body()
 		if contact.b != nil {
-			contact.bBody = contact.b.GameObject().Body()
+			contact.bodies[1] = contact.b.GameObject().Body()
 		}
 
 		// calculate the total inverse mass
-		totalInvMass := contact.aBody.InvMass
+		totalInvMass := contact.bodies[0].InvMass
 		if contact.b != nil {
-			totalInvMass += contact.bBody.InvMass
+			totalInvMass += contact.bodies[1].InvMass
 		}
 
 		// if both object have infinate mass we cannot move them
@@ -97,7 +115,7 @@ func UpdateCollisions(elapsed float64) {
 			continue
 		}
 
-		// first fix the change in velocities that comes from things bouncing together
+		// 1. first fix the change in velocities that comes from things bouncing together
 
 		// Find the velocity in the direction of the contact normal
 		separatingVelocity := contact.separatingVelocity()
@@ -109,9 +127,9 @@ func UpdateCollisions(elapsed float64) {
 			newSepVelocity := -separatingVelocity * contact.restitution
 
 			// Check the velocity build up due to acceleration only
-			accCausedVelocity := contact.aBody.Forces.Clone()
+			accCausedVelocity := contact.bodies[0].Forces.Clone()
 			if contact.b != nil {
-				accCausedVelocity.Sub(contact.bBody.Forces)
+				accCausedVelocity.Sub(contact.bodies[1].Forces)
 			}
 
 			// If we have closing velocity due to acceleration buildup,
@@ -130,26 +148,29 @@ func UpdateCollisions(elapsed float64) {
 
 			// Only if either of the objects have mass that isn't infinite can we change the velocities
 			impulsePerIMass := contact.normal.NewScale(deltaVelocity / totalInvMass)
-			velocityChangeA := impulsePerIMass.NewScale(contact.aBody.InvMass)
-			contact.aBody.Velocity.Add(velocityChangeA)
-
+			velocityChangeA := impulsePerIMass.NewScale(contact.bodies[0].InvMass)
+			contact.bodies[0].Velocity.Add(velocityChangeA)
+			contact.bodies[0].SetAwake(true)
 			if contact.b != nil {
-				velocityChangeB := impulsePerIMass.NewScale(-contact.bBody.InvMass)
-				contact.bBody.Velocity.Add(velocityChangeB)
+				velocityChangeB := impulsePerIMass.NewScale(-contact.bodies[1].InvMass)
+				contact.bodies[1].Velocity.Add(velocityChangeB)
+				contact.bodies[1].SetAwake(true)
 			}
 
-			contact.aBody = contact.a.GameObject().Body()
+			contact.bodies[0] = contact.a.GameObject().Body()
 			if contact.b != nil {
-				contact.bBody = contact.b.GameObject().Body()
+				contact.bodies[1] = contact.b.GameObject().Body()
 			}
 		}
 
 		// now it's time to resolve the interpenetration issue of the colliding objects
 		if contact.penetration > 0 {
 			movePerIMass := contact.normal.NewScale(contact.penetration / totalInvMass)
-			contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.aBody.InvMass))
+			contact.a.Transform().Position().Add(movePerIMass.NewScale(contact.bodies[0].InvMass))
+			contact.bodies[0].SetAwake(true)
 			if contact.b != nil {
-				contact.b.Transform().Position().Add(movePerIMass.NewScale(-contact.bBody.InvMass))
+				contact.b.Transform().Position().Add(movePerIMass.NewScale(-contact.bodies[1].InvMass))
+				contact.bodies[1].SetAwake(true)
 			}
 		}
 	}
@@ -238,20 +259,19 @@ func testAxisSeparation(axis vector.Vector3, minA, maxA, minB, maxB float64, mtv
 }
 
 type contact struct {
+	bodies         [2]*core.Body
 	a              *core.Collision
 	b              *core.Collision
 	restitution    float64
 	penetration    float64
 	normal         *vector.Vector3
 	IsIntersecting bool
-	aBody          *core.Body
-	bBody          *core.Body
 }
 
 func (contact *contact) separatingVelocity() float64 {
-	relativeVel := contact.aBody.Velocity.Clone()
+	relativeVel := contact.bodies[0].Velocity.Clone()
 	if contact.b != nil {
-		relativeVel.Sub(contact.bBody.Velocity)
+		relativeVel.Sub(contact.bodies[1].Velocity)
 	}
 	return relativeVel.Dot(contact.normal)
 }
