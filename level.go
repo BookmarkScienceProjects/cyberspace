@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/goap"
 	"github.com/stojg/vector"
 	"github.com/stojg/vivere/lib/components"
 	"io"
@@ -13,19 +14,24 @@ import (
 )
 
 func newLevel() *level {
-	lvl := &level{}
+	lvl := &level{
+		worldState: make(goap.StateList, 0),
+	}
 	for i := 0; i < 10; i++ {
 		obj := spawn("monster")
 		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
+		lvl.worldState["monster_exists"] = true
 	}
 	for i := 0; i < 50; i++ {
 		obj := spawn("food")
 		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
+		lvl.worldState["food_exists"] = true
 	}
 	return lvl
 }
 
 type level struct {
+	worldState goap.StateList
 }
 
 func (l *level) Update(elapsed float64) {
