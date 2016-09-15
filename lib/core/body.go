@@ -27,7 +27,7 @@ func NewBody(invMass float64) *Body {
 	}
 
 	it := &Matrix3{}
-	it.SetBlockInertiaTensor(&Vector3{1, 1, 1}, invMass)
+	it.SetBlockInertiaTensor(&Vector3{1, 1, 1}, 1/invMass)
 	body.SetInertiaTensor(it)
 	return body
 }
