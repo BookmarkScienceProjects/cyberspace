@@ -10,7 +10,7 @@ type Transform struct {
 	orientation *vector.Quaternion
 	scale       *vector.Vector3
 	// parent object
-	parent      *GameObject
+	parent *GameObject
 }
 
 func (t *Transform) Position() *vector.Vector3 {

@@ -13,6 +13,7 @@ func init() {
 		graphics:   make(map[components.Entity]*Graphic),
 		bodies:     make(map[components.Entity]*Body),
 		collisions: make(map[components.Entity]*Collision),
+		ais:        make(map[components.Entity]AI),
 		deleted:    make([]components.Entity, 0),
 	}
 }
@@ -23,6 +24,7 @@ type ObjectList struct {
 	graphics   map[components.Entity]*Graphic
 	bodies     map[components.Entity]*Body
 	collisions map[components.Entity]*Collision
+	ais        map[components.Entity]AI
 	deleted    []components.Entity
 }
 
@@ -56,6 +58,17 @@ func (l *ObjectList) All() []*GameObject {
 	return result
 }
 
+// Returns one active GameObject tagged tag. Returns nil if no GameObject was found.
+func (l *ObjectList) FindWithTag(tag string) []*GameObject {
+	var result []*GameObject
+	for i := range l.entities {
+		if l.entities[i].CompareTag(tag) {
+			result = append(result, l.entities[i])
+		}
+	}
+	return result
+}
+
 func (l *ObjectList) AddGraphic(id components.Entity, graphic *Graphic) {
 	graphic.gameObject = l.entities[id]
 	graphic.transform = l.entities[id].transform
@@ -84,17 +97,6 @@ func (l *ObjectList) Body(id components.Entity) *Body {
 	return l.bodies[id]
 }
 
-// Returns one active GameObject tagged tag. Returns nil if no GameObject was found.
-func (l *ObjectList) FindWithTag(tag string) []*GameObject {
-	var result []*GameObject
-	for i := range l.entities {
-		if l.entities[i].CompareTag(tag) {
-			result = append(result, l.entities[i])
-		}
-	}
-	return result
-}
-
 func (l *ObjectList) Bodies() []*Body {
 	var result []*Body
 	for i := range l.bodies {
@@ -117,6 +119,23 @@ func (l *ObjectList) Collisions() []*Collision {
 	var result []*Collision
 	for i := range l.collisions {
 		result = append(result, l.collisions[i])
+	}
+	return result
+}
+
+func (l *ObjectList) AddAI(id components.Entity, ai AI) {
+	ai.SetGameObject(l.entities[id])
+	l.ais[id] = ai
+}
+
+func (l *ObjectList) AI(id components.Entity) AI {
+	return l.ais[id]
+}
+
+func (l *ObjectList) AIs() []AI {
+	var result []AI
+	for i := range l.ais {
+		result = append(result, l.ais[i])
 	}
 	return result
 }

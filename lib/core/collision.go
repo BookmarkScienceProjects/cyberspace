@@ -60,7 +60,7 @@ func (c *Collision) OBB() *OBB {
 		}
 	}
 	return &OBB{
-		centre: c.gameObject.Transform().Position(),
+		centre:   c.gameObject.Transform().Position(),
 		MaxPoint: max,
 		MinPoint: min,
 	}

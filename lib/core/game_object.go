@@ -26,7 +26,7 @@ type GameObject struct {
 	id        components.Entity
 	name      string
 	transform *Transform
-	tags map[string]bool
+	tags      map[string]bool
 }
 
 func (g *GameObject) AddTags(tags []string) {
@@ -70,6 +70,14 @@ func (g *GameObject) Collision() *Collision {
 	return List.Collision(g.id)
 }
 
+func (g *GameObject) AddAI(ai AI) {
+	List.AddAI(g.id, ai)
+}
+
+func (g *GameObject) AI() AI {
+	return List.AI(g.id)
+}
+
 // Calls the method named methodName on every MonoBehaviour in this game object or any of its children.
 func (g *GameObject) BroadcastMessage() {
 
@@ -77,7 +85,7 @@ func (g *GameObject) BroadcastMessage() {
 
 // Is this game object tagged with tag ?
 func (g *GameObject) CompareTag(tag string) bool {
-	_, ok := g.tags[tag];
+	_, ok := g.tags[tag]
 	return ok
 }
 

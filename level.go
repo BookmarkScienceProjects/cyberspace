@@ -19,6 +19,7 @@ func newLevel() *level {
 	}
 	for i := 0; i < 10; i++ {
 		obj := spawn("monster")
+		obj.AddAI(&HunterAI{})
 		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
 		lvl.worldState["monster_exists"] = true
 	}
@@ -43,6 +44,7 @@ func (l *level) Update(elapsed float64) {
 		obj.Body().AddTorque(vector.NewVector3(0, -1, 0))
 	}
 
+	UpdateAI(elapsed, l.worldState)
 	UpdatePhysics(elapsed)
 	UpdateCollisions(elapsed)
 
