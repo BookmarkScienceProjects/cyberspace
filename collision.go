@@ -73,6 +73,7 @@ func UpdateCollisions(elapsed float64) {
 				b:           b.(*core.Collision),
 				restitution: 0.99, // hard coded restitution for now
 				normal:      &vector.Vector3{},
+				toWorld:     &vector.Matrix3{},
 			}
 			potentialCollisions = append(potentialCollisions, pair)
 		}
@@ -117,6 +118,9 @@ func UpdateCollisions(elapsed float64) {
 		if totalInvMass == 0 {
 			continue
 		}
+
+		// used later
+		//contact.calculateInternals(elapsed)
 
 		// 1. first fix the change in velocities that comes from things bouncing together
 
@@ -198,7 +202,11 @@ func rectangleVsRectangle(contact *contact) {
 		return
 	}
 
-	contact.penetration = mtvDistance * 1.001
+	// used later in the future https://github.com/idmillington/cyclone-physics/blob/fd0cf4956fd83ebf9e2e75421dfbf9f5cdac49fa/src/collide_fine.cpp#L422
+	//toCentre := rB.CentrePoint().NewSub(rB.CentrePoint())
+	//bestSingleAxis := mtvAxis.Clone()
+
+	contact.penetration = mtvDistance
 	contact.normal = mtvAxis.Normalize()
 	contact.IsIntersecting = true
 }
@@ -263,10 +271,58 @@ type contact struct {
 	b              *core.Collision
 	restitution    float64
 	penetration    float64
+
+	// Holds the position of the contact in world coordinates.
+	contactPoint *vector.Vector3
+
 	// the contact normal in world space
 	normal *vector.Vector3
 
+	// A transform matrix that converts coordinates in the contact's frame of reference to world
+	// coordinates. The columns of this matrix form an orthonormal set of vectors
 	toWorld *vector.Matrix3
+
+	// Holds the closing velocity at the point of contact. This is set when the calculateInternals
+	// function is run.
+	contactVelocity *vector.Vector3
+
+	// Holds the world space position of the contact point relative to centre of each body. This is
+	// set when the calculateInternals function is run.
+	relativeContactPosition [2]*vector.Vector3
+
+	// Holds the required change in velocity for this contact to be
+	// resolved.
+	desiredDeltaVelocity float64
+}
+
+func (contact *contact) calculateInternals(duration float64) {
+	// Check if the first object is nil, and swap if it is.
+	if contact.bodies[0] == nil {
+		contact.swapBodies()
+	}
+
+	// Calculate an set of axis at the contact point.
+	contact.calculateContactBasis()
+
+	// Store the relative position of the contact relative to each body
+	contact.relativeContactPosition[0] = contact.contactPoint.NewSub(contact.a.Transform().Position())
+	if contact.bodies[1] != nil {
+		contact.relativeContactPosition[1] = contact.contactPoint.NewSub(contact.b.Transform().Position())
+	}
+
+	// Find the relative velocity of the bodies at the contact point.
+	contact.contactVelocity = contact.calculateLocalVelocity(0, duration)
+	if contact.bodies[1] != nil {
+		contact.contactVelocity.Sub(contact.calculateLocalVelocity(1, duration))
+	}
+
+	// Calculate the desired change in velocity for resolution
+	contact.calculateDesiredDeltaVelocity(duration)
+}
+
+func (contact *contact) swapBodies() {
+	contact.bodies[0], contact.bodies[1] = contact.bodies[1], contact.bodies[0]
+	contact.a, contact.b = contact.b, contact.a
 }
 
 // calculateContactBasis calculates an orthonormal basis for the contact point, based on the
@@ -280,6 +336,8 @@ type contact struct {
 func (contact *contact) calculateContactBasis() {
 
 	var contactTangent [2]*vector.Vector3
+	contactTangent[0] = vector.NewVector3(0, 0, 0)
+	contactTangent[1] = vector.NewVector3(0, 0, 0)
 
 	// Check whether the Z-axis is nearer to the X or Y axis
 	if math.Abs(contact.normal[0]) > math.Abs(contact.normal[1]) {
@@ -309,7 +367,6 @@ func (contact *contact) calculateContactBasis() {
 		contactTangent[1][1] = -contact.normal[0] * contactTangent[0][2]
 		contactTangent[1][2] = contact.normal[0] * contactTangent[0][1]
 	}
-
 	contact.toWorld.SetFromComponents(contact.normal, contactTangent[0], contactTangent[1])
 }
 
@@ -319,4 +376,95 @@ func (contact *contact) separatingVelocity() float64 {
 		relativeVel.Sub(contact.bodies[1].Velocity)
 	}
 	return relativeVel.Dot(contact.normal)
+}
+
+func (contact *contact) calculateLocalVelocity(bodyIndex int, duration float64) *vector.Vector3 {
+	thisBody := contact.bodies[bodyIndex]
+
+	// Work out the velocity of the contact point.
+	var velocity *vector.Vector3
+	velocity = thisBody.Rotation.NewCross(contact.relativeContactPosition[bodyIndex])
+	velocity.Add(thisBody.Velocity)
+
+	// Turn the velocity into contact-coordinates.
+	var contactVelocity *vector.Vector3
+	contactVelocity = contact.toWorld.TransformTranspose(velocity)
+
+	// Calculate the amount of velocity that is due to forces without reactions.
+	var accVelocity *vector.Vector3
+	accVelocity = thisBody.LastFrameAcceleration.NewScale(duration)
+
+	// Calculate the velocity in contact-coordinates.
+	accVelocity = contact.toWorld.TransformTranspose(accVelocity)
+
+	// We ignore any component of acceleration in the contact normal
+	// direction, we are only interested in planar acceleration
+	accVelocity[0] = 0
+
+	// Add the planar velocities - if there's enough friction they will
+	// be removed during velocity resolution
+	contactVelocity.Add(accVelocity)
+
+	// And return it
+	return contactVelocity
+}
+
+func (contact *contact) calculateDesiredDeltaVelocity(duration float64) {
+	const velocityLimit = 0.25
+
+	// Calculate the acceleration induced velocity accumulated this frame
+	velocityFromAcc := 0.0
+
+	if contact.bodies[0].Awake() {
+		velocityFromAcc += contact.bodies[0].LastFrameAcceleration.NewScale(duration).Dot(contact.normal)
+	}
+
+	if contact.bodies[1] != nil && contact.bodies[1].Awake() {
+		velocityFromAcc -= contact.bodies[1].LastFrameAcceleration.NewScale(duration).Dot(contact.normal)
+	}
+
+	// If the velocity is very slow, limit the restitution
+	thisRestitution := contact.restitution
+	if math.Abs(contact.contactVelocity[0]) < velocityLimit {
+		thisRestitution = 0.0
+	}
+
+	// Combine the bounce velocity with the removed
+	// acceleration velocity.
+	contact.desiredDeltaVelocity = -contact.contactVelocity[0] - thisRestitution*(contact.contactVelocity[0]-velocityFromAcc)
+}
+
+func (contact *contact) calculateFrictionlessImpulse(inverseInertiaTensor [2]*vector.Matrix3) *vector.Vector3 {
+
+	var impulseContact *vector.Vector3
+
+	// Build a vector that shows the change in velocity in world space for a unit impulse in the
+	// direction of the contact normal.
+	var deltaVelWorld *vector.Vector3
+	deltaVelWorld = contact.relativeContactPosition[0].NewCross(contact.normal)
+	deltaVelWorld = inverseInertiaTensor[0].Transform(deltaVelWorld)
+	deltaVelWorld = deltaVelWorld.NewCross(contact.relativeContactPosition[0])
+	// Work out the change in velocity in contact coordinates
+	var deltaVelocity float64
+	deltaVelocity = deltaVelWorld.Dot(contact.normal)
+	// Add the linear component of velocity change
+	deltaVelocity += contact.bodies[0].InvMass
+
+	// Check if we need to the second body's data
+	if contact.bodies[1] != nil {
+		// Go through the same transformation sequence again
+		deltaVelWorld = contact.relativeContactPosition[1].NewCross(contact.normal)
+		deltaVelWorld = inverseInertiaTensor[1].Transform(deltaVelWorld)
+		deltaVelWorld = deltaVelWorld.NewCross(contact.relativeContactPosition[1])
+		// Add the change in velocity due to rotation
+		deltaVelocity += deltaVelWorld.Dot(contact.normal)
+		// Add the change in velocity due to linear motion
+		deltaVelocity += contact.bodies[1].InvMass
+	}
+
+	// Calculate the required size of the impulse
+	impulseContact[0] = contact.desiredDeltaVelocity / deltaVelocity
+	impulseContact[1] = 0
+	impulseContact[2] = 0
+	return impulseContact
 }

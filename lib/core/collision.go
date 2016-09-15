@@ -60,16 +60,21 @@ func (c *Collision) OBB() *OBB {
 		}
 	}
 	return &OBB{
+		centre: c.gameObject.Transform().Position(),
 		MaxPoint: max,
 		MinPoint: min,
 	}
 }
 
 type OBB struct {
-	center *vector.Vector3 // OBB Center Point
+	centre *vector.Vector3
 
 	HalfSize *vector.Vector3
 
 	MinPoint *vector.Vector3
 	MaxPoint *vector.Vector3
+}
+
+func (obb *OBB) CentrePoint() *vector.Vector3 {
+	return obb.centre
 }
