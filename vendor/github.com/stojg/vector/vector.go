@@ -167,7 +167,7 @@ func (v *Vector3) Dot(b *Vector3) float64 {
 	return v[0]*b[0] + v[1]*b[1] + v[2]*b[2]
 }
 
-// NewCross aka VectorProduct
+// NewCross aka VectorProduct "%"
 func (v *Vector3) NewCross(b *Vector3) *Vector3 {
 	return &Vector3{
 		v[1]*b[2] - v[2]*b[1],
@@ -212,7 +212,6 @@ func (v *Vector3) Equals(b *Vector3) bool {
 	if diff > RealEpsilon {
 		return false
 	}
-
 	diff = math.Abs(v[2] - b[2])
 	return diff < RealEpsilon
 }
@@ -248,11 +247,37 @@ func (v *Vector3) NewRotate(q *Quaternion) *Vector3 {
 // Matrix3 is a 3x3 dimensional matrix
 type Matrix3 [9]float64
 
-func (m *Matrix3) TransformVector3(v *Vector3) *Vector3 {
+// SetFromComponents sets the matrix from the given three vectors components. These are arranged as
+// the three columns of the matrix
+func (m *Matrix3) SetFromComponents(a, b, c *Vector3) {
+	m[0] = a[0]
+	m[1] = b[0]
+	m[2] = c[0]
+	m[3] = a[1]
+	m[4] = b[1]
+	m[5] = c[1]
+	m[6] = a[2]
+	m[7] = b[2]
+	m[8] = c[2]
+}
+
+func (m *Matrix3) Transform(v *Vector3) *Vector3 {
 	return &Vector3{
 		v[0]*m[0] + v[1]*m[1] + v[2]*m[2],
 		v[0]*m[3] + v[1]*m[4] + v[2]*m[5],
 		v[0]*m[6] + v[1]*m[7] + v[2]*m[8],
+	}
+}
+
+// TransformTranspose is a convenience method that combines the effect of transforming a vector by
+// the transpose of a matrix.
+// It works by performing a regular matrix transformation, but selecting the components of matrix in
+// row rather than column order.
+func (m *Matrix3) TransformTranspose(v *Vector3) *Vector3 {
+	return &Vector3{
+		v[0]*m[0] + v[1]*m[3] + v[2]*m[6],
+		v[0]*m[1] + v[1]*m[4] + v[2]*m[7],
+		v[0]*m[2] + v[1]*m[5] + v[2]*m[8],
 	}
 }
 
@@ -270,6 +295,7 @@ func (m *Matrix3) TransformMatrix3(b *Matrix3) *Matrix3 {
 	return newMatrix
 }
 
+// Returns a new matrix containing the inverse of this matrix
 func (m *Matrix3) SetInverse(b *Matrix3) {
 
 	t1 := b[0] * b[4]
@@ -301,8 +327,10 @@ func (m *Matrix3) SetInverse(b *Matrix3) {
 
 }
 
-// Returns a new matrix containing the inverse of this matrix
-func (m *Matrix3) Inverse() *Matrix3 {
+// Returns a new matrix containing the inverse of this matrix, If a matrix represents a rotation the
+// inverse is it's transpose. This very handy when we want to transforming coordinates from
+// world -> local space and inverse of the matrix would do local -> world space.
+func (m *Matrix3) NewInverse() *Matrix3 {
 	result := &Matrix3{}
 	result.SetInverse(m)
 	return result

@@ -20,7 +20,7 @@ func UpdatePhysics(elapsed float64) {
 		body.LastFrameAcceleration.AddScaledVector(body.ForceAccum, body.InvMass)
 
 		// Calculate angular acceleration from torque inputs.
-		angularAcceleration := body.InverseInertiaTensorWorld.TransformVector3(body.TorqueAccum)
+		angularAcceleration := body.InverseInertiaTensorWorld.Transform(body.TorqueAccum)
 
 		// Adjust velocities
 		// Update linear velocity from both acceleration and impulse.

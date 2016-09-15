@@ -1,5 +1,5 @@
 hash: 38da3151e00ae5e445f1cb6f04b0adff6736f03f739061e40fa56029046efc5f
-updated: 2016-09-12T23:47:38.489240511+12:00
+updated: 2016-09-15T17:16:32.498493019+12:00
 imports:
 - name: github.com/stojg/formation
   version: aad5820b288237bba62e24b3903e01bc0d950fa6
@@ -8,14 +8,14 @@ imports:
 - name: github.com/stojg/steering
   version: 26b59d8cce4adc2ac3d43ea514e001ea71b7beef
 - name: github.com/stojg/vector
-  version: 2feee5f7863003e70e37521642202e83fda9f396
+  version: 0e330523d1071350ade422a7469277c6d05bce3b
 - name: github.com/stojg/vivere
   version: 2dc00fb12f839d73c6672060d518f976b3a44a30
   subpackages:
   - lib/client
   - lib/components
 - name: golang.org/x/net
-  version: cfe3c2a7525b50c3d707256e371c90938cfef98a
+  version: de35ec43e7a9aabd6a9c54d2898220ea7e44de7d
   subpackages:
   - websocket
 testImports: []
