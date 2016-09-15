@@ -16,13 +16,11 @@ func newLevel() *level {
 	lvl := &level{}
 	for i := 0; i < 10; i++ {
 		obj := spawn("monster")
-		t := obj.Transform()
-		t.Position().Set(rand.Float64()*25-12, 0, -100)
+		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
 	}
-
-	for i := 0; i < 40; i++ {
+	for i := 0; i < 50; i++ {
 		obj := spawn("food")
-		obj.Transform().Position().Set(rand.Float64()*25-12, 0, 10)
+		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
 	}
 	return lvl
 }
@@ -31,14 +29,13 @@ type level struct {
 }
 
 func (l *level) Update(elapsed float64) {
-	//for _, body := range core.List.Bodies() {
-	//if body.Transform().Position()[2] < 9 {
-	//	body.AddForce(vector.NewVector3(0, 0, 100))
-	//} else {
-	//body.AddTorque(vector.NewVector3(0, rand.Float64()*10, 0))
-	//body.AddForce(vector.NewVector3(0, 0, -1	))
-	//}
-	//}
+	for _, obj := range core.List.FindWithTag("monster") {
+		obj.Body().AddTorque(vector.NewVector3(0, 1, 0))
+	}
+
+	for _, obj := range core.List.FindWithTag("food") {
+		obj.Body().AddTorque(vector.NewVector3(0, -1, 0))
+	}
 
 	UpdatePhysics(elapsed)
 	UpdateCollisions(elapsed)

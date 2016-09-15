@@ -84,6 +84,17 @@ func (l *ObjectList) Body(id components.Entity) *Body {
 	return l.bodies[id]
 }
 
+// Returns one active GameObject tagged tag. Returns nil if no GameObject was found.
+func (l *ObjectList) FindWithTag(tag string) []*GameObject {
+	var result []*GameObject
+	for i := range l.entities {
+		if l.entities[i].CompareTag(tag) {
+			result = append(result, l.entities[i])
+		}
+	}
+	return result
+}
+
 func (l *ObjectList) Bodies() []*Body {
 	var result []*Body
 	for i := range l.bodies {
@@ -117,11 +128,6 @@ func (l *ObjectList) Find() *GameObject {
 
 // Returns a list of active GameObjects tagged tag. Returns empty array if no GameObject was found.
 func (l *ObjectList) FindGameObjectsWithTag() []*GameObject {
-	return nil
-}
-
-// Returns one active GameObject tagged tag. Returns nil if no GameObject was found.
-func (l *ObjectList) FindWithTag() *GameObject {
 	return nil
 }
 

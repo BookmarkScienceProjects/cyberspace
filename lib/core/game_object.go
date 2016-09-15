@@ -9,6 +9,7 @@ func NewGameObject(name string) *GameObject {
 
 	g := &GameObject{
 		name: name,
+		tags: make(map[string]bool),
 		transform: &Transform{
 			position:    vector.Zero(),
 			orientation: vector.NewQuaternion(1, 0, 0, 0),
@@ -25,6 +26,13 @@ type GameObject struct {
 	id        components.Entity
 	name      string
 	transform *Transform
+	tags map[string]bool
+}
+
+func (g *GameObject) AddTags(tags []string) {
+	for i := range tags {
+		g.tags[tags[i]] = true
+	}
 }
 
 func (g *GameObject) ID() components.Entity {
@@ -68,8 +76,9 @@ func (g *GameObject) BroadcastMessage() {
 }
 
 // Is this game object tagged with tag ?
-func (g *GameObject) CompareTag() {
-
+func (g *GameObject) CompareTag(tag string) bool {
+	_, ok := g.tags[tag];
+	return ok
 }
 
 // Returns the component of Type type if the game object has one attached, null if it doesn't.
