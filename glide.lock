@@ -1,5 +1,5 @@
 hash: 38da3151e00ae5e445f1cb6f04b0adff6736f03f739061e40fa56029046efc5f
-updated: 2016-09-15T17:16:32.498493019+12:00
+updated: 2016-09-17T11:50:37.543684425+12:00
 imports:
 - name: github.com/stojg/formation
   version: aad5820b288237bba62e24b3903e01bc0d950fa6
@@ -15,7 +15,7 @@ imports:
   - lib/client
   - lib/components
 - name: golang.org/x/net
-  version: de35ec43e7a9aabd6a9c54d2898220ea7e44de7d
+  version: 71a035914f99bb58fe82eac0f1289f10963d876c
   subpackages:
   - websocket
 testImports: []
