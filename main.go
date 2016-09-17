@@ -29,21 +29,30 @@ func main() {
 	frameLag := 0.0
 	netLag := 0.0
 
-	Println("Starting the game loop")
+	Println("Running the the game loop")
+
+	// print the FPS when it's below the frameRate
 	printFPS(frameRate)
 
 	for {
 
+		// keep track of which frame we are running
 		atomic.AddUint64(&currentFrame, 1)
+
+		// calculate a bunch of time values
 		now := time.Now()
 		elapsed := now.Sub(previous).Seconds()
 		previous = now
 		frameLag += elapsed
 		netLag += elapsed
 
+		// run the simulation
 		level.Update(elapsed)
 
+		// send updates to the network
 		if netLag > netRate {
+
+			// send normal entity data
 			buf := level.draw()
 			if buf.Len() > 0 {
 				if _, err := hub.Write(1, buf.Bytes()); err != nil {
@@ -51,6 +60,9 @@ func main() {
 
 				}
 			}
+
+			// we have a separate list that contains 'dead' game objects so that
+			// they get flushed to the networks clients
 			deadbuf := level.drawDead()
 			if deadbuf.Len() > 0 {
 				if _, err := hub.Write(2, deadbuf.Bytes()); err != nil {
@@ -61,22 +73,8 @@ func main() {
 		}
 
 		frameLag -= frameRate
+
 		// save some CPU cycles by sleeping for a while
 		time.Sleep(time.Duration((frameRate-frameLag)*1000) * time.Millisecond)
 	}
 }
-
-//func handleInput(c *client.Client, msg client.ClientCommand) {
-//	Printf("received message type: %d seq %d, Actions %d", msg.Type, msg.Sequence, msg.Data)
-//	switch msg.Type {
-//	case 2:
-//		inst := monitor.FindByEntityID(components.Entity(msg.Data))
-//		Printf("%v", inst)
-//	//buf := &bytes.Buffer{}
-//	//binary.Write(buf, binary.LittleEndian, float32(Frame))
-//	//binaryStream(buf, INST_ENTITY_ID, msg.Data)
-//	//c.Update(buf, msg.Type)
-//	default:
-//		Printf("Can't handle message type: %d ", msg.Type)
-//	}
-//}
