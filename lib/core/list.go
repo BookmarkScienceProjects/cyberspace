@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/stojg/vivere/lib/components"
 	"math"
+	"sync"
 )
 
 var List *ObjectList
@@ -13,22 +14,25 @@ func init() {
 		graphics:   make(map[components.Entity]*Graphic),
 		bodies:     make(map[components.Entity]*Body),
 		collisions: make(map[components.Entity]*Collision),
-		ais:        make(map[components.Entity]AI),
+		agents:     make(map[components.Entity]*Agent),
 		deleted:    make([]components.Entity, 0),
 	}
 }
 
 type ObjectList struct {
+	sync.Mutex
 	nextID     components.Entity
 	entities   map[components.Entity]*GameObject
 	graphics   map[components.Entity]*Graphic
 	bodies     map[components.Entity]*Body
 	collisions map[components.Entity]*Collision
-	ais        map[components.Entity]AI
+	agents     map[components.Entity]*Agent
 	deleted    []components.Entity
 }
 
 func (l *ObjectList) Add(g *GameObject) {
+	l.Lock()
+	defer l.Unlock()
 	if l.nextID == math.MaxUint32 {
 		panic("Out of entity ids, implement GC")
 	}
@@ -38,19 +42,29 @@ func (l *ObjectList) Add(g *GameObject) {
 }
 
 func (l *ObjectList) Remove(g *GameObject) {
-	if _, found := l.entities[g.id]; found {
-		delete(l.entities, g.id)
-	}
+	l.Lock()
+	defer l.Unlock()
 	if _, found := l.graphics[g.id]; found {
 		delete(l.graphics, g.id)
 	}
 	if _, found := l.bodies[g.id]; found {
 		delete(l.bodies, g.id)
 	}
+	if _, found := l.collisions[g.id]; found {
+		delete(l.bodies, g.id)
+	}
+	if _, found := l.agents[g.id]; found {
+		delete(l.bodies, g.id)
+	}
+	if _, found := l.entities[g.id]; found {
+		delete(l.entities, g.id)
+	}
 	l.deleted = append(l.deleted, g.id)
 }
 
 func (l *ObjectList) All() []*GameObject {
+	l.Lock()
+	defer l.Unlock()
 	var result []*GameObject
 	for i := range l.entities {
 		result = append(result, l.entities[i])
@@ -58,8 +72,10 @@ func (l *ObjectList) All() []*GameObject {
 	return result
 }
 
-// Returns one active GameObject tagged tag. Returns nil if no GameObject was found.
+// Returns GameObjects tagged tag. Returns nil if no GameObjects was found.
 func (l *ObjectList) FindWithTag(tag string) []*GameObject {
+	l.Lock()
+	defer l.Unlock()
 	var result []*GameObject
 	for i := range l.entities {
 		if l.entities[i].CompareTag(tag) {
@@ -70,16 +86,22 @@ func (l *ObjectList) FindWithTag(tag string) []*GameObject {
 }
 
 func (l *ObjectList) AddGraphic(id components.Entity, graphic *Graphic) {
+	l.Lock()
+	defer l.Unlock()
 	graphic.gameObject = l.entities[id]
 	graphic.transform = l.entities[id].transform
 	l.graphics[id] = graphic
 }
 
 func (l *ObjectList) Graphic(id components.Entity) *Graphic {
+	l.Lock()
+	defer l.Unlock()
 	return l.graphics[id]
 }
 
 func (l *ObjectList) Graphics() []*Graphic {
+	l.Lock()
+	defer l.Unlock()
 	var result []*Graphic
 	for i := range l.graphics {
 		result = append(result, l.graphics[i])
@@ -88,16 +110,22 @@ func (l *ObjectList) Graphics() []*Graphic {
 }
 
 func (l *ObjectList) AddBody(id components.Entity, body *Body) {
+	l.Lock()
+	defer l.Unlock()
 	body.gameObject = l.entities[id]
 	body.transform = l.entities[id].transform
 	l.bodies[id] = body
 }
 
 func (l *ObjectList) Body(id components.Entity) *Body {
+	l.Lock()
+	defer l.Unlock()
 	return l.bodies[id]
 }
 
 func (l *ObjectList) Bodies() []*Body {
+	l.Lock()
+	defer l.Unlock()
 	var result []*Body
 	for i := range l.bodies {
 		result = append(result, l.bodies[i])
@@ -106,16 +134,22 @@ func (l *ObjectList) Bodies() []*Body {
 }
 
 func (l *ObjectList) AddCollision(id components.Entity, collision *Collision) {
+	l.Lock()
+	defer l.Unlock()
 	collision.gameObject = l.entities[id]
 	collision.transform = l.entities[id].transform
 	l.collisions[id] = collision
 }
 
 func (l *ObjectList) Collision(id components.Entity) *Collision {
+	l.Lock()
+	defer l.Unlock()
 	return l.collisions[id]
 }
 
 func (l *ObjectList) Collisions() []*Collision {
+	l.Lock()
+	defer l.Unlock()
 	var result []*Collision
 	for i := range l.collisions {
 		result = append(result, l.collisions[i])
@@ -123,37 +157,37 @@ func (l *ObjectList) Collisions() []*Collision {
 	return result
 }
 
-func (l *ObjectList) AddAI(id components.Entity, ai AI) {
-	ai.SetGameObject(l.entities[id])
-	l.ais[id] = ai
+func (l *ObjectList) AddAI(id components.Entity, agent *Agent) {
+	l.Lock()
+	defer l.Unlock()
+	agent.gameObject = l.entities[id]
+	l.agents[id] = agent
 }
 
-func (l *ObjectList) AI(id components.Entity) AI {
-	return l.ais[id]
+func (l *ObjectList) Agent(id components.Entity) *Agent {
+	l.Lock()
+	defer l.Unlock()
+	return l.agents[id]
 }
 
-func (l *ObjectList) AIs() []AI {
-	var result []AI
-	for i := range l.ais {
-		result = append(result, l.ais[i])
+func (l *ObjectList) Agents() []*Agent {
+	l.Lock()
+	defer l.Unlock()
+	var result []*Agent
+	for i := range l.agents {
+		result = append(result, l.agents[i])
 	}
 	return result
 }
 
-// Finds a game object by name and returns it.
-func (l *ObjectList) Find() *GameObject {
-	return nil
-}
-
-// Returns a list of active GameObjects tagged tag. Returns empty array if no GameObject was found.
-func (l *ObjectList) FindGameObjectsWithTag() []*GameObject {
-	return nil
-}
-
 func (l *ObjectList) Deleted() []components.Entity {
+	l.Lock()
+	defer l.Unlock()
 	return l.deleted
 }
 
 func (l *ObjectList) ClearDeleted() {
+	l.Lock()
+	defer l.Unlock()
 	l.deleted = make([]components.Entity, 0)
 }

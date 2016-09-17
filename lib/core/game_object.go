@@ -70,12 +70,13 @@ func (g *GameObject) Collision() *Collision {
 	return List.Collision(g.id)
 }
 
-func (g *GameObject) AddAI(ai AI) {
-	List.AddAI(g.id, ai)
+func (g *GameObject) AddAgent(agent *Agent) {
+	agent.transform = g.transform
+	List.AddAI(g.id, agent)
 }
 
-func (g *GameObject) AI() AI {
-	return List.AI(g.id)
+func (g *GameObject) Agent() *Agent {
+	return List.Agent(g.id)
 }
 
 // Calls the method named methodName on every MonoBehaviour in this game object or any of its children.

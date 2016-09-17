@@ -7,19 +7,19 @@ import (
 
 func NewBody(invMass float64) *Body {
 	body := &Body{
-		Velocity:                  &Vector3{},
-		Rotation:                  &Vector3{},
+		velocity:                  &Vector3{},
+		rotation:                  &Vector3{},
 		Forces:                    &Vector3{},
 		transformMatrix:           &Matrix4{},
 		InverseInertiaTensor:      &Matrix3{},
 		InverseInertiaTensorWorld: &Matrix3{},
 		ForceAccum:                &Vector3{},
 		TorqueAccum:               &Vector3{},
-		MaxAcceleration:           &Vector3{100, 100, 100},
+		maxAcceleration:           &Vector3{100, 100, 100},
 		Acceleration:              &Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
-		MaxRotation:               3.14 / 10,
+		maxRotation:               3.14 / 1,
 		InvMass:                   invMass,
 		CanSleep:                  true,
 		isAwake:                   true,
@@ -36,9 +36,9 @@ type Body struct {
 	Component
 	sync.Mutex
 	// Holds the linear velocity of the rigid body in world space.
-	Velocity *Vector3
+	velocity *Vector3
 	// Holds the angular velocity, or rotation for the rigid body in world space.
-	Rotation *Vector3
+	rotation *Vector3
 
 	// Holds the inverse of the mass of the rigid body. It is more useful to hold the inverse mass
 	// because integration is simpler, and because in real time simulation it is more useful to have
@@ -100,18 +100,42 @@ type Body struct {
 	// gravity (its primary use), or any other constant acceleration.
 	Acceleration *Vector3
 
-	MaxAcceleration *Vector3
+	maxAcceleration *Vector3
 
 	// limits the linear acceleration
 	MaxAngularAcceleration *Vector3
 	// limits the angular velocity
-	MaxRotation float64
+	maxRotation float64
 
 	// Holds the linear acceleration of the rigid body, for the previous frame.
 	LastFrameAcceleration *Vector3
 
 	SleepEpsilon float64
 	Forces       *Vector3
+}
+
+func (g *Body) Position() *Vector3 {
+	return g.transform.position
+}
+
+func (g *Body) Rotation() *Vector3 {
+	return g.rotation
+}
+
+func (g *Body) MaxRotation() float64 {
+	return g.maxRotation
+}
+
+func (g *Body) Orientation() *Quaternion {
+	return g.transform.orientation
+}
+
+func (g *Body) MaxAcceleration() *Vector3 {
+	return g.maxAcceleration
+}
+
+func (g *Body) Velocity() *Vector3 {
+	return g.velocity
 }
 
 func (rb *Body) Mass() float64 {

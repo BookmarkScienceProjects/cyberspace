@@ -72,11 +72,13 @@ func buildGraph(parent *node, leaves *[]*node, usableActions []Actionable, goal 
 		var currentState = populateState(parent.state, action.Effects())
 		node := newNode(parent, parent.runningCost+action.Cost(), currentState, action)
 
+
 		if inState(goal, currentState) {
 			// we found a solution!
 			*leaves = append(*leaves, node)
 			foundOne = true
 		} else {
+
 			// not at a solution yet, so test all the remaining actions and branch out the tree
 			subset := actionSubset(usableActions, action)
 			found := buildGraph(node, leaves, subset, goal)
@@ -99,6 +101,7 @@ func inState(test StateList, state StateList) bool {
 			}
 		}
 		if !match {
+
 			return false
 		}
 	}

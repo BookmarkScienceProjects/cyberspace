@@ -33,6 +33,10 @@ func (c *Collision) OBB() *OBB {
 	// @todo cache this so it's not re-calculate for every SAT test
 	halfSize := c.halfWidth[0]
 
+	if c.gameObject.Body() == nil {
+		return nil
+	}
+
 	mat := c.gameObject.Body().transformMatrix
 
 	var points [8]*vector.Vector3

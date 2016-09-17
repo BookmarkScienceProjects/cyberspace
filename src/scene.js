@@ -14,8 +14,9 @@ const scene = new BABYLON.Scene(engine);
 scene.clearColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
-const camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 10, 1), scene);
-//var camera = new BABYLON.WebVRFreeCamera("WVR", new BABYLON.Vector3(0, 1, -15), scene);
+//const camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 10, 1), scene);
+const camera = new BABYLON.TouchCamera("TouchCamera", new BABYLON.Vector3(0, 1, -15), scene);
+//const camera = new BABYLON.WebVRFreeCamera("WVR", new BABYLON.Vector3(0, 1, -15), scene);
 camera.keysUp.push(87);
 camera.keysLeft.push(65);
 camera.keysDown.push(83);

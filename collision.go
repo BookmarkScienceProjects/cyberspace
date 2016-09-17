@@ -156,11 +156,11 @@ func UpdateCollisions(elapsed float64) {
 			// Only if either of the objects have mass that isn't infinite can we change the velocities
 			impulsePerIMass := contact.normal.NewScale(deltaVelocity / totalInvMass)
 			velocityChangeA := impulsePerIMass.NewScale(contact.bodies[0].InvMass)
-			contact.bodies[0].Velocity.Add(velocityChangeA)
+			contact.bodies[0].Velocity().Add(velocityChangeA)
 			contact.bodies[0].SetAwake(true)
 			if contact.b != nil {
 				velocityChangeB := impulsePerIMass.NewScale(-contact.bodies[1].InvMass)
-				contact.bodies[1].Velocity.Add(velocityChangeB)
+				contact.bodies[1].Velocity().Add(velocityChangeB)
 				contact.bodies[1].SetAwake(true)
 			}
 		}
@@ -181,6 +181,10 @@ func UpdateCollisions(elapsed float64) {
 func rectangleVsRectangle(contact *contact) {
 	rA := contact.a.OBB()
 	rB := contact.b.OBB()
+
+	if rA == nil || rB == nil {
+		return
+	}
 
 	// [Minimum Translation Vector]
 	mtvDistance := math.MaxFloat32 // Set current minimum distance (max float value so next value is always less)
@@ -371,9 +375,9 @@ func (contact *contact) calculateContactBasis() {
 }
 
 func (contact *contact) separatingVelocity() float64 {
-	relativeVel := contact.bodies[0].Velocity.Clone()
+	relativeVel := contact.bodies[0].Velocity().Clone()
 	if contact.b != nil {
-		relativeVel.Sub(contact.bodies[1].Velocity)
+		relativeVel.Sub(contact.bodies[1].Velocity())
 	}
 	return relativeVel.Dot(contact.normal)
 }
@@ -383,8 +387,8 @@ func (contact *contact) calculateLocalVelocity(bodyIndex int, duration float64) 
 
 	// Work out the velocity of the contact point.
 	var velocity *vector.Vector3
-	velocity = thisBody.Rotation.NewCross(contact.relativeContactPosition[bodyIndex])
-	velocity.Add(thisBody.Velocity)
+	velocity = thisBody.Rotation().NewCross(contact.relativeContactPosition[bodyIndex])
+	velocity.Add(thisBody.Velocity())
 
 	// Turn the velocity into contact-coordinates.
 	var contactVelocity *vector.Vector3
