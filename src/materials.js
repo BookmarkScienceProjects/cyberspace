@@ -20,4 +20,8 @@ materials.sepia = new BABYLON.StandardMaterial('yellow', scene);
 materials.sepia.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 materials.sepia.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
 
+materials.white = new BABYLON.StandardMaterial('yellow', scene);
+materials.white.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+materials.white.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
 module.exports = materials;
