@@ -6,6 +6,7 @@ import (
 	"math"
 )
 
+// NewCollisionRectangle returns a new Collision struct
 func NewCollisionRectangle(x, y, z float64) *Collision {
 	return &Collision{
 		fullWidth: [3]float64{x, y, z},
@@ -13,12 +14,14 @@ func NewCollisionRectangle(x, y, z float64) *Collision {
 	}
 }
 
+// Collision is a struct that keeps track of the collision geometry for a GameObject
 type Collision struct {
 	Component
 	fullWidth [3]float64
 	halfWidth [3]float64
 }
 
+// BoundingBox return the AABB bounding box the GameObject it is connected to
 func (c *Collision) BoundingBox() quadtree.BoundingBox {
 	return quadtree.BoundingBox{
 		MinX: c.transform.position[0] - c.fullWidth[0],
@@ -70,6 +73,7 @@ func (c *Collision) OBB() *OBB {
 	}
 }
 
+// OBB is a struct that represents the Oriented Bounded Box, i.e. a rotated AABB
 type OBB struct {
 	centre *vector.Vector3
 
@@ -79,6 +83,7 @@ type OBB struct {
 	MaxPoint *vector.Vector3
 }
 
+// CentrePoint returns the centre point of this OBB in world space
 func (obb *OBB) CentrePoint() *vector.Vector3 {
 	return obb.centre
 }
