@@ -55,11 +55,11 @@ func (l *ObjectList) Remove(g *GameObject) {
 	if _, found := l.bodies[g.id]; found {
 		delete(l.bodies, g.id)
 	}
-	if _, found := l.collisions[g.id]; found {
-		delete(l.bodies, g.id)
-	}
 	if _, found := l.agents[g.id]; found {
-		delete(l.bodies, g.id)
+		delete(l.agents, g.id)
+	}
+	if _, found := l.collisions[g.id]; found {
+		delete(l.collisions, g.id)
 	}
 	if _, found := l.entities[g.id]; found {
 		delete(l.entities, g.id)
