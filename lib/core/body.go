@@ -9,7 +9,7 @@ import (
 func NewBody(invMass float64) *Body {
 	body := &Body{
 		velocity:                  &vector.Vector3{},
-		maxVelocity:               1,
+		maxVelocity:               3,
 		rotation:                  &vector.Vector3{},
 		Forces:                    &vector.Vector3{},
 		transformMatrix:           &vector.Matrix4{},
@@ -17,7 +17,7 @@ func NewBody(invMass float64) *Body {
 		InverseInertiaTensorWorld: &vector.Matrix3{},
 		ForceAccum:                &vector.Vector3{},
 		TorqueAccum:               &vector.Vector3{},
-		maxAcceleration:           &vector.Vector3{50, 50, 50},
+		maxAcceleration:           &vector.Vector3{10, 10, 10},
 		Acceleration:              &vector.Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
