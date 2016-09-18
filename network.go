@@ -150,7 +150,7 @@ func (l *level) drawDead() *bytes.Buffer {
 	return buf
 }
 
-func serialize(buf *bytes.Buffer, gameObject *core.GameObject) {
+func serialize(buf io.Writer, gameObject *core.GameObject) {
 	if err := binaryStream(buf, instEntityID, gameObject.ID()); err != nil {
 		Printf("binarystream error %s", err)
 	}
