@@ -13,14 +13,17 @@ type Transform struct {
 	parent *GameObject
 }
 
+// Position returns the current position of the transform
 func (t *Transform) Position() *vector.Vector3 {
 	return t.position
 }
 
+// Orientation returns the current orientation (heading) of the transform
 func (t *Transform) Orientation() *vector.Quaternion {
 	return t.orientation
 }
 
+// Scale returns the current scale (width, height, depth) of the transform
 func (t *Transform) Scale() *vector.Vector3 {
 	return t.scale
 }
