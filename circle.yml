@@ -11,6 +11,6 @@ test:
   pre:
     - mkdir -p "$IMPORT_PATH"
     - ln -sf "$(pwd)" "$APP_PATH"
-    - cd "$APP_PATH" && glide install
+    - cd "$APP_PATH" && go get . && glide install
   override:
     - cd "$APP_PATH" && go test -cover $(glide nv)
