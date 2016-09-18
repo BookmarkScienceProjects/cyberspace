@@ -4,15 +4,30 @@ import (
 	"github.com/stojg/cyberspace/lib/actions"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
+	"github.com/stojg/steering"
+	"github.com/stojg/vector"
 )
 
 var lastPlan float64
 
 // UpdateAI will run the AI simulation
 func UpdateAI(elapsed float64, worldState goap.StateList) {
+
+	monsters := core.List.FindWithTag("monster")
+
 	for _, obj := range core.List.Agents() {
+
 		obj.SetWorldState(worldState)
 		obj.StateMachine().Update(obj)
+
+		var separationTargets []*vector.Vector3
+		for _, monster := range monsters {
+			if monster.ID() != obj.GameObject().ID() {
+				separationTargets = append(separationTargets, monster.Transform().Position())
+			}
+		}
+		separation := steering.NewSeparation(obj.GameObject().Body(), separationTargets, 4).Get()
+		obj.GameObject().Body().AddForce(separation.Linear())
 
 		lastPlan += elapsed
 		// force a replanning every 1 second
