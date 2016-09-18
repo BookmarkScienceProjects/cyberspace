@@ -145,7 +145,7 @@ func (a *Agent) MoveAgent(nextAction goap.Actionable) bool {
 		return true
 	}
 
-	arrive := steering.NewArrive(a.gameObject.Body(), target.transform.Position(), 2, 0.1, 2).Get()
+	arrive := steering.NewArrive(a.gameObject.Body(), target.transform.Position(), 3).Get()
 	look := steering.NewLookWhereYoureGoing(a.gameObject.Body()).Get()
 
 	a.gameObject.Body().AddForce(arrive.Linear())
