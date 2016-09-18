@@ -9,6 +9,7 @@ import (
 func NewBody(invMass float64) *Body {
 	body := &Body{
 		velocity:                  &vector.Vector3{},
+		maxVelocity:               1,
 		rotation:                  &vector.Vector3{},
 		Forces:                    &vector.Vector3{},
 		transformMatrix:           &vector.Matrix4{},
@@ -16,7 +17,7 @@ func NewBody(invMass float64) *Body {
 		InverseInertiaTensorWorld: &vector.Matrix3{},
 		ForceAccum:                &vector.Vector3{},
 		TorqueAccum:               &vector.Vector3{},
-		maxAcceleration:           &vector.Vector3{100, 100, 100},
+		maxAcceleration:           &vector.Vector3{50, 50, 50},
 		Acceleration:              &vector.Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
@@ -40,6 +41,8 @@ type Body struct {
 	sync.Mutex
 	// Holds the linear velocity of the rigid body in world space.
 	velocity *vector.Vector3
+	// Holds the max velocity this body can have
+	maxVelocity float64
 	// Holds the angular velocity, or rotation for the rigid body in world space.
 	rotation *vector.Vector3
 
@@ -137,7 +140,7 @@ func (rb *Body) MaxRotation() float64 {
 	return rb.maxRotation
 }
 
-// MaxAcceleration returns the maximum acceleration this body that do
+// MaxAcceleration returns the maximum acceleration this body can do
 func (rb *Body) MaxAcceleration() *vector.Vector3 {
 	return rb.maxAcceleration
 }
@@ -145,6 +148,11 @@ func (rb *Body) MaxAcceleration() *vector.Vector3 {
 // Velocity returns the current velocity for this body
 func (rb *Body) Velocity() *vector.Vector3 {
 	return rb.velocity
+}
+
+// MaxVelocity returns the maximum velocity this body can do
+func (rb *Body) MaxVelocity() float64 {
+	return rb.maxVelocity
 }
 
 // Mass returns the mass for this body
