@@ -1,22 +1,22 @@
 package core
 
 import (
-	. "github.com/stojg/vector"
+	"github.com/stojg/vector"
 	"sync"
 )
 
 func NewBody(invMass float64) *Body {
 	body := &Body{
-		velocity:                  &Vector3{},
-		rotation:                  &Vector3{},
-		Forces:                    &Vector3{},
-		transformMatrix:           &Matrix4{},
-		InverseInertiaTensor:      &Matrix3{},
-		InverseInertiaTensorWorld: &Matrix3{},
-		ForceAccum:                &Vector3{},
-		TorqueAccum:               &Vector3{},
-		maxAcceleration:           &Vector3{100, 100, 100},
-		Acceleration:              &Vector3{},
+		velocity:                  &vector.Vector3{},
+		rotation:                  &vector.Vector3{},
+		Forces:                    &vector.Vector3{},
+		transformMatrix:           &vector.Matrix4{},
+		InverseInertiaTensor:      &vector.Matrix3{},
+		InverseInertiaTensorWorld: &vector.Matrix3{},
+		ForceAccum:                &vector.Vector3{},
+		TorqueAccum:               &vector.Vector3{},
+		maxAcceleration:           &vector.Vector3{100, 100, 100},
+		Acceleration:              &vector.Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
 		maxRotation:               3.14 / 1,
@@ -26,8 +26,8 @@ func NewBody(invMass float64) *Body {
 		SleepEpsilon:              0.00001,
 	}
 
-	it := &Matrix3{}
-	it.SetBlockInertiaTensor(&Vector3{1, 1, 1}, 1/invMass)
+	it := &vector.Matrix3{}
+	it.SetBlockInertiaTensor(&vector.Vector3{1, 1, 1}, 1/invMass)
 	body.SetInertiaTensor(it)
 	return body
 }
@@ -36,9 +36,9 @@ type Body struct {
 	Component
 	sync.Mutex
 	// Holds the linear velocity of the rigid body in world space.
-	velocity *Vector3
+	velocity *vector.Vector3
 	// Holds the angular velocity, or rotation for the rigid body in world space.
-	rotation *Vector3
+	rotation *vector.Vector3
 
 	// Holds the inverse of the mass of the rigid body. It is more useful to hold the inverse mass
 	// because integration is simpler, and because in real time simulation it is more useful to have
@@ -51,7 +51,7 @@ type Body struct {
 	// reasons to the use of inverse mass.
 	// The inertia tensor, unlike the other variables that define a rigid body, is given in body
 	// space.
-	InverseInertiaTensor *Matrix3
+	InverseInertiaTensor *vector.Matrix3
 	// Holds the amount of damping applied to linear motion.  Damping is required to remove energy
 	// added through numerical instability in the integrator.
 	LinearDamping float64
@@ -67,7 +67,7 @@ type Body struct {
 
 	// Holds the inverse inertia tensor of the body in world space. The inverse inertia tensor
 	// member is specified in the body's local space. @see inverseInertiaTensor
-	InverseInertiaTensorWorld *Matrix3
+	InverseInertiaTensorWorld *vector.Matrix3
 	// Holds the amount of motion of the body. This is a recency weighted mean that can be used to
 	// put a body to sleap.
 	Motion float64
@@ -79,7 +79,7 @@ type Body struct {
 	CanSleep bool
 	// Holds a transform matrix for converting body space into world space and vice versa. This can
 	// be achieved by calling the getPointIn*Space functions.
-	transformMatrix *Matrix4
+	transformMatrix *vector.Matrix4
 
 	/**
 	 * Force and Torque Accumulators
@@ -91,34 +91,34 @@ type Body struct {
 	 */
 
 	// Holds the accumulated force to be applied at the next integration step.
-	ForceAccum *Vector3
+	ForceAccum *vector.Vector3
 
 	// Holds the accumulated torque to be applied at the next integration step.
-	TorqueAccum *Vector3
+	TorqueAccum *vector.Vector3
 
 	// Holds the acceleration of the rigid body.  This value can be used to set acceleration due to
 	// gravity (its primary use), or any other constant acceleration.
-	Acceleration *Vector3
+	Acceleration *vector.Vector3
 
-	maxAcceleration *Vector3
+	maxAcceleration *vector.Vector3
 
 	// limits the linear acceleration
-	MaxAngularAcceleration *Vector3
+	MaxAngularAcceleration *vector.Vector3
 	// limits the angular velocity
 	maxRotation float64
 
 	// Holds the linear acceleration of the rigid body, for the previous frame.
-	LastFrameAcceleration *Vector3
+	LastFrameAcceleration *vector.Vector3
 
 	SleepEpsilon float64
-	Forces       *Vector3
+	Forces       *vector.Vector3
 }
 
-func (g *Body) Position() *Vector3 {
+func (g *Body) Position() *vector.Vector3 {
 	return g.transform.position
 }
 
-func (g *Body) Rotation() *Vector3 {
+func (g *Body) Rotation() *vector.Vector3 {
 	return g.rotation
 }
 
@@ -126,15 +126,15 @@ func (g *Body) MaxRotation() float64 {
 	return g.maxRotation
 }
 
-func (g *Body) Orientation() *Quaternion {
+func (g *Body) Orientation() *vector.Quaternion {
 	return g.transform.orientation
 }
 
-func (g *Body) MaxAcceleration() *Vector3 {
+func (g *Body) MaxAcceleration() *vector.Vector3 {
 	return g.maxAcceleration
 }
 
-func (g *Body) Velocity() *Vector3 {
+func (g *Body) Velocity() *vector.Vector3 {
 	return g.velocity
 }
 
@@ -142,23 +142,23 @@ func (rb *Body) Mass() float64 {
 	return 1 / rb.InvMass
 }
 
-func (rb *Body) SetInertiaTensor(inertiaTensor *Matrix3) {
+func (rb *Body) SetInertiaTensor(inertiaTensor *vector.Matrix3) {
 	rb.InverseInertiaTensor.SetInverse(inertiaTensor)
 }
 
-func (rb *Body) AddForce(force *Vector3) {
+func (rb *Body) AddForce(force *vector.Vector3) {
 	rb.ForceAccum.Add(force)
 	rb.SetAwake(true)
 }
 
-func (rb *Body) AddForceAtBodyPoint(ent *Transform, force, point *Vector3) {
+func (rb *Body) AddForceAtBodyPoint(ent *Transform, force, point *vector.Vector3) {
 	// convert to coordinates relative to center of mass
 	pt := rb.GetPointInWorldSpace(point)
 	rb.AddForceAtPoint(ent, force, pt)
 	rb.SetAwake(true)
 }
 
-func (rb *Body) AddForceAtPoint(body *Transform, force, point *Vector3) {
+func (rb *Body) AddForceAtPoint(body *Transform, force, point *vector.Vector3) {
 	// convert to coordinates relative to center of mass
 	pt := point.NewSub(body.position)
 	rb.ForceAccum.Add(force)
@@ -166,7 +166,7 @@ func (rb *Body) AddForceAtPoint(body *Transform, force, point *Vector3) {
 	rb.SetAwake(true)
 }
 
-func (rb *Body) AddTorque(torque *Vector3) {
+func (rb *Body) AddTorque(torque *vector.Vector3) {
 	rb.TorqueAccum.Add(torque)
 	rb.SetAwake(true)
 }
@@ -177,11 +177,11 @@ func (rb *Body) ClearAccumulators() {
 	rb.TorqueAccum.Clear()
 }
 
-func (rb *Body) GetPointInWorldSpace(point *Vector3) *Vector3 {
+func (rb *Body) GetPointInWorldSpace(point *vector.Vector3) *vector.Vector3 {
 	return rb.transformMatrix.TransformVector3(point)
 }
 
-func (rb *Body) getTransform() *Matrix4 {
+func (rb *Body) getTransform() *vector.Matrix4 {
 	return rb.transformMatrix
 }
 
@@ -204,11 +204,11 @@ func (rb *Body) SetAwake(t bool) {
 }
 
 /**
- * Internal function to do an intertia tensor transform by a quaternion.
+ * Internal function to do an intertia tensor transform by a vector.Quaternion.
  * Note that the implementation of this function was created by an
  * automated code-generator and optimizer.
  */
-func (rb *Body) transformInertiaTensor(iitWorld *Matrix3, q *Quaternion, iitBody *Matrix3, rotmat *Matrix4) {
+func (rb *Body) transformInertiaTensor(iitWorld *vector.Matrix3, q *vector.Quaternion, iitBody *vector.Matrix3, rotmat *vector.Matrix4) {
 	t4 := rotmat[0]*iitBody[0] + rotmat[1]*iitBody[3] + rotmat[2]*iitBody[6]
 	t9 := rotmat[0]*iitBody[1] + rotmat[1]*iitBody[4] + rotmat[2]*iitBody[7]
 	t14 := rotmat[0]*iitBody[2] + rotmat[1]*iitBody[5] + rotmat[2]*iitBody[8]
@@ -234,7 +234,7 @@ func (rb *Body) transformInertiaTensor(iitWorld *Matrix3, q *Quaternion, iitBody
  * Inline function that creates a transform matrix from a
  * position and orientation.
  */
-func (rb *Body) calculateTransformMatrix(transformMatrix *Matrix4, position *Vector3, orientation *Quaternion) {
+func (rb *Body) calculateTransformMatrix(transformMatrix *vector.Matrix4, position *vector.Vector3, orientation *vector.Quaternion) {
 
 	transformMatrix[0] = 1 - 2*orientation.J*orientation.J - 2*orientation.K*orientation.K
 	transformMatrix[1] = 2*orientation.I*orientation.J - 2*orientation.R*orientation.K
