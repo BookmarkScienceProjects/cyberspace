@@ -1,14 +1,8 @@
-hash: 38da3151e00ae5e445f1cb6f04b0adff6736f03f739061e40fa56029046efc5f
-updated: 2016-09-17T11:50:37.543684425+12:00
+hash: 07973318b32bfd4fb24d3b9ad1b5f219a5c5595516b04c43bb93dd55c0740773
+updated: 2016-09-18T12:37:27.098134857+12:00
 imports:
 - name: github.com/stojg/formation
   version: aad5820b288237bba62e24b3903e01bc0d950fa6
-- name: github.com/stojg/goap
-  version: 70daec3925219143d7b0ef23903542eaae46e0bc
-- name: github.com/stojg/steering
-  version: 26b59d8cce4adc2ac3d43ea514e001ea71b7beef
-- name: github.com/stojg/vector
-  version: 0e330523d1071350ade422a7469277c6d05bce3b
 - name: github.com/stojg/vivere
   version: 2dc00fb12f839d73c6672060d518f976b3a44a30
   subpackages:

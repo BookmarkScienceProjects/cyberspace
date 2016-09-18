@@ -1,8 +1,6 @@
 package: github.com/stojg/cyberspace
 import:
 - package: github.com/stojg/formation
-- package: github.com/stojg/steering
-- package: github.com/stojg/vector
 - package: github.com/stojg/vivere
   subpackages:
   - lib/client
