@@ -5,6 +5,7 @@ import (
 	"github.com/stojg/vivere/lib/components"
 )
 
+// NewGameObject returns a new GameObject
 func NewGameObject(name string) *GameObject {
 
 	g := &GameObject{
@@ -16,12 +17,14 @@ func NewGameObject(name string) *GameObject {
 			scale:       vector.NewVector3(1, 1, 1),
 		},
 	}
+	// link the transform back to the parent object
 	g.transform.parent = g
 	List.Add(g)
-	// link the transform back to the parent object
+
 	return g
 }
 
+// GameObject is the base struct that all entities in the game should embed or use.
 type GameObject struct {
 	id        components.Entity
 	name      string
@@ -29,108 +32,69 @@ type GameObject struct {
 	tags      map[string]bool
 }
 
+// AddTags tags this object with tags
 func (g *GameObject) AddTags(tags []string) {
 	for i := range tags {
 		g.tags[tags[i]] = true
 	}
 }
 
+// ID returns the unique ID for this GameObject
 func (g *GameObject) ID() components.Entity {
 	return g.id
 }
 
+// Transform returns the Transform for this GameObject
 func (g *GameObject) Transform() *Transform {
 	return g.transform
 }
 
+// AddGraphic adds a Graphic component to this GameObject
 func (g *GameObject) AddGraphic(graphic *Graphic) {
 	graphic.transform = g.transform
 	List.AddGraphic(g.id, graphic)
 }
 
+// Graphic returns the Graphic component for this GameObject
 func (g *GameObject) Graphic() *Graphic {
 	return List.Graphic(g.id)
 }
 
+// AddBody adds a Body component to this GameObject
 func (g *GameObject) AddBody(body *Body) {
 	body.transform = g.transform
 	List.AddBody(g.id, body)
 }
 
+// Body returns the Body component for this GameObject
 func (g *GameObject) Body() *Body {
 	return List.Body(g.id)
 }
 
+// AddCollision adds a Collision component to this GameObject
 func (g *GameObject) AddCollision(collision *Collision) {
 	collision.transform = g.transform
 	List.AddCollision(g.id, collision)
 }
 
+// Collision returns the Collision component for this GameObject
 func (g *GameObject) Collision() *Collision {
 	return List.Collision(g.id)
 }
 
+// AddAgent adds an Agent component to this GameObject
 func (g *GameObject) AddAgent(agent *Agent) {
 	agent.transform = g.transform
-	List.AddAI(g.id, agent)
+	List.AddAgent(g.id, agent)
 }
 
+// Agent returns the Agent component for this GameObject
 func (g *GameObject) Agent() *Agent {
 	return List.Agent(g.id)
 }
 
-// Calls the method named methodName on every MonoBehaviour in this game object or any of its children.
-func (g *GameObject) BroadcastMessage() {
-
-}
-
-// Is this game object tagged with tag ?
+// CompareTag returns true if this GameObject is tagged with a tag
 func (g *GameObject) CompareTag(tag string) bool {
 	_, ok := g.tags[tag]
 	return ok
-}
-
-// Returns the component of Type type if the game object has one attached, null if it doesn't.
-func (g *GameObject) GetComponent() {
-
-}
-
-// Returns the component of Type type in the GameObject or any of its children using depth first search.
-func (g *GameObject) GetComponentInChildren() {
-
-}
-
-// Returns the component of Type type in the GameObject or any of its parents.
-func (g *GameObject) GetComponentInParent() {
-
-}
-
-// Returns all components of Type type in the GameObject.
-func (g *GameObject) GetComponents() {
-
-}
-
-// Returns all components of Type type in the GameObject or any of its children.
-func (g *GameObject) GetComponentsInChildren() {
-
-}
-
-// Returns all components of Type type in the GameObject or any of its parents.
-func (g *GameObject) GetComponentsInParent() {
-
-}
-
-// Calls the method named methodName on every MonoBehaviour in this game object.
-func (g *GameObject) SendMessage() {
-
-}
-
-// Calls the method named methodName on every MonoBehaviour in this game object and on every ancestor of the behaviour.
-func (g *GameObject) SendMessageUpwards() {
-
-}
-
-// Activates/Deactivates the GameObject.
-func (g *GameObject) SetActive() {
-
 }
