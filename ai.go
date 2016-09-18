@@ -6,6 +6,27 @@ import (
 	"github.com/stojg/goap"
 )
 
+var lastPlan float64
+
+// UpdateAI will run the AI simulation
+func UpdateAI(elapsed float64, worldState goap.StateList) {
+	for _, obj := range core.List.Agents() {
+		obj.SetWorldState(worldState)
+		obj.StateMachine().Update(obj)
+
+		lastPlan += elapsed
+		// force a replanning every 1 second
+		if lastPlan > 1.0 {
+			obj.StateMachine().Clear()
+			obj.StateMachine().PushState(core.IdleState)
+			lastPlan = 0
+		}
+
+	}
+
+}
+
+// NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
 func NewMonsterAgent() *core.Agent {
 
 	actions := []goap.Actionable{
@@ -24,23 +45,4 @@ func NewMonsterAgent() *core.Agent {
 	agent.StateMachine().PushState(core.IdleState)
 
 	return agent
-}
-
-var lastPlan float64
-
-func UpdateAI(elapsed float64, worldState goap.StateList) {
-	for _, obj := range core.List.Agents() {
-		obj.SetWorldState(worldState)
-		obj.StateMachine().Update(obj)
-
-		lastPlan += elapsed
-		// force a replanning every 1 second
-		if lastPlan > 1.0 {
-			obj.StateMachine().Clear()
-			obj.StateMachine().PushState(core.IdleState)
-			lastPlan = 0
-		}
-
-	}
-
 }

@@ -53,10 +53,12 @@ func printFPS(framesPerSec float64) {
 	}()
 }
 
+// Printf is a package proxy of fmt.Printf so that we don't need to import fmt all over the place
 func Printf(format string, a ...interface{}) {
 	log.Printf(format, a...)
 }
 
+// Println is a package proxy of fmt.Println so that we don't need to import fmt all over the place
 func Println(a ...interface{}) {
 	log.Println(a...)
 }

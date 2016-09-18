@@ -31,10 +31,6 @@ type Agent struct {
 	timeInPlan float64
 }
 
-//func (a *Agent) SetAvailableActions(actions []goap.Actionable) {
-//	a.availableActions = actions
-//}
-
 func (a *Agent) StateMachine() *goap.FSM {
 	return a.fsm
 }
@@ -97,7 +93,7 @@ func (a *Agent) AddGoal(name string, value interface{}) {
 // No sequence of actions could be found for the supplied goal.
 // You will need to try another goal
 func (a *Agent) PlanFailed(failedGoal goap.StateList) {
-	//fmt.Printf("planning failed for goal %+v\n", failedGoal)
+
 }
 
 // A plan was found for the supplied goal.
@@ -107,12 +103,12 @@ func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Actionable) {
 
 // All actions are complete and the goal was reached. Hooray!
 func (a *Agent) ActionsFinished() {
-	//fmt.Println("plan finished")
+
 }
 
 // One of the actions caused the plan to abort.
-func (a *Agent) PlanAborted(aborter goap.Actionable) {
-	fmt.Println("plan aborted")
+func (a *Agent) PlanAborted(abortingAction goap.Actionable) {
+	fmt.Printf("plan was aborted by action %s aborted", abortingAction)
 }
 
 // Called during Update. Move the agent towards the target in order
@@ -141,6 +137,7 @@ func (a *Agent) MoveAgent(nextAction goap.Actionable) bool {
 	return false
 }
 
+// during IdleState When an agent is in idle state is will do planning
 func IdleState(fsm *goap.FSM, agent goap.Agent) {
 	worldState := agent.GetWorldState()
 	goal := agent.CreateGoalState()
@@ -159,10 +156,11 @@ func IdleState(fsm *goap.FSM, agent goap.Agent) {
 	}
 }
 
+//
 func MoveToState(fsm *goap.FSM, agent goap.Agent) {
 	action := agent.CurrentAction()
 	if action.RequiresInRange() && action.Target() == nil {
-		fmt.Printf("Error: Action requires a target but has none. Planning failed. You did not assign the target in your Action.CheckProceduralPrecondition()\n")
+		fmt.Println("Error: Action requires a target but has none. Planning failed. You did not assign the target in your Action.CheckProceduralPrecondition()")
 		fsm.PopState() // move
 		fsm.PopState() // perform
 		fsm.PushState(IdleState)

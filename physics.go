@@ -5,8 +5,7 @@ import (
 	"math"
 )
 
-type physicSystem struct{}
-
+// UpdatePhysics will run the physics simulation
 func UpdatePhysics(elapsed float64) {
 
 	for _, body := range core.List.Bodies() {
