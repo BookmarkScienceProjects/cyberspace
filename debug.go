@@ -31,8 +31,7 @@ func init() {
 	}
 }
 
-func printFPS(frameTime float64) {
-	//warningFPS := (1 / frameTime) - 1
+func printFPS() {
 
 	ticker := time.NewTicker(time.Second * 2)
 
@@ -43,11 +42,7 @@ func printFPS(frameTime float64) {
 		for currentTime := range ticker.C {
 			frame := atomic.LoadUint64(&currentFrame)
 			fps := float64(frame-prevFrame) / currentTime.Sub(prevTime).Seconds()
-			//if fps < warningFPS {
-			//	Printf("fps: %0.1f < %0.1f frame %d\n", fps, warningFPS, frame)
-			//} else {
 			Printf("fps: %0.1f frame: %d\n", fps, frame)
-			//}
 			prevFrame = frame
 			prevTime = currentTime
 

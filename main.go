@@ -32,7 +32,7 @@ func main() {
 	Println("Running the the game loop")
 
 	// print the FPS when it's below the frameRate
-	printFPS(frameRate)
+	printFPS()
 
 	for {
 
