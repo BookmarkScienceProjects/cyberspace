@@ -193,14 +193,28 @@ func binaryStream(buf io.Writer, varType byte, value interface{}) error {
 	case components.Entity:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
 	case *vector.Vector3:
-		err = binary.Write(buf, binary.LittleEndian, float32(val[0]))
-		err = binary.Write(buf, binary.LittleEndian, float32(val[1]))
-		err = binary.Write(buf, binary.LittleEndian, float32(val[2]))
+		if err = binary.Write(buf, binary.LittleEndian, float32(val[0])); err != nil {
+			return err
+		}
+		if err = binary.Write(buf, binary.LittleEndian, float32(val[1])); err != nil {
+			return err
+		}
+		if err = binary.Write(buf, binary.LittleEndian, float32(val[2])); err != nil {
+			return err
+		}
 	case *vector.Quaternion:
-		err = binary.Write(buf, binary.LittleEndian, float32(val.R))
-		err = binary.Write(buf, binary.LittleEndian, float32(val.I))
-		err = binary.Write(buf, binary.LittleEndian, float32(val.J))
-		err = binary.Write(buf, binary.LittleEndian, float32(val.K))
+		if err = binary.Write(buf, binary.LittleEndian, float32(val.R)); err != nil {
+			return err
+		}
+		if err = binary.Write(buf, binary.LittleEndian, float32(val.I)); err != nil {
+			return err
+		}
+		if err = binary.Write(buf, binary.LittleEndian, float32(val.J)); err != nil {
+			return err
+		}
+		if err = binary.Write(buf, binary.LittleEndian, float32(val.K)); err != nil {
+			return err
+		}
 	default:
 		panic(fmt.Errorf("Havent found out how to serialise literal %v with value of type '%T'", varType, val))
 	}
