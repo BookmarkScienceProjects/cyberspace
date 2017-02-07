@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/stojg/cyberspace/lib/core"
 	"math/rand"
 	"sync/atomic"
 	"time"
@@ -21,9 +22,16 @@ func init() {
 
 func main() {
 
-	level := newLevel()
+	lvl := newLevel()
 
-	hub := initNetwork(level)
+	for i := 0; i < 1; i++ {
+		obj := spawn("monster")
+		obj.AddAgent(NewMonsterAgent())
+		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
+		lvl.State["monster_exists"] = true
+	}
+
+	hub := initNetwork(lvl)
 
 	previous := time.Now()
 	frameLag := 0.0
@@ -47,11 +55,19 @@ func main() {
 		frameLag += elapsed
 		netLag += elapsed
 
-		level.Update(elapsed)
+		UpdateAI(elapsed, lvl.State)
+		UpdatePhysics(elapsed)
+		UpdateCollisions(elapsed)
+
+		if len(core.List.FindWithTag("food")) < 40 {
+			obj := spawn("food")
+			obj.Transform().Position().Set(rand.Float64()*50-25, 0, rand.Float64()*50-25)
+			lvl.State["food_exists"] = true
+		}
 
 		// send updates to the network
 		if netLag > netRate {
-			sendToClients(hub, level)
+			sendToClients(hub, lvl)
 			netLag -= netRate
 		}
 

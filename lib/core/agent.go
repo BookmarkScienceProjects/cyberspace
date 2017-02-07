@@ -114,11 +114,15 @@ func (a *Agent) AddGoal(name string, value interface{}) {
 
 // PlanFailed is called when there is no sequence of actions could be found for the supplied goal.
 // You will need to try another goal
-func (a *Agent) PlanFailed(failedGoal goap.StateList) {}
+func (a *Agent) PlanFailed(failedGoal goap.StateList) {
+	fmt.Printf("plan failed with goalState: %v\n", failedGoal)
+}
 
 // PlanFound is called when a plan was found for the supplied goal. The actions contains the plan
 // of actions the agent will perform, in order.
-func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Actionable) {}
+func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Actionable) {
+	fmt.Printf("Plan found with actions: %v\n", actions)
+}
 
 // ActionsFinished is signaled when all actions are complete and the goal was reached.
 func (a *Agent) ActionsFinished() {}
@@ -145,7 +149,7 @@ func (a *Agent) MoveAgent(nextAction goap.Actionable) bool {
 		return true
 	}
 
-	arrive := steering.NewArrive(a.gameObject.Body(), target.transform.Position(), 3).Get()
+	arrive := steering.NewArrive(a.gameObject.Body(), target.transform.Position(), 10).Get()
 	look := steering.NewLookWhereYoureGoing(a.gameObject.Body()).Get()
 
 	a.gameObject.Body().AddForce(arrive.Linear())

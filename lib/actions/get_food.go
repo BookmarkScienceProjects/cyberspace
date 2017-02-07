@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
+	"time"
 )
 
 func NewGetFood(cost float64) *getFood {
@@ -17,13 +18,15 @@ func NewGetFood(cost float64) *getFood {
 
 type getFood struct {
 	goap.Action
-	hasFood bool
-	target  *core.GameObject
+	startTime time.Time
+	hasFood   bool
+	target    *core.GameObject
 }
 
 func (a *getFood) Reset() {
 	a.hasFood = false
 	a.Action.Reset()
+	a.startTime = time.Time{}
 }
 
 func (a *getFood) CheckProceduralPrecondition(agent goap.Agent) bool {
@@ -67,13 +70,24 @@ func (a *getFood) RequiresInRange() bool {
 
 func (a *getFood) Perform(agent goap.Agent) bool {
 
-	target, found := a.Target().(*core.GameObject)
-	if !found {
+	target, ok := a.Target().(*core.GameObject)
+	if !ok {
 		fmt.Printf("in actions.getFood.Perform(): %s is not a *GameObject", a.Target())
 		return false
 	}
-	core.List.Remove(target)
-	a.hasFood = true
+
+	if a.startTime.IsZero() {
+		a.startTime = time.Now()
+	}
+
+	if time.Since(a.startTime) > 300*time.Millisecond {
+		aObject := agent.(*core.Agent)
+		fmt.Println("got food")
+		aObject.GameObject().Inventory().Add("food", 1)
+		core.List.Remove(target)
+		a.hasFood = true
+	}
+
 	return true
 }
 

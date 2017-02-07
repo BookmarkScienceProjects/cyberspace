@@ -42,6 +42,7 @@ func spawn(name string) *core.GameObject {
 
 	object.AddGraphic(core.NewGraphic(data.Model))
 	object.AddBody(core.NewBody(1 / data.Weight))
+	object.AddInventory(core.NewInventory())
 	object.AddCollision(core.NewCollisionRectangle(data.Scale[0], data.Scale[1], data.Scale[2]))
 	return object
 }

@@ -31,12 +31,11 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 
 		lastPlan += elapsed
 		// force a replanning every 1 second
-		if lastPlan > 1.0 {
-			obj.StateMachine().Clear()
-			obj.StateMachine().PushState(core.IdleState)
-			lastPlan = 0
-		}
-
+		//if lastPlan > 1.0 {
+		//	obj.StateMachine().Clear()
+		//	obj.StateMachine().PushState(core.IdleState)
+		//	lastPlan = 0
+		//}
 	}
 
 }

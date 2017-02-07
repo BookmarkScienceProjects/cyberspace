@@ -11,12 +11,13 @@ var List *ObjectList
 
 func init() {
 	List = &ObjectList{
-		entities:   make(map[components.Entity]*GameObject),
-		graphics:   make(map[components.Entity]*Graphic),
-		bodies:     make(map[components.Entity]*Body),
-		collisions: make(map[components.Entity]*Collision),
-		agents:     make(map[components.Entity]*Agent),
-		deleted:    make([]components.Entity, 0),
+		entities:    make(map[components.Entity]*GameObject),
+		graphics:    make(map[components.Entity]*Graphic),
+		bodies:      make(map[components.Entity]*Body),
+		collisions:  make(map[components.Entity]*Collision),
+		agents:      make(map[components.Entity]*Agent),
+		inventories: make(map[components.Entity]*Inventory),
+		deleted:     make([]components.Entity, 0),
 	}
 }
 
@@ -24,13 +25,14 @@ func init() {
 // removal and changes should be handled by this list so they don't get lost or out of sync.
 type ObjectList struct {
 	sync.Mutex
-	nextID     components.Entity
-	entities   map[components.Entity]*GameObject
-	graphics   map[components.Entity]*Graphic
-	bodies     map[components.Entity]*Body
-	collisions map[components.Entity]*Collision
-	agents     map[components.Entity]*Agent
-	deleted    []components.Entity
+	nextID      components.Entity
+	entities    map[components.Entity]*GameObject
+	graphics    map[components.Entity]*Graphic
+	bodies      map[components.Entity]*Body
+	collisions  map[components.Entity]*Collision
+	agents      map[components.Entity]*Agent
+	inventories map[components.Entity]*Inventory
+	deleted     []components.Entity
 }
 
 // Add a GameObject to this list and assign it an unique ID
@@ -63,6 +65,9 @@ func (l *ObjectList) Remove(g *GameObject) {
 	}
 	if _, found := l.entities[g.id]; found {
 		delete(l.entities, g.id)
+	}
+	if _, found := l.inventories[g.id]; found {
+		delete(l.inventories, g.id)
 	}
 	l.deleted = append(l.deleted, g.id)
 }

@@ -93,6 +93,15 @@ func (g *GameObject) Agent() *Agent {
 	return List.Agent(g.id)
 }
 
+func (g *GameObject) AddInventory(inv *Inventory) {
+	inv.transform = g.transform
+	List.AddInventory(g.id, inv)
+}
+
+func (g *GameObject) Inventory() *Inventory {
+	return List.Inventory(g.id)
+}
+
 // CompareTag returns true if this GameObject is tagged with a tag
 func (g *GameObject) CompareTag(tag string) bool {
 	_, ok := g.tags[tag]
