@@ -10,9 +10,9 @@ import (
 func NewAgent() *Agent {
 	a := &Agent{
 		fsm:        &goap.FSM{},
-		worldState: make(goap.StateList, 0),
-		innerState: make(goap.StateList, 0),
-		goals:      make(goap.StateList, 0),
+		worldState: make(goap.StateList),
+		innerState: make(goap.StateList),
+		goals:      make(goap.StateList),
 	}
 	a.fsm.PushState(IdleState)
 	return a
@@ -81,7 +81,7 @@ func (a *Agent) HasActionPlan() bool {
 // GetWorldState returns the combined state of the world and the agents inner states. is it hungry,
 // is it tired, can it see food? etc.
 func (a *Agent) GetWorldState() goap.StateList {
-	res := make(goap.StateList, 0)
+	res := make(goap.StateList)
 	for k, v := range a.worldState {
 		res[k] = v
 	}

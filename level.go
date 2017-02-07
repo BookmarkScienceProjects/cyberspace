@@ -8,7 +8,7 @@ import (
 
 func newLevel() *level {
 	lvl := &level{
-		worldState: make(goap.StateList, 0),
+		worldState: make(goap.StateList),
 	}
 	for i := 0; i < 5; i++ {
 		obj := spawn("monster")
