@@ -8,7 +8,7 @@ import (
 
 const (
 	frameRate float64 = 0.016
-	netRate   float64 = 0.032
+	netRate   float64 = 0.016
 )
 
 var (
@@ -43,38 +43,40 @@ func main() {
 		now := time.Now()
 		elapsed := now.Sub(previous).Seconds()
 		previous = now
+
 		frameLag += elapsed
 		netLag += elapsed
 
-		// run the simulation
 		level.Update(elapsed)
 
 		// send updates to the network
 		if netLag > netRate {
-
-			// send normal entity data
-			buf := level.draw()
-			if buf.Len() > 0 {
-				if _, err := hub.Write(1, buf.Bytes()); err != nil {
-					Printf("%s", err)
-
-				}
-			}
-
-			// we have a separate list that contains 'dead' game objects so that
-			// they get flushed to the networks clients
-			deadbuf := level.drawDead()
-			if deadbuf.Len() > 0 {
-				if _, err := hub.Write(2, deadbuf.Bytes()); err != nil {
-					Printf("%s", err)
-				}
-			}
+			sendToClients(hub, level)
 			netLag -= netRate
 		}
 
 		frameLag -= frameRate
-
 		// save some CPU cycles by sleeping for a while
 		time.Sleep(time.Duration((frameRate-frameLag)*1000) * time.Millisecond)
+	}
+}
+
+func sendToClients(hub *clientHub, lvl *level) {
+	// send normal entity data
+	buf := lvl.draw()
+	if buf.Len() > 0 {
+		if _, err := hub.Write(1, buf.Bytes()); err != nil {
+			Printf("%s", err)
+
+		}
+	}
+
+	//// we have a separate list that contains 'dead' game objects so that
+	//// they get flushed to the networks clients
+	deadbuf := lvl.drawDead()
+	if deadbuf.Len() > 0 {
+		if _, err := hub.Write(2, deadbuf.Bytes()); err != nil {
+			Printf("%s", err)
+		}
 	}
 }
