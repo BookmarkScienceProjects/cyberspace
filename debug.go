@@ -31,24 +31,26 @@ func init() {
 	}
 }
 
-func printFPS(framesPerSec float64) {
-	warningFPS := (1 / framesPerSec) - 1
+func printFPS(frameTime float64) {
+	//warningFPS := (1 / frameTime) - 1
+
+	ticker := time.NewTicker(time.Second * 2)
 
 	go func() {
-		timer := 1 * time.Second
-		prev := atomic.LoadUint64(&currentFrame)
+		prevFrame := atomic.LoadUint64(&currentFrame)
 		prevTime := time.Now()
-		for {
+
+		for currentTime := range ticker.C {
 			frame := atomic.LoadUint64(&currentFrame)
-			currentTime := <-time.After(timer)
-			fps := float64(frame-prev) / currentTime.Sub(prevTime).Seconds()
-			if fps < warningFPS {
-				Printf("fps: %0.1f < %0.1f frame %d\n", fps, warningFPS, frame)
-			} else {
-				dPrintf("fps: %0.1f frame %d\n", fps, frame)
-			}
-			prev = frame
+			fps := float64(frame-prevFrame) / currentTime.Sub(prevTime).Seconds()
+			//if fps < warningFPS {
+			//	Printf("fps: %0.1f < %0.1f frame %d\n", fps, warningFPS, frame)
+			//} else {
+			Printf("fps: %0.1f frame: %d\n", fps, frame)
+			//}
+			prevFrame = frame
 			prevTime = currentTime
+
 		}
 	}()
 }
