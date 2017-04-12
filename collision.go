@@ -386,17 +386,14 @@ func (contact *contact) calculateLocalVelocity(bodyIndex int, duration float64) 
 	thisBody := contact.bodies[bodyIndex]
 
 	// Work out the velocity of the contact point.
-	var velocity *vector.Vector3
-	velocity = thisBody.Rotation().NewCross(contact.relativeContactPosition[bodyIndex])
+	velocity := thisBody.Rotation().NewCross(contact.relativeContactPosition[bodyIndex])
 	velocity.Add(thisBody.Velocity())
 
 	// Turn the velocity into contact-coordinates.
-	var contactVelocity *vector.Vector3
-	contactVelocity = contact.toWorld.TransformTranspose(velocity)
+	contactVelocity := contact.toWorld.TransformTranspose(velocity)
 
 	// Calculate the amount of velocity that is due to forces without reactions.
-	var accVelocity *vector.Vector3
-	accVelocity = thisBody.LastFrameAcceleration.NewScale(duration)
+	accVelocity := thisBody.LastFrameAcceleration.NewScale(duration)
 
 	// Calculate the velocity in contact-coordinates.
 	accVelocity = contact.toWorld.TransformTranspose(accVelocity)
@@ -444,13 +441,11 @@ func (contact *contact) calculateFrictionlessImpulse(inverseInertiaTensor [2]*ve
 
 	// Build a vector that shows the change in velocity in world space for a unit impulse in the
 	// direction of the contact normal.
-	var deltaVelWorld *vector.Vector3
-	deltaVelWorld = contact.relativeContactPosition[0].NewCross(contact.normal)
+	deltaVelWorld := contact.relativeContactPosition[0].NewCross(contact.normal)
 	deltaVelWorld = inverseInertiaTensor[0].Transform(deltaVelWorld)
 	deltaVelWorld = deltaVelWorld.NewCross(contact.relativeContactPosition[0])
 	// Work out the change in velocity in contact coordinates
-	var deltaVelocity float64
-	deltaVelocity = deltaVelWorld.Dot(contact.normal)
+	deltaVelocity := deltaVelWorld.Dot(contact.normal)
 	// Add the linear component of velocity change
 	deltaVelocity += contact.bodies[0].InvMass
 
