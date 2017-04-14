@@ -47,10 +47,15 @@ func (l *ObjectList) Add(g *GameObject) {
 	l.entities[g.id] = g
 }
 
+func (l *ObjectList) Get(id components.Entity) *GameObject{
+	l.Lock()
+	defer l.Unlock()
+	return l.entities[id]
+}
+
 // Remove a GameObject and all of it's components
 func (l *ObjectList) Remove(g *GameObject) {
 	l.Lock()
-	defer l.Unlock()
 	if _, found := l.graphics[g.id]; found {
 		delete(l.graphics, g.id)
 	}
@@ -70,6 +75,8 @@ func (l *ObjectList) Remove(g *GameObject) {
 		delete(l.inventories, g.id)
 	}
 	l.deleted = append(l.deleted, g.id)
+	delete(l.entities, g.id)
+	l.Unlock()
 }
 
 // All returns all GameObjects in this list

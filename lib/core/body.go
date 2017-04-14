@@ -160,6 +160,10 @@ func (rb *Body) Mass() float64 {
 	return 1 / rb.InvMass
 }
 
+func (rb *Body) SetMass(m float64) {
+	rb.InvMass = 1 / m
+}
+
 // AddForce adds a force vector that originating from the center of this body
 func (rb *Body) AddForce(force *vector.Vector3) {
 	rb.ForceAccum.Add(force)

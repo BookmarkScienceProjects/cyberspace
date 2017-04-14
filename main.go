@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/stojg/cyberspace/lib/core"
 	"math/rand"
+	_ "net/http/pprof"
 	"sync/atomic"
 	"time"
 )
@@ -24,12 +25,20 @@ func main() {
 
 	lvl := newLevel()
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 5; i++ {
 		obj := spawn("monster")
 		obj.AddAgent(NewMonsterAgent())
 		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
 		lvl.State["monster_exists"] = true
 	}
+	bed := spawnNonCollidable("bed")
+	bed.Transform().Position().Set(-15, 0, -15)
+	bed = spawnNonCollidable("bed")
+	bed.Transform().Position().Set(15, 0, -15)
+	bed = spawnNonCollidable("bed")
+	bed.Transform().Position().Set(-15, 0, 15)
+	bed = spawnNonCollidable("bed")
+	bed.Transform().Position().Set(15, 0, 15)
 
 	hub := initNetwork(lvl)
 
@@ -59,7 +68,7 @@ func main() {
 		UpdatePhysics(elapsed)
 		UpdateCollisions(elapsed)
 
-		if len(core.List.FindWithTag("food")) < 40 {
+		if len(core.List.FindWithTag("food")) < 5 {
 			obj := spawn("food")
 			obj.Transform().Position().Set(rand.Float64()*50-25, 0, rand.Float64()*50-25)
 			lvl.State["food_exists"] = true

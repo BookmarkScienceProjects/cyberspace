@@ -1,9 +1,9 @@
 package actions
 
 import (
-	"fmt"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
+	"github.com/stojg/vector"
 	"time"
 )
 
@@ -11,25 +11,21 @@ func NewGetFood(cost float64) *getFood {
 	a := &getFood{
 		Action: goap.NewAction("getFood", cost),
 	}
-	a.AddPrecondition("food_exists", true)
-	a.AddEffect("has_food", true)
+	a.AddEffect(HasFood)
 	return a
 }
 
 type getFood struct {
 	goap.Action
 	startTime time.Time
-	hasFood   bool
-	target    *core.GameObject
 }
 
 func (a *getFood) Reset() {
-	a.hasFood = false
 	a.Action.Reset()
 	a.startTime = time.Time{}
 }
 
-func (a *getFood) CheckProceduralPrecondition(agent goap.Agent) bool {
+func (a *getFood) SetAgent(agent goap.Agent) bool {
 
 	foods := core.List.FindWithTag("food")
 
@@ -42,10 +38,6 @@ func (a *getFood) CheckProceduralPrecondition(agent goap.Agent) bool {
 		return false
 	}
 	t := gameObject.Transform()
-	if t == nil {
-		panic("wtf?")
-
-	}
 	agentPos := t.Position().Clone()
 
 	nearest := foods[0]
@@ -61,7 +53,6 @@ func (a *getFood) CheckProceduralPrecondition(agent goap.Agent) bool {
 
 	a.SetTarget(nearest)
 	return true
-
 }
 
 func (a *getFood) RequiresInRange() bool {
@@ -72,7 +63,11 @@ func (a *getFood) Perform(agent goap.Agent) bool {
 
 	target, ok := a.Target().(*core.GameObject)
 	if !ok {
-		fmt.Printf("in actions.getFood.Perform(): %s is not a *GameObject", a.Target())
+		return false
+	}
+
+	t := core.List.Get(target.ID())
+	if t == nil {
 		return false
 	}
 
@@ -80,17 +75,18 @@ func (a *getFood) Perform(agent goap.Agent) bool {
 		a.startTime = time.Now()
 	}
 
-	if time.Since(a.startTime) > 300*time.Millisecond {
-		aObject := agent.(*core.Agent)
-		fmt.Println("got food")
-		aObject.GameObject().Inventory().Add("food", 1)
+	if time.Since(a.startTime) > 200*time.Millisecond {
 		core.List.Remove(target)
-		a.hasFood = true
+		agent.AddState(HasFood)
+		agent.AddState(goap.Isnt(Rested))
+		a.SetIsDone()
+		if a, found := agent.(*core.Agent); found {
+			a.Transform().Scale().Add(vector.NewVector3(0.00, 0.125, 0.0))
+			b := a.GameObject().Body()
+			b.SetMass(b.Mass() + 0.1)
+			b.MaxAcceleration().Add(vector.NewVector3(20, 20, 20))
+		}
 	}
 
 	return true
-}
-
-func (a *getFood) IsDone() bool {
-	return a.hasFood
 }

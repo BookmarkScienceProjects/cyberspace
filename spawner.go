@@ -46,3 +46,19 @@ func spawn(name string) *core.GameObject {
 	object.AddCollision(core.NewCollisionRectangle(data.Scale[0], data.Scale[1], data.Scale[2]))
 	return object
 }
+
+func spawnNonCollidable(name string) *core.GameObject {
+	data := loadFromFile(name)
+	if data == nil {
+		return nil
+	}
+	object := core.NewGameObject(name)
+	object.AddTags([]string{name})
+	object.Transform().Position().Set(0, 0, 0)
+	object.Transform().Scale().Set(data.Scale[0], data.Scale[1], data.Scale[2])
+
+	object.AddGraphic(core.NewGraphic(data.Model))
+	object.AddBody(core.NewBody(1 / data.Weight))
+	object.AddInventory(core.NewInventory())
+	return object
+}

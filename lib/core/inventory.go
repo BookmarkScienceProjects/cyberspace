@@ -25,6 +25,14 @@ func (i *Inventory) Add(name string, num int) {
 	}
 }
 
+func (i *Inventory) Has(name string) bool {
+	num, ok := i.list[name];
+	if !ok {
+		return false
+	}
+	return num > 0
+}
+
 func (i *Inventory) Remove(name string, num int) {
 	if _, ok := i.list[name]; !ok {
 		return

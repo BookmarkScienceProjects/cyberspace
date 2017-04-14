@@ -17,8 +17,7 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 
 	for _, obj := range core.List.Agents() {
 
-		obj.SetWorldState(worldState)
-		obj.StateMachine().Update(obj)
+		obj.Update()
 
 		var separationTargets []*vector.Vector3
 		for _, monster := range monsters {
@@ -26,37 +25,37 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 				separationTargets = append(separationTargets, monster.Transform().Position())
 			}
 		}
-		separation := steering.NewSeparation(obj.GameObject().Body(), separationTargets, 4).Get()
+		separation := steering.NewSeparation(obj.GameObject().Body(), separationTargets, 3).Get()
 		obj.GameObject().Body().AddForce(separation.Linear())
 
+		// replan
 		lastPlan += elapsed
-		// force a replanning every 1 second
-		//if lastPlan > 1.0 {
-		//	obj.StateMachine().Clear()
-		//	obj.StateMachine().PushState(core.IdleState)
-		//	lastPlan = 0
-		//}
+		if lastPlan > 1 {
+			obj.StateMachine.Reset(goap.Idle)
+			lastPlan = 0
+		}
 	}
-
 }
 
 // NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
 func NewMonsterAgent() *core.Agent {
 
-	actions := []goap.Actionable{
+	a := []goap.Actionable{
 		actions.NewEat(1),
 		actions.NewGetFood(2),
 		actions.NewRest(10),
 	}
 
-	agent := core.NewAgent()
-	agent.SetAvailableActions(actions)
+	agent := core.NewAgent(a)
 
-	agent.AddGoal("is_hungry", false)
+	goal := make(goap.StateList)
+	goal.Add(actions.Rested)
+	goal.Add(actions.Full)
+	agent.SetGoalState(goal)
 
-	agent.SetState("is_hungry", true)
+	initialState := make(goap.StateList)
+	initialState.Add(goap.Isnt(actions.Full))
 
-	agent.StateMachine().PushState(core.IdleState)
-
+	agent.SetState(initialState)
 	return agent
 }

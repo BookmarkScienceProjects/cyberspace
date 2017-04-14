@@ -98,7 +98,7 @@ const updateScene = function sceneUpdater(updates) {
     objects[id].scaling = update.scale;
     // we are going to ignore any height offset just because I don't want to deal with the
     // steering output in the backen
-    objects[id].position.y = objects[id].scaling.y/2;
+    objects[id].position.y = objects[id].scaling.y / 2;
   });
 };
 
@@ -110,7 +110,7 @@ const entityRemove = function entityRemove(buf) {
         // INST_ENTITY_ID - we are switching the object we wish to update
         const objectId = buf.readFloat32();
         // check if object exists before disposing
-        if(objects[objectId] !== undefined) {
+        if (objects[objectId] !== undefined) {
           objects[objectId].dispose();
         }
         break;
@@ -121,7 +121,6 @@ const entityRemove = function entityRemove(buf) {
       }
     }
   }
-
 };
 
 const entityUpdate = function entUpdate(buf) {
@@ -170,7 +169,7 @@ const entityUpdate = function entUpdate(buf) {
         break;
       }
       case 6: {
-	updates[objectId].state = buf.readFloat32();
+        updates[objectId].state = buf.readFloat32();
         break;
       }
       default: {

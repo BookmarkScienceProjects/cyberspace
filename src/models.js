@@ -19,4 +19,10 @@ models[2].scaling = new BABYLON.Vector3(10, 10, 10);
 models[2].isVisible = false;
 models[2].material = materials.sepia.clone();
 
+models[3] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
+models[3].scaling = new BABYLON.Vector3(10, 10, 10);
+models[3].isVisible = false;
+models[3].material = materials.gray.clone();
+
+
 module.exports = models;
