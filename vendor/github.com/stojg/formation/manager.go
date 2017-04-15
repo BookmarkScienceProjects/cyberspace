@@ -94,7 +94,7 @@ func (m *Manager) UpdateSlots() {
 
 func (m *Manager) AnchorPoint() Static {
 	anchor := &Model{
-		orientation: NewQuaternion(0, 0, 0, 1),
+		orientation: NewQuaternion(1, 0, 0, 0),
 		position:    NewVector3(0, 0, 0),
 	}
 	for _, assignment := range m.slotAssignments {

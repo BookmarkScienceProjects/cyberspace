@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/stojg/vector"
-	"github.com/stojg/vivere/lib/components"
 )
 
 // NewGameObject returns a new GameObject
@@ -26,7 +25,7 @@ func NewGameObject(name string) *GameObject {
 
 // GameObject is the base struct that all entities in the game should embed or use.
 type GameObject struct {
-	id        components.Entity
+	id        Entity
 	name      string
 	transform *Transform
 	tags      map[string]bool
@@ -40,7 +39,7 @@ func (g *GameObject) AddTags(tags []string) {
 }
 
 // ID returns the unique ID for this GameObject
-func (g *GameObject) ID() components.Entity {
+func (g *GameObject) ID() Entity {
 	return g.id
 }
 

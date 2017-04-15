@@ -1,15 +1,20 @@
-hash: 07973318b32bfd4fb24d3b9ad1b5f219a5c5595516b04c43bb93dd55c0740773
-updated: 2016-09-18T12:37:27.098134857+12:00
+hash: d9df5b605283f1226367c786eea94a70cfa7952be29fb3835e0083e68c13598c
+updated: 2017-04-15T12:23:15.837041196+12:00
 imports:
 - name: github.com/stojg/formation
-  version: aad5820b288237bba62e24b3903e01bc0d950fa6
-- name: github.com/stojg/vivere
-  version: 2dc00fb12f839d73c6672060d518f976b3a44a30
-  subpackages:
-  - lib/client
-  - lib/components
+  version: e3789cf58dcc389676b1aa5107a6e474884477ef
+- name: github.com/stojg/goap
+  version: 3a91f328e24e406609e7074be7ce8dd53fd44183
+- name: github.com/stojg/steering
+  version: 8ff509248ca049ded50080fdb12afae44c5b2369
+- name: github.com/stojg/vector
+  version: 0e330523d1071350ade422a7469277c6d05bce3b
 - name: golang.org/x/net
-  version: 71a035914f99bb58fe82eac0f1289f10963d876c
+  version: f315505cf3349909cdf013ea56690da34e96a451
   subpackages:
   - websocket
+- name: golang.org/x/text
+  version: f4b4367115ec2de254587813edaa901bc1c723a8
+  subpackages:
+  - encoding
 testImports: []

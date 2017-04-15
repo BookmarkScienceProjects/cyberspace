@@ -1,9 +1,5 @@
 package core
 
-import (
-	"github.com/stojg/vivere/lib/components"
-)
-
 // NewInventory returns a new Inventory component
 func NewInventory() *Inventory {
 	return &Inventory{
@@ -26,7 +22,7 @@ func (i *Inventory) Add(name string, num int) {
 }
 
 func (i *Inventory) Has(name string) bool {
-	num, ok := i.list[name];
+	num, ok := i.list[name]
 	if !ok {
 		return false
 	}
@@ -43,7 +39,7 @@ func (i *Inventory) Remove(name string, num int) {
 	}
 }
 
-func (l *ObjectList) AddInventory(id components.Entity, inventory *Inventory) {
+func (l *ObjectList) AddInventory(id Entity, inventory *Inventory) {
 	l.Lock()
 	inventory.gameObject = l.entities[id]
 	l.inventories[id] = inventory
@@ -51,7 +47,7 @@ func (l *ObjectList) AddInventory(id components.Entity, inventory *Inventory) {
 }
 
 // Inventory returns the inventory component for a GameObject
-func (l *ObjectList) Inventory(id components.Entity) *Inventory {
+func (l *ObjectList) Inventory(id Entity) *Inventory {
 	return l.inventories[id]
 }
 

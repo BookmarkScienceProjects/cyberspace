@@ -17,6 +17,20 @@ type DefensiveCirclePattern struct {
 	characterRadius float64
 }
 
+func (p *DefensiveCirclePattern) SetCharacterRadius(r float64) {
+	p.characterRadius = r
+}
+
+func (p *DefensiveCirclePattern) Radius() float64 {
+	if p.characterRadius == 0 || p.numberOfSlots == 0 {
+		return 0
+	}
+	if p.numberOfSlots == 1 {
+		return p.characterRadius
+	}
+	return p.characterRadius / math.Sin(math.Pi/float64(p.numberOfSlots))
+}
+
 // Makes sure we can support the given number of slots, in this case we support any number of slots
 func (p *DefensiveCirclePattern) SupportsSlots(slotCount int) bool {
 	p.numberOfSlots = slotCount

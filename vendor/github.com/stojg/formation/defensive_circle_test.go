@@ -1,7 +1,7 @@
 package formation_test
 
 import (
-	"github.com/stojg/cyberspace/lib/formation"
+	"github.com/stojg/formation"
 	"github.com/stojg/vector"
 	"testing"
 )
@@ -38,11 +38,11 @@ func TestDefensiveCirclePattern_DriftOffset(t *testing.T) {
 
 	man.UpdateSlots()
 
-	expects := vector.NewVector3(-10, 0, 0)
+	expects := vector.NewVector3(10, 0, 0)
 	if !firstChar.target.Position().Equals(expects) {
 		t.Errorf("Pos should be %v, got %v", expects, firstChar.target.Position())
 	}
-	expects = vector.NewVector3(10, 0, 0)
+	expects = vector.NewVector3(-10, 0, 0)
 	if !secondChar.target.Position().Equals(expects) {
 		t.Errorf("Pos should be %v, got %v", expects, secondChar.target.Position())
 	}

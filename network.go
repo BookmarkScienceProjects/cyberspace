@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/stojg/cyberspace/lib/client"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/vector"
-	"github.com/stojg/vivere/lib/client"
-	"github.com/stojg/vivere/lib/components"
 	"golang.org/x/net/websocket"
 	"io"
 	"net/http"
@@ -190,7 +189,7 @@ func binaryStream(buf io.Writer, varType byte, value interface{}) error {
 		err = binary.Write(buf, binary.LittleEndian, val)
 	case float64:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
-	case components.Entity:
+	case core.Entity:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
 	case *vector.Vector3:
 		if err = binary.Write(buf, binary.LittleEndian, float32(val[0])); err != nil {

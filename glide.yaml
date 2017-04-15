@@ -1,10 +1,10 @@
 package: github.com/stojg/cyberspace
 import:
 - package: github.com/stojg/formation
-- package: github.com/stojg/vivere
-  subpackages:
-  - lib/client
-  - lib/components
 - package: golang.org/x/net
   subpackages:
   - websocket
+- package: golang.org/x/text
+  subpackages:
+  - encoding
+- package: github.com/stojg/goap

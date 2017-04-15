@@ -1,7 +1,6 @@
 package core
 
 import (
-	"github.com/stojg/vivere/lib/components"
 	"math"
 	"sync"
 )
@@ -11,13 +10,13 @@ var List *ObjectList
 
 func init() {
 	List = &ObjectList{
-		entities:    make(map[components.Entity]*GameObject),
-		graphics:    make(map[components.Entity]*Graphic),
-		bodies:      make(map[components.Entity]*Body),
-		collisions:  make(map[components.Entity]*Collision),
-		agents:      make(map[components.Entity]*Agent),
-		inventories: make(map[components.Entity]*Inventory),
-		deleted:     make([]components.Entity, 0),
+		entities:    make(map[Entity]*GameObject),
+		graphics:    make(map[Entity]*Graphic),
+		bodies:      make(map[Entity]*Body),
+		collisions:  make(map[Entity]*Collision),
+		agents:      make(map[Entity]*Agent),
+		inventories: make(map[Entity]*Inventory),
+		deleted:     make([]Entity, 0),
 	}
 }
 
@@ -25,14 +24,14 @@ func init() {
 // removal and changes should be handled by this list so they don't get lost or out of sync.
 type ObjectList struct {
 	sync.Mutex
-	nextID      components.Entity
-	entities    map[components.Entity]*GameObject
-	graphics    map[components.Entity]*Graphic
-	bodies      map[components.Entity]*Body
-	collisions  map[components.Entity]*Collision
-	agents      map[components.Entity]*Agent
-	inventories map[components.Entity]*Inventory
-	deleted     []components.Entity
+	nextID      Entity
+	entities    map[Entity]*GameObject
+	graphics    map[Entity]*Graphic
+	bodies      map[Entity]*Body
+	collisions  map[Entity]*Collision
+	agents      map[Entity]*Agent
+	inventories map[Entity]*Inventory
+	deleted     []Entity
 }
 
 // Add a GameObject to this list and assign it an unique ID
@@ -47,7 +46,7 @@ func (l *ObjectList) Add(g *GameObject) {
 	l.entities[g.id] = g
 }
 
-func (l *ObjectList) Get(id components.Entity) *GameObject{
+func (l *ObjectList) Get(id Entity) *GameObject {
 	l.Lock()
 	defer l.Unlock()
 	return l.entities[id]
@@ -104,7 +103,7 @@ func (l *ObjectList) FindWithTag(tag string) []*GameObject {
 }
 
 // AddGraphic adds a Graphic component to a GameObject
-func (l *ObjectList) AddGraphic(id components.Entity, graphic *Graphic) {
+func (l *ObjectList) AddGraphic(id Entity, graphic *Graphic) {
 	l.Lock()
 	graphic.gameObject = l.entities[id]
 	graphic.transform = l.entities[id].transform
@@ -113,7 +112,7 @@ func (l *ObjectList) AddGraphic(id components.Entity, graphic *Graphic) {
 }
 
 // Graphic returns the Graphic component for a GameObject
-func (l *ObjectList) Graphic(id components.Entity) *Graphic {
+func (l *ObjectList) Graphic(id Entity) *Graphic {
 	return l.graphics[id]
 }
 
@@ -129,7 +128,7 @@ func (l *ObjectList) Graphics() []*Graphic {
 }
 
 // AddBody adds a Body component to a GameObject
-func (l *ObjectList) AddBody(id components.Entity, body *Body) {
+func (l *ObjectList) AddBody(id Entity, body *Body) {
 	l.Lock()
 	body.gameObject = l.entities[id]
 	body.transform = l.entities[id].transform
@@ -138,7 +137,7 @@ func (l *ObjectList) AddBody(id components.Entity, body *Body) {
 }
 
 // Body returns the Body component for a GameObject
-func (l *ObjectList) Body(id components.Entity) *Body {
+func (l *ObjectList) Body(id Entity) *Body {
 	return l.bodies[id]
 }
 
@@ -154,7 +153,7 @@ func (l *ObjectList) Bodies() []*Body {
 }
 
 // AddCollision adds a Collision component to a GameObject
-func (l *ObjectList) AddCollision(id components.Entity, collision *Collision) {
+func (l *ObjectList) AddCollision(id Entity, collision *Collision) {
 	l.Lock()
 	collision.gameObject = l.entities[id]
 	collision.transform = l.entities[id].transform
@@ -163,7 +162,7 @@ func (l *ObjectList) AddCollision(id components.Entity, collision *Collision) {
 }
 
 // Collision returns the Collision component for a GameObject
-func (l *ObjectList) Collision(id components.Entity) *Collision {
+func (l *ObjectList) Collision(id Entity) *Collision {
 	return l.collisions[id]
 }
 
@@ -179,7 +178,7 @@ func (l *ObjectList) Collisions() []*Collision {
 }
 
 // AddAgent adds an Agent component to a GameObject
-func (l *ObjectList) AddAgent(id components.Entity, agent *Agent) {
+func (l *ObjectList) AddAgent(id Entity, agent *Agent) {
 	l.Lock()
 	agent.gameObject = l.entities[id]
 	l.agents[id] = agent
@@ -187,7 +186,7 @@ func (l *ObjectList) AddAgent(id components.Entity, agent *Agent) {
 }
 
 // Agent returns the Agent component for a GameObject
-func (l *ObjectList) Agent(id components.Entity) *Agent {
+func (l *ObjectList) Agent(id Entity) *Agent {
 	return l.agents[id]
 }
 
@@ -203,7 +202,7 @@ func (l *ObjectList) Agents() []*Agent {
 }
 
 // Deleted returns a list of GameObject IDs that has been deleted/removed
-func (l *ObjectList) Deleted() []components.Entity {
+func (l *ObjectList) Deleted() []Entity {
 	l.Lock()
 	defer l.Unlock()
 	return l.deleted
@@ -213,5 +212,5 @@ func (l *ObjectList) Deleted() []components.Entity {
 func (l *ObjectList) ClearDeleted() {
 	l.Lock()
 	defer l.Unlock()
-	l.deleted = make([]components.Entity, 0)
+	l.deleted = make([]Entity, 0)
 }
