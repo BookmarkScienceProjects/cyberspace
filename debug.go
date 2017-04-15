@@ -42,7 +42,9 @@ func printFPS() {
 		for currentTime := range ticker.C {
 			frame := atomic.LoadUint64(&currentFrame)
 			fps := float64(frame-prevFrame) / currentTime.Sub(prevTime).Seconds()
-			Printf("fps: %0.1f frame: %d\n", fps, frame)
+			if fps < 60 {
+				Printf("fps: %0.1f frame: %d\n", fps, frame)
+			}
 			prevFrame = frame
 			prevTime = currentTime
 

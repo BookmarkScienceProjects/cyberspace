@@ -34,11 +34,12 @@ func (network *clientHub) Write(cmd client.MessageType, data []byte) (int, error
 	// bytes written
 	n := 0
 	defer network.Unlock()
-	for i, client := range network.clients {
-		nc, err := client.Update(data, cmd)
+	for i, c := range network.clients {
+		nc, err := c.Update(data, cmd)
 		n += nc
 		if err != nil {
-			Println("network error, closing connection..")
+			Printf("network error, removing client\n")
+			c.Close()
 			network.remove(i)
 			return n, err
 		}
@@ -68,7 +69,7 @@ func initNetwork(lvl *level) *clientHub {
 
 	go func(client chan *client.Client, h *clientHub) {
 		for newClient := range client {
-			Println("New client connected")
+			Println("client connected")
 			_, err := newClient.Update(lvl.fullDraw().Bytes(), 1)
 			if err != nil {
 				Println("network error, ignoring new client..")

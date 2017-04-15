@@ -45,11 +45,11 @@ func (ch *ClientHandler) Websocket(ws *websocket.Conn) {
 	for {
 		cmd, err := client.Read(client.ws)
 		if err == io.EOF {
-			log.Printf("[!] client disconnected", err)
+			log.Printf("client disconnected: %s", err)
 			break
 		}
 		if err != nil {
-			log.Printf("[!] connection: %s", err)
+			log.Printf("connection: %s", err)
 			break
 		}
 
@@ -65,8 +65,8 @@ func (ch *ClientHandler) NewClients() chan *Client {
 // ClientCommand what the client sends to the server, it represents actions
 // that the user issued, for example clicking the up arrow key
 type ClientCommand struct {
-	Data  uint32
-	Type MessageType
+	Data     uint32
+	Type     MessageType
 	Sequence uint32
 	Duration float64
 }
@@ -81,6 +81,10 @@ type Client struct {
 	pingStartTime float64
 	ping          float64
 	serverTime    float64
+}
+
+func (c *Client) String() string {
+	return fmt.Sprintf("%s", c.ws.LocalAddr())
 }
 
 func (c *Client) Input() chan ClientCommand {
@@ -102,6 +106,10 @@ func (c *Client) Write(p []byte) (n int, err error) {
 	return
 }
 
+func (c *Client) Close() error {
+	return c.ws.Close()
+}
+
 // Read reads a buffer in binary format, extracts the server time and message type
 // and passes the rest of the message on to a message handler
 func (c *Client) Read(reader io.Reader) (cmd ClientCommand, err error) {
@@ -111,7 +119,7 @@ func (c *Client) Read(reader io.Reader) (cmd ClientCommand, err error) {
 
 	n, err := reader.Read(pkt)
 	if err != nil {
-		return cmd, fmt.Errorf("ws.Read() - error during read: '%s'", err)
+		return cmd, err
 	}
 
 	pkt = pkt[0:n]

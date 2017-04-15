@@ -1,10 +1,10 @@
 package actions
 
 import (
-	"github.com/stojg/goap"
 	"github.com/stojg/cyberspace/lib/core"
-	"time"
+	"github.com/stojg/goap"
 	"github.com/stojg/vector"
+	"time"
 )
 
 func NewRest(cost float64) *rest {
@@ -66,7 +66,7 @@ func (a *rest) Perform(agent goap.Agent) bool {
 		a.startTime = time.Now()
 	}
 
-	if time.Since(a.startTime) > 10 * time.Millisecond {
+	if time.Since(a.startTime) > 10*time.Millisecond {
 		agent.AddState(goap.Isnt(Full))
 		agent.AddState(Rested)
 		a.SetIsDone()
@@ -80,4 +80,3 @@ func (a *rest) Perform(agent goap.Agent) bool {
 
 	return true
 }
-
