@@ -24,44 +24,40 @@ type Agent struct {
 // PlanFailed is called when there is no sequence of actions could be found for the supplied goal.
 // You will need to try another goal
 func (a *Agent) PlanFailed(failedGoal goap.StateList) {
-	if !a.Debug {
-		return
+	if a.Debug {
+		fmt.Printf("plan failed with goalState: %v and state %v\n", failedGoal, a.State())
 	}
-	fmt.Printf("plan failed with goalState: %v and state %v\n", failedGoal, a.State())
 }
 
 // PlanFound is called when a plan was found for the supplied goal. The actions contains the plan
 // of actions the agent will perform, in order.
 func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Actionable) {
-	if !a.Debug {
-		return
+	if a.Debug {
+		fmt.Printf("Plan found with actions: %v for %v\n", actions, a.State())
 	}
-	fmt.Printf("Plan found with actions: %v for %v\n", actions, a.State())
 }
 
 // ActionsFinished is signaled when all actions are complete and the goal was reached.
 func (a *Agent) ActionsFinished() {
-	if !a.Debug {
-		return
+	if a.Debug {
+		fmt.Println("actions finished")
 	}
-	fmt.Println("actions finished")
 }
 
 // PlanAborted is called when one of the actions in the plan have discovered that it can no longer
 // be done.
 func (a *Agent) PlanAborted(abortingAction goap.Actionable) {
-	if !a.Debug {
-		return
+	if a.Debug {
+		fmt.Printf("plan was aborted by action %s aborted", abortingAction)
 	}
-	fmt.Printf("plan was aborted by action %s aborted", abortingAction)
 }
 
+// Update checks the state machine and updates its if possible
 func (a *Agent) Update() {
 	a.DefaultAgent.FSM(a, func(msg string) {
-		if !a.Debug {
-			return
+		if a.Debug {
+			fmt.Println(msg)
 		}
-		fmt.Println(msg)
 	})
 }
 
@@ -71,9 +67,7 @@ func (a *Agent) Update() {
 func (a *Agent) MoveAgent(nextAction goap.Actionable) bool {
 	target, found := nextAction.Target().(*GameObject)
 	if !found {
-		if !a.Debug {
-			fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
-		}
+		fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
 		return false
 	}
 
