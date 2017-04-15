@@ -25,7 +25,7 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 				separationTargets = append(separationTargets, monster.Transform().Position())
 			}
 		}
-		separation := steering.NewSeparation(obj.GameObject().Body(), separationTargets, 3).Get()
+		separation := steering.NewSeparation(obj.GameObject().Body(), separationTargets, 2).Get()
 		obj.GameObject().Body().AddForce(separation.Linear())
 
 		// replan
@@ -40,7 +40,7 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 // NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
 func NewMonsterAgent() *core.Agent {
 
-	a := []goap.Actionable{
+	a := []goap.Action{
 		actions.NewEat(1),
 		actions.NewGetFood(2),
 		actions.NewRest(10),

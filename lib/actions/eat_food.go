@@ -7,7 +7,7 @@ import (
 
 func NewEat(cost float64) *eat {
 	a := &eat{
-		Action: goap.NewAction("eat", cost),
+		DefaultAction: goap.NewAction("eat", cost),
 	}
 	a.AddPrecondition(HasFood)
 	a.AddPrecondition(goap.Isnt(Full))
@@ -16,12 +16,12 @@ func NewEat(cost float64) *eat {
 }
 
 type eat struct {
-	goap.Action
+	goap.DefaultAction
 	startTime time.Time
 }
 
 func (a *eat) Reset() {
-	a.Action.Reset()
+	a.DefaultAction.Reset()
 	a.startTime = time.Time{}
 }
 
@@ -29,8 +29,8 @@ func (a *eat) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *eat) RequiresInRange() bool {
-	return false
+func (a *eat) InRange(agent goap.Agent) bool {
+	return true
 }
 
 func (a *eat) Perform(agent goap.Agent) bool {
@@ -41,7 +41,7 @@ func (a *eat) Perform(agent goap.Agent) bool {
 	if time.Since(a.startTime) > 10*time.Millisecond {
 		agent.AddState(goap.Dont(HasFood))
 		agent.AddState(Full)
-		a.SetIsDone()
+		a.DefaultAction.Done = true
 	}
 
 	return true

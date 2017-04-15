@@ -2,14 +2,16 @@ package goap
 
 func newGetFoodAction(cost float64) *getFoodAction {
 	a := &getFoodAction{
-		Action: NewInRangeAction("getFood", cost),
+		DefaultAction: NewAction("getFood", cost),
+		inRange:       false,
 	}
 	return a
 }
 
 type getFoodAction struct {
-	Action
+	DefaultAction
 	hasFood bool
+	inRange bool
 }
 
 func (a *getFoodAction) CheckContextPrecondition(agent Agent) bool {
@@ -26,15 +28,19 @@ func (a *getFoodAction) IsDone() bool {
 	return a.hasFood
 }
 
+func (a *getFoodAction) InRange(agent Agent) bool {
+	return a.inRange
+}
+
 func newEatAction(cost float64) *eatingAction {
 	a := &eatingAction{
-		Action: NewAction("eat", cost),
+		DefaultAction: NewAction("eat", cost),
 	}
 	return a
 }
 
 type eatingAction struct {
-	Action
+	DefaultAction
 }
 
 func (a *eatingAction) Perform(agent Agent) bool {
@@ -45,17 +51,21 @@ func (a *eatingAction) IsDone() bool {
 	return true
 }
 
+func (a *eatingAction) InRange(agent Agent) bool {
+	return true
+}
+
 func newSleepAction(cost float64) *sleepingAction {
 	return &sleepingAction{
-		Action: NewAction("sleep", cost),
+		DefaultAction: NewAction("sleep", cost),
 	}
 }
 
 type sleepingAction struct {
-	Action
+	DefaultAction
 }
 
-func (a *sleepingAction) IsInRange() bool {
+func (a *sleepingAction) InRange(agent Agent) bool {
 	return true
 }
 

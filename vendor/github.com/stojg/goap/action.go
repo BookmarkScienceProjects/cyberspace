@@ -1,8 +1,7 @@
 package goap
 
-// Actionable is the interface that describes what the planner and
-type Actionable interface {
-
+// Action is the interface that describes what the planner and
+type Action interface {
 	// The cost of performing the action.
 	// Figure out a weight that suits the action.
 	// Changing it will affect what actions are chosen during planning.
@@ -26,9 +25,8 @@ type Actionable interface {
 
 	// Does this action need to be within range of a target game object?
 	// If not then the moveTo state will not need to run for this action.
-	RequiresInRange() bool
-	IsInRange() bool
-	SetInRange()
+	InRange(Agent) bool
+
 	SetTarget(interface{})
 	Target() interface{}
 
@@ -43,9 +41,9 @@ type Actionable interface {
 	String() string
 }
 
-// NewAction create a new base Action
-func NewAction(name string, cost float64) Action {
-	return Action{
+// NewAction create a new base DefaultAction
+func NewAction(name string, cost float64) DefaultAction {
+	return DefaultAction{
 		name:          name,
 		preconditions: make(StateList),
 		effects:       make(StateList),
@@ -53,98 +51,69 @@ func NewAction(name string, cost float64) Action {
 	}
 }
 
-// NewInRangeAction creates a new Action that requires the agent to be close to something
-func NewInRangeAction(name string, cost float64) Action {
-	return Action{
-		name:            name,
-		preconditions:   make(StateList),
-		effects:         make(StateList),
-		cost:            cost,
-		requiresInRange: true,
-	}
-}
-
-type Action struct {
+type DefaultAction struct {
 	name            string
 	preconditions   StateList
 	effects         StateList
 	cost            float64
-	isDone          bool
+	Done            bool
 	requiresInRange bool
-	inRange         bool
 	target          interface{}
 }
 
-func (a *Action) Reset() {
-	a.isDone = false
-	a.inRange = false
+func (a *DefaultAction) Reset() {
+	a.Done = false
 	a.target = nil
 }
 
-func (a *Action) AddPrecondition(states ...State) {
+func (a *DefaultAction) AddPrecondition(states ...State) {
 	for _, state := range states {
 		a.preconditions[state.Name] = state.Value
 	}
 }
 
-func (a *Action) RemovePrecondition(key string) {
+func (a *DefaultAction) RemovePrecondition(key string) {
 	delete(a.preconditions, key)
 }
 
-func (a *Action) Preconditions() StateList {
+func (a *DefaultAction) Preconditions() StateList {
 	return a.preconditions
 }
 
-func (a *Action) AddEffect(states ...State) {
+func (a *DefaultAction) AddEffect(states ...State) {
 	for _, state := range states {
 		a.effects[state.Name] = state.Value
 	}
 }
 
-func (a *Action) RemoveEffect(key string) {
+func (a *DefaultAction) RemoveEffect(key string) {
 	delete(a.effects, key)
 }
 
-func (a *Action) Effects() StateList {
+func (a *DefaultAction) Effects() StateList {
 	return a.effects
 }
 
-func (a *Action) Cost() float64 {
+func (a *DefaultAction) Cost() float64 {
 	return a.cost
 }
 
-func (a *Action) RequiresInRange() bool {
-	return a.requiresInRange
+func (a *DefaultAction) IsDone() bool {
+	return a.Done
 }
 
-func (a *Action) IsInRange() bool {
-	return a.inRange
-}
-
-func (a *Action) SetInRange() {
-	a.inRange = true
-}
-
-func (a *Action) SetIsDone() {
-	a.isDone = true
-}
-
-func (a *Action) IsDone() bool {
-	return a.isDone
-}
-
-func (a *Action) SetTarget(t interface{}) {
+func (a *DefaultAction) SetTarget(t interface{}) {
 	a.target = t
 }
 
-func (a *Action) Target() interface{} {
+func (a *DefaultAction) Target() interface{} {
 	return a.target
 }
 
-func (a *Action) CheckContextPrecondition(agent Agent) bool {
+func (a *DefaultAction) CheckContextPrecondition(agent Agent) bool {
 	return true
 }
 
-func (a *Action) String() string {
+func (a *DefaultAction) String() string {
 	return a.name
 }

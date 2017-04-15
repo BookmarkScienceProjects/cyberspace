@@ -1,10 +1,10 @@
 hash: d9df5b605283f1226367c786eea94a70cfa7952be29fb3835e0083e68c13598c
-updated: 2017-04-16T10:09:55.868335094+12:00
+updated: 2017-04-16T11:29:06.268879818+12:00
 imports:
 - name: github.com/stojg/formation
   version: e3789cf58dcc389676b1aa5107a6e474884477ef
 - name: github.com/stojg/goap
-  version: eb7b82d0e78fbadfd664f279e5daa37e2245d854
+  version: 6b28f0b892796e6f7bb12a49100847d88cf9e20f
 - name: github.com/stojg/steering
   version: 8ff509248ca049ded50080fdb12afae44c5b2369
 - name: github.com/stojg/vector

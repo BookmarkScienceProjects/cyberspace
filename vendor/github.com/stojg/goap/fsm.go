@@ -75,12 +75,8 @@ func Do(fsm *FSM, agent Agent, debug func(string)) {
 	}
 
 	action = agent.CurrentActions()[0]
-	inRange := true
-	if action.RequiresInRange() {
-		inRange = action.IsInRange()
-	}
 	// we need to move there first
-	if !inRange {
+	if !action.InRange(agent) {
 		debug(fmt.Sprintf("Do - scheduling moveTo %s", action))
 		fsm.Push(MoveTo)
 		return
@@ -100,7 +96,7 @@ func MoveTo(fsm *FSM, agent Agent, debug func(string)) {
 	action := agent.CurrentActions()[0]
 
 	if action.Target() == nil {
-		debug("Error: MoveTo requires a target but has none. Planning failed. You did not assign the target in your Action.CanRun()")
+		debug("Error: MoveTo requires a target but has none. Planning failed. You did not assign the target in your Action.CheckContextPrecondition()")
 		fsm.Reset(Idle)
 		return
 	}

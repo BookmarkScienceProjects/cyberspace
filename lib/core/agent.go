@@ -7,7 +7,7 @@ import (
 )
 
 // NewAgent returns an initialised agent ready for action!
-func NewAgent(actions []goap.Actionable) *Agent {
+func NewAgent(actions []goap.Action) *Agent {
 	a := &Agent{
 		DefaultAgent: goap.NewDefaultAgent(actions),
 	}
@@ -31,7 +31,7 @@ func (a *Agent) PlanFailed(failedGoal goap.StateList) {
 
 // PlanFound is called when a plan was found for the supplied goal. The actions contains the plan
 // of actions the agent will perform, in order.
-func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Actionable) {
+func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Action) {
 	if a.Debug {
 		fmt.Printf("Plan found with actions: %v for %v\n", actions, a.State())
 	}
@@ -46,9 +46,9 @@ func (a *Agent) ActionsFinished() {
 
 // PlanAborted is called when one of the actions in the plan have discovered that it can no longer
 // be done.
-func (a *Agent) PlanAborted(abortingAction goap.Actionable) {
+func (a *Agent) PlanAborted(abortingAction goap.Action) {
 	if a.Debug {
-		fmt.Printf("plan was aborted by action %s aborted", abortingAction)
+		fmt.Printf("plan was aborted by action %s aborted", abortingAction.String())
 	}
 }
 
@@ -64,16 +64,14 @@ func (a *Agent) Update() {
 // MoveAgent is when the agent must move towards the target in order for the next action to be able
 // to perform. Return true if the Agent is at the target and the next action can perform. False if
 // it is not there yet.
-func (a *Agent) MoveAgent(nextAction goap.Actionable) bool {
+func (a *Agent) MoveAgent(nextAction goap.Action) bool {
 	target, found := nextAction.Target().(*GameObject)
 	if !found {
 		fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
 		return false
 	}
 
-	dist := a.gameObject.transform.position.NewSub(target.transform.position).Length()
-	if dist < a.gameObject.transform.scale[0]*1.5 {
-		nextAction.SetInRange()
+	if nextAction.InRange(a) {
 		return true
 	}
 

@@ -9,19 +9,19 @@ import (
 
 func NewGetFood(cost float64) *getFood {
 	a := &getFood{
-		Action: goap.NewAction("getFood", cost),
+		DefaultAction: goap.NewAction("getFood", cost),
 	}
 	a.AddEffect(HasFood)
 	return a
 }
 
 type getFood struct {
-	goap.Action
+	goap.DefaultAction
 	startTime time.Time
 }
 
 func (a *getFood) Reset() {
-	a.Action.Reset()
+	a.DefaultAction.Reset()
 	a.startTime = time.Time{}
 }
 
@@ -37,8 +37,8 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 	if !found {
 		return false
 	}
-	t := gameObject.Transform()
-	agentPos := t.Position().Clone()
+	agentTransform := gameObject.Transform()
+	agentPos := agentTransform.Position().Clone()
 
 	nearest := foods[0]
 	nearestDistance := agentPos.NewSub(foods[0].Transform().Position()).Length()
@@ -55,8 +55,13 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *getFood) RequiresInRange() bool {
-	return true
+func (a *getFood) InRange(agent goap.Agent) bool {
+	target := a.Target().(*core.GameObject)
+	gameObject := agent.(*core.Agent)
+	agentTransform := gameObject.Transform()
+	agentPos := agentTransform.Position().Clone()
+	dist := agentPos.NewSub(target.Transform().Position()).Length()
+	return dist < agentTransform.Scale()[0]*1.2
 }
 
 func (a *getFood) Perform(agent goap.Agent) bool {
@@ -79,7 +84,7 @@ func (a *getFood) Perform(agent goap.Agent) bool {
 		core.List.Remove(target)
 		agent.AddState(HasFood)
 		agent.AddState(goap.Isnt(Rested))
-		a.SetIsDone()
+		a.DefaultAction.Done = true
 		if a, found := agent.(*core.Agent); found {
 			a.Transform().Scale().Add(vector.NewVector3(0.00, 0.125, 0.0))
 			b := a.GameObject().Body()

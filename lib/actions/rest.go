@@ -9,7 +9,7 @@ import (
 
 func NewRest(cost float64) *rest {
 	a := &rest{
-		Action: goap.NewAction("rest", cost),
+		DefaultAction: goap.NewAction("rest", cost),
 	}
 	a.AddPrecondition(Full)
 	a.AddEffect(Rested)
@@ -17,12 +17,12 @@ func NewRest(cost float64) *rest {
 }
 
 type rest struct {
-	goap.Action
+	goap.DefaultAction
 	startTime time.Time
 }
 
 func (a *rest) Reset() {
-	a.Action.Reset()
+	a.DefaultAction.Reset()
 	a.startTime = time.Time{}
 }
 
@@ -57,8 +57,13 @@ func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *rest) RequiresInRange() bool {
-	return true
+func (a *rest) InRange(agent goap.Agent) bool {
+	target := a.Target().(*core.GameObject)
+	gameObject := agent.(*core.Agent)
+	agentTransform := gameObject.Transform()
+	agentPos := agentTransform.Position().Clone()
+	dist := agentPos.NewSub(target.Transform().Position()).Length()
+	return dist < agentTransform.Scale()[0]*1.5
 }
 
 func (a *rest) Perform(agent goap.Agent) bool {
@@ -69,7 +74,7 @@ func (a *rest) Perform(agent goap.Agent) bool {
 	if time.Since(a.startTime) > 10*time.Millisecond {
 		agent.AddState(goap.Isnt(Full))
 		agent.AddState(Rested)
-		a.SetIsDone()
+		a.DefaultAction.Done = true
 		if a, found := agent.(*core.Agent); found {
 			a.Transform().Scale().Sub(vector.NewVector3(0.00, 0.125, 0.0))
 			b := a.GameObject().Body()
