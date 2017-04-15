@@ -25,7 +25,7 @@ func (a *getFood) Reset() {
 	a.startTime = time.Time{}
 }
 
-func (a *getFood) SetAgent(agent goap.Agent) bool {
+func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 
 	foods := core.List.FindWithTag("food")
 

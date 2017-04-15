@@ -25,7 +25,7 @@ func (a *eat) Reset() {
 	a.startTime = time.Time{}
 }
 
-func (a *eat) CheckProceduralPrecondition(agent goap.Agent) bool {
+func (a *eat) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 

@@ -26,7 +26,7 @@ func (a *rest) Reset() {
 	a.startTime = time.Time{}
 }
 
-func (a *rest) SetAgent(agent goap.Agent) bool {
+func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
 	beds := core.List.FindWithTag("bed")
 
 	if len(beds) < 1 {
