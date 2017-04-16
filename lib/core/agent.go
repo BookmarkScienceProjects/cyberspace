@@ -18,7 +18,12 @@ func NewAgent(actions []goap.Action) *Agent {
 type Agent struct {
 	goap.DefaultAgent
 	Component
-	Debug bool
+	Debug       bool
+	needsReplan bool
+}
+
+func (a *Agent) Replan() {
+	a.DefaultAgent.StateMachine.Reset(goap.Idle)
 }
 
 // PlanFailed is called when there is no sequence of actions could be found for the supplied goal.

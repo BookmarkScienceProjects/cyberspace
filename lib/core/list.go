@@ -44,6 +44,10 @@ func (l *ObjectList) Add(g *GameObject) {
 	l.nextID++
 	g.id = l.nextID
 	l.entities[g.id] = g
+
+	for _, a := range l.agents {
+		a.Replan()
+	}
 }
 
 func (l *ObjectList) Get(id Entity) *GameObject {
@@ -76,6 +80,9 @@ func (l *ObjectList) Remove(g *GameObject) {
 	l.deleted = append(l.deleted, g.id)
 	delete(l.entities, g.id)
 	l.Unlock()
+	for _, a := range l.agents {
+		a.Replan()
+	}
 }
 
 // All returns all GameObjects in this list

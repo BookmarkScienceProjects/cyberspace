@@ -28,12 +28,12 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 		separation := steering.NewSeparation(agent.GameObject().Body(), separationTargets, 2).Get()
 		agent.GameObject().Body().AddForce(separation.Linear())
 
-		// replan
-		lastPlan += elapsed
-		if lastPlan > 1 {
-			agent.StateMachine.Reset(goap.Idle)
-			lastPlan = 0
-		}
+		//// replan
+		//lastPlan += elapsed
+		//if lastPlan > 1 {
+		//	agent.StateMachine.Reset(goap.Idle)
+		//	lastPlan = 0
+		//}
 	}
 }
 

@@ -35,11 +35,7 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 		return false
 	}
 
-	coreAgent, ok := agent.(*core.Agent)
-	if !ok {
-		return false
-	}
-	obj := coreAgent.GameObject()
+	obj := agent.(*core.Agent).GameObject()
 
 	var target *core.GameObject
 	bestConfidence := 0.0
@@ -51,7 +47,7 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 		}
 
 		// 269 degrees of view cone
-		confidence *= percepts.InSight(obj, food, math.Pi*1.5)
+		confidence *= percepts.InSight(obj, food, 2*math.Pi)
 
 		if confidence > bestConfidence {
 			target = food
@@ -70,11 +66,8 @@ func (a *getFood) InRange(agent goap.Agent) bool {
 	if !ok {
 		return false
 	}
-	gameObject := agent.(*core.Agent)
-	agentTransform := gameObject.Transform()
-	agentPos := agentTransform.Position().Clone()
-	dist := agentPos.NewSub(target.Transform().Position()).Length()
-	return dist < agentTransform.Scale()[0]*1.2
+	me := agent.(*core.Agent).GameObject()
+	return percepts.Distance(me, target, me.Transform().Scale()[0]*1.2) > 0
 }
 
 func (a *getFood) Perform(agent goap.Agent) bool {
@@ -83,9 +76,7 @@ func (a *getFood) Perform(agent goap.Agent) bool {
 	if !ok {
 		return false
 	}
-
-	t := core.List.Get(target.ID())
-	if t == nil {
+	if core.List.Get(target.ID()) == nil {
 		return false
 	}
 
@@ -102,9 +93,8 @@ func (a *getFood) Perform(agent goap.Agent) bool {
 			a.Transform().Scale().Add(vector.NewVector3(0.00, 0.125, 0.0))
 			b := a.GameObject().Body()
 			b.SetMass(b.Mass() + 0.1)
-			b.MaxAcceleration().Add(vector.NewVector3(20, 20, 20))
+			b.MaxAcceleration().Add(vector.NewVector3(20, 0, 0))
 		}
 	}
-
 	return true
 }

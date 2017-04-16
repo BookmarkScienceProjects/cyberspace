@@ -2,6 +2,7 @@ package actions
 
 import (
 	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
 	"github.com/stojg/vector"
 	"time"
@@ -59,11 +60,8 @@ func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
 
 func (a *rest) InRange(agent goap.Agent) bool {
 	target := a.Target().(*core.GameObject)
-	gameObject := agent.(*core.Agent)
-	agentTransform := gameObject.Transform()
-	agentPos := agentTransform.Position().Clone()
-	dist := agentPos.NewSub(target.Transform().Position()).Length()
-	return dist < agentTransform.Scale()[0]*1.5
+	me := agent.(*core.Agent).GameObject()
+	return percepts.Distance(me, target, me.Transform().Scale()[0]*1.5) > 0
 }
 
 func (a *rest) Perform(agent goap.Agent) bool {
@@ -79,7 +77,7 @@ func (a *rest) Perform(agent goap.Agent) bool {
 			a.Transform().Scale().Sub(vector.NewVector3(0.00, 0.125, 0.0))
 			b := a.GameObject().Body()
 			b.SetMass(b.Mass() - 0.1)
-			b.MaxAcceleration().Sub(vector.NewVector3(20, 20, 20))
+			b.MaxAcceleration().Sub(vector.NewVector3(20, 0, 0))
 		}
 	}
 

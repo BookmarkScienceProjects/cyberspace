@@ -17,7 +17,7 @@ func NewBody(invMass float64) *Body {
 		InverseInertiaTensorWorld: &vector.Matrix3{},
 		ForceAccum:                &vector.Vector3{},
 		TorqueAccum:               &vector.Vector3{},
-		maxAcceleration:           &vector.Vector3{10, 10, 10},
+		maxAcceleration:           &vector.Vector3{10, 10, 1},
 		Acceleration:              &vector.Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
