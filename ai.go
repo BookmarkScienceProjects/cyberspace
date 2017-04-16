@@ -15,23 +15,23 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 
 	monsters := core.List.FindWithTag("monster")
 
-	for _, obj := range core.List.Agents() {
+	for _, agent := range core.List.Agents() {
 
-		obj.Update()
+		agent.Update()
 
 		var separationTargets []*vector.Vector3
 		for _, monster := range monsters {
-			if monster.ID() != obj.GameObject().ID() {
+			if monster.ID() != agent.GameObject().ID() {
 				separationTargets = append(separationTargets, monster.Transform().Position())
 			}
 		}
-		separation := steering.NewSeparation(obj.GameObject().Body(), separationTargets, 2).Get()
-		obj.GameObject().Body().AddForce(separation.Linear())
+		separation := steering.NewSeparation(agent.GameObject().Body(), separationTargets, 2).Get()
+		agent.GameObject().Body().AddForce(separation.Linear())
 
 		// replan
 		lastPlan += elapsed
 		if lastPlan > 1 {
-			obj.StateMachine.Reset(goap.Idle)
+			agent.StateMachine.Reset(goap.Idle)
 			lastPlan = 0
 		}
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/vector"
 	"math/rand"
 	_ "net/http/pprof"
 	"sync/atomic"
@@ -71,6 +72,9 @@ func main() {
 		if len(core.List.FindWithTag("food")) < 5 {
 			obj := spawn("food")
 			obj.Transform().Position().Set(rand.Float64()*50-25, 0, rand.Float64()*50-25)
+			rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
+			obj.Transform().Orientation().RotateByVector(rot)
+			obj.Transform().Orientation().Normalize()
 			lvl.State["food_exists"] = true
 		}
 

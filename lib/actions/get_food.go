@@ -2,8 +2,10 @@ package actions
 
 import (
 	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
 	"github.com/stojg/vector"
+	"math"
 	"time"
 )
 
@@ -33,30 +35,41 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 		return false
 	}
 
-	gameObject, found := agent.(*core.Agent)
-	if !found {
+	coreAgent, ok := agent.(*core.Agent)
+	if !ok {
 		return false
 	}
-	agentTransform := gameObject.Transform()
-	agentPos := agentTransform.Position().Clone()
+	obj := coreAgent.GameObject()
 
-	nearest := foods[0]
-	nearestDistance := agentPos.NewSub(foods[0].Transform().Position()).Length()
+	var target *core.GameObject
+	bestConfidence := 0.0
 
 	for _, food := range foods {
-		dist := agentPos.NewSub(food.Transform().Position()).Length()
-		if dist < nearestDistance {
-			nearest = food
-			nearestDistance = dist
+		confidence := percepts.Distance(obj, food, 50)
+		if confidence < 0.01 {
+			continue
+		}
+
+		// 269 degrees of view cone
+		confidence *= percepts.InSight(obj, food, math.Pi*1.5)
+
+		if confidence > bestConfidence {
+			target = food
+			bestConfidence = confidence
 		}
 	}
 
-	a.SetTarget(nearest)
+	if target != nil {
+		a.SetTarget(target)
+	}
 	return true
 }
 
 func (a *getFood) InRange(agent goap.Agent) bool {
-	target := a.Target().(*core.GameObject)
+	target, ok := a.Target().(*core.GameObject)
+	if !ok {
+		return false
+	}
 	gameObject := agent.(*core.Agent)
 	agentTransform := gameObject.Transform()
 	agentPos := agentTransform.Position().Clone()

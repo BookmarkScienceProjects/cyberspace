@@ -28,7 +28,7 @@ func TestDistanceTooFar(t *testing.T) {
 
 	confidence := Distance(me, friend, 5)
 	if confidence != 0.0 {
-		t.Error("I should not be able see my friend, but see her with confidence %0.2f", confidence)
+		t.Errorf("I should not be able see my friend, but see her with confidence %0.2f", confidence)
 	}
 }
 
