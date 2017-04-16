@@ -26,7 +26,7 @@ func main() {
 
 	lvl := newLevel()
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 20; i++ {
 		obj := spawn("monster")
 		obj.AddAgent(NewMonsterAgent())
 		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
