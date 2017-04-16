@@ -46,6 +46,10 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 			continue
 		}
 
+		if !percepts.CanSeeTarget(obj, food) {
+			continue
+		}
+
 		// 269 degrees of view cone
 		confidence *= percepts.InViewCone(obj, food, 2*math.Pi)
 
@@ -55,9 +59,10 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 		}
 	}
 
-	if target != nil {
-		a.SetTarget(target)
+	if target == nil {
+		return false
 	}
+	a.SetTarget(target)
 	return true
 }
 

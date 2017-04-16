@@ -33,28 +33,26 @@ func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
 	if len(beds) < 1 {
 		return false
 	}
+	obj := agent.(*core.Agent).GameObject()
 
-	gameObject, found := agent.(*core.Agent)
-	if !found {
-		return false
-	}
-	t := gameObject.Transform()
-	if t == nil {
-		panic("wtf?")
-	}
-	agentPos := t.Position().Clone()
+	var target *core.GameObject
+	bestConfidence := 0.0
 
-	nearest := beds[0]
-	nearestDistance := agentPos.NewSub(beds[0].Transform().Position()).Length()
+	for _, bed := range beds {
+		confidence := percepts.Distance(obj, bed, 50)
+		if confidence < 0.01 {
+			continue
+		}
 
-	for _, food := range beds {
-		dist := agentPos.NewSub(food.Transform().Position()).Length()
-		if dist < nearestDistance {
-			nearest = food
-			nearestDistance = dist
+		if confidence > bestConfidence {
+			target = bed
+			bestConfidence = confidence
 		}
 	}
-	a.SetTarget(nearest)
+	if target == nil {
+		return false
+	}
+	a.SetTarget(target)
 	return true
 }
 
