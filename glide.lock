@@ -1,5 +1,5 @@
 hash: d9df5b605283f1226367c786eea94a70cfa7952be29fb3835e0083e68c13598c
-updated: 2017-04-16T11:29:06.268879818+12:00
+updated: 2017-04-16T22:45:58.756268467+12:00
 imports:
 - name: github.com/stojg/formation
   version: e3789cf58dcc389676b1aa5107a6e474884477ef
@@ -8,7 +8,7 @@ imports:
 - name: github.com/stojg/steering
   version: 8ff509248ca049ded50080fdb12afae44c5b2369
 - name: github.com/stojg/vector
-  version: 0e330523d1071350ade422a7469277c6d05bce3b
+  version: 0e2adf710c2b1cdca4c9931c9098727bc9303705
 - name: golang.org/x/net
   version: f315505cf3349909cdf013ea56690da34e96a451
   subpackages:

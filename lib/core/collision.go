@@ -17,8 +17,10 @@ func NewCollisionRectangle(x, y, z float64) *Collision {
 // Collision is a struct that keeps track of the collision geometry for a GameObject
 type Collision struct {
 	Component
-	fullWidth [3]float64
-	halfWidth [3]float64
+	fullWidth             [3]float64
+	halfWidth             [3]float64
+	cachedTransformMatrix *vector.Matrix4
+	cachedOBB             *OBB
 }
 
 // BoundingBox return the AABB bounding box the GameObject it is connected to
@@ -42,8 +44,11 @@ func (c *Collision) OBB() *OBB {
 
 	mat := c.gameObject.Body().transformMatrix
 
+	if mat.Equals(c.cachedTransformMatrix) {
+		return c.cachedOBB
+	}
+
 	var points [8]*vector.Vector3
-	points[0] = mat.TransformVector3(vector.NewVector3(halfSize, halfSize, halfSize))
 	points[0] = mat.TransformVector3(vector.NewVector3(halfSize, halfSize, halfSize))
 	points[1] = mat.TransformVector3(vector.NewVector3(halfSize, -halfSize, halfSize))
 	points[2] = mat.TransformVector3(vector.NewVector3(halfSize, halfSize, -halfSize))
@@ -66,11 +71,16 @@ func (c *Collision) OBB() *OBB {
 			}
 		}
 	}
-	return &OBB{
+
+	c.cachedTransformMatrix = mat.Clone()
+
+	c.cachedOBB = &OBB{
 		centre:   c.gameObject.Transform().Position(),
 		MaxPoint: max,
 		MinPoint: min,
 	}
+
+	return c.cachedOBB
 }
 
 // OBB is a struct that represents the Oriented Bounded Box, i.e. a rotated AABB
