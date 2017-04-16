@@ -15,9 +15,9 @@ func Distance(me, other *core.GameObject, maxDistance float64) float64 {
 	return (maxDistance - direction.Length()) / maxDistance
 }
 
-// InSight checks if other is in me view cone and returns a confidence between 0 and 1.
+// InViewCone checks if other is in me view cone and returns a confidence between 0 and 1.
 // viewCone should be in radians
-func InSight(me, other *core.GameObject, viewCone float64) float64 {
+func InViewCone(me, other *core.GameObject, viewCone float64) float64 {
 	direction := other.Transform().Position().NewSub(me.Transform().Position())
 	// two entities in the same position can see each other
 	if direction.SquareLength() == 0 {

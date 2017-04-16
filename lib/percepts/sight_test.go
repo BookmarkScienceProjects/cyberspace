@@ -32,20 +32,7 @@ func TestDistanceTooFar(t *testing.T) {
 	}
 }
 
-func TestViewConeSamePosition(t *testing.T) {
-	me := core.NewGameObject("me")
-	me.Transform().Position().Set(0, 0, 0)
-
-	friend := core.NewGameObject("friend")
-	friend.Transform().Position().Set(0, 0, 0)
-
-	confidence := InSight(me, friend, 3.14)
-	if confidence != 1 {
-		t.Error("Expected that two entities in the same position can see each other")
-	}
-}
-
-func TestViewConeInFront(t *testing.T) {
+func TestInViewConeInFront(t *testing.T) {
 	tests := []struct {
 		in  [3]float64
 		out float64
@@ -63,7 +50,7 @@ func TestViewConeInFront(t *testing.T) {
 	for _, test := range tests {
 		friend := core.NewGameObject("friend")
 		friend.Transform().Position().Set(test.in[0], test.in[1], test.in[2])
-		confidence := InSight(me, friend, math.Pi)
+		confidence := InViewCone(me, friend, math.Pi)
 		if equals(test.out, confidence) {
 			t.Errorf("(%1.f,%1.f,%1.f): Expected confidence %0.4f, got %0.4f", test.in[0], test.in[1], test.in[2], test.out, confidence)
 		}
