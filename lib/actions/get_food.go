@@ -5,7 +5,6 @@ import (
 	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
 	"github.com/stojg/vector"
-	"math"
 	"time"
 )
 
@@ -29,33 +28,26 @@ func (a *getFood) Reset() {
 
 func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 
-	foods := core.List.FindWithTag("food")
-
-	if len(foods) < 1 {
-		return false
-	}
-
-	obj := agent.(*core.Agent).GameObject()
+	cAgent := agent.(*core.Agent)
 
 	var target *core.GameObject
 	bestConfidence := 0.0
 
-	for _, food := range foods {
-		confidence := percepts.Distance(obj, food, 50)
-		if confidence < 0.01 {
-			continue
-		}
+	for _, f := range cAgent.Facts().Data() {
+		if f.Type == "food" {
+			fObj := core.List.Get(f.ID)
+			if fObj == nil {
+				continue
+			}
 
-		if !percepts.CanSeeTarget(obj, food) {
-			continue
-		}
-
-		// 269 degrees of view cone
-		confidence *= percepts.InViewCone(obj, food, 2*math.Pi)
-
-		if confidence > bestConfidence {
-			target = food
-			bestConfidence = confidence
+			if f.Confidence > bestConfidence {
+				fObj := core.List.Get(f.ID)
+				if fObj == nil {
+					continue
+				}
+				target = fObj
+				bestConfidence = f.Confidence
+			}
 		}
 	}
 
@@ -72,7 +64,7 @@ func (a *getFood) InRange(agent goap.Agent) bool {
 		return false
 	}
 	me := agent.(*core.Agent).GameObject()
-	return percepts.Distance(me, target, me.Transform().Scale()[0]*1.2) > 0
+	return percepts.Distance(me, target, me.Transform().Scale()[0]*1.5) > 0
 }
 
 func (a *getFood) Perform(agent goap.Agent) bool {

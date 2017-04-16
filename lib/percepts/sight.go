@@ -9,7 +9,8 @@ import (
 
 // Distance checks distance between me and other with a maxDistance and returns the confidence between 0 and 1
 func Distance(me, other *core.GameObject, maxDistance float64) float64 {
-	direction := me.Transform().Position().NewSub(other.Transform().Position())
+	direction := me.Transform().Position().
+		NewSub(other.Transform().Position())
 	if direction.SquareLength() > maxDistance*maxDistance {
 		return 0
 	}

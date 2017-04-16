@@ -4,9 +4,11 @@ import (
 	"github.com/stojg/cyberspace/lib/actions"
 	"github.com/stojg/cyberspace/lib/collision"
 	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
 	"github.com/stojg/vector"
+	"math"
 )
 
 var lastPlan float64
@@ -17,11 +19,41 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 	monsters := core.List.FindWithTag("monster")
 
 	for _, agent := range core.List.Agents() {
-		agent.Update()
 
-		if !CanSeeTarget(agent) {
+		lastPlan += elapsed
+		if lastPlan > 1 {
+			agent.Facts().Tick()
 			agent.Replan()
+			lastPlan = 0
 		}
+
+		obj := agent.GameObject()
+
+		// sensor update
+		for _, food := range core.List.FindWithTag("food") {
+			confidence := percepts.Distance(obj, food, 50)
+			if confidence < 0.01 {
+				continue
+			}
+
+			if percepts.InViewCone(obj, food, math.Pi) < 0.01 {
+				continue
+			}
+
+			if !percepts.CanSeeTarget(obj, food) {
+				continue
+			}
+
+			agent.Facts().Add(&core.Fact{
+				ID:         food.ID(),
+				Confidence: confidence,
+				Type:       "food",
+				Position:   food.Transform().Position(),
+			})
+
+		}
+
+		agent.Update()
 
 		var separationTargets []*vector.Vector3
 		for _, monster := range monsters {

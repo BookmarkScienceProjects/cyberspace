@@ -107,9 +107,6 @@ func (l *ObjectList) Remove(g *GameObject) {
 	l.deleted = append(l.deleted, g.id)
 	delete(l.entities, g.id)
 	l.Unlock()
-	for _, a := range l.agents {
-		a.Replan()
-	}
 }
 
 // All returns all GameObjects in this list

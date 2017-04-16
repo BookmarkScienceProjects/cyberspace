@@ -4,14 +4,52 @@ import (
 	"fmt"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
+	"github.com/stojg/vector"
 )
 
 // NewAgent returns an initialised agent ready for action!
 func NewAgent(actions []goap.Action) *Agent {
 	a := &Agent{
 		DefaultAgent: goap.NewDefaultAgent(actions),
+		facts:        &Facts{},
 	}
 	return a
+}
+
+type Facts struct {
+	data []*Fact
+}
+
+func (f *Facts) Data() []*Fact {
+	return f.data
+}
+
+func (f *Facts) Tick() {
+	for i := len(f.data) - 1; i >= 0; i-- {
+		f.data[i].Confidence -= 0.1
+		if f.data[i].Confidence < 0 {
+			f.data = append(f.data[:i], f.data[i+1:]...)
+		}
+	}
+}
+
+func (facts *Facts) Add(f *Fact) {
+	for i := range facts.data {
+		if facts.data[i].ID == f.ID {
+			facts.data[i].Confidence = f.Confidence
+			facts.data[i].Position = f.Position
+			facts.data[i].Type = f.Type
+			return
+		}
+	}
+	facts.data = append(facts.data, f)
+}
+
+type Fact struct {
+	ID         Entity
+	Confidence float64
+	Type       string
+	Position   *vector.Vector3
 }
 
 // Agent is the core struct that represents an AI entity that plan and execute actions.
@@ -20,6 +58,11 @@ type Agent struct {
 	Component
 	Debug       bool
 	needsReplan bool
+	facts       *Facts
+}
+
+func (a *Agent) Facts() *Facts {
+	return a.facts
 }
 
 func (a *Agent) Replan() {
