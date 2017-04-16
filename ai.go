@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/stojg/cyberspace/lib/actions"
+	"github.com/stojg/cyberspace/lib/collision"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
@@ -16,8 +17,11 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 	monsters := core.List.FindWithTag("monster")
 
 	for _, agent := range core.List.Agents() {
-
 		agent.Update()
+
+		if !CanSeeTarget(agent) {
+			agent.Replan()
+		}
 
 		var separationTargets []*vector.Vector3
 		for _, monster := range monsters {
@@ -35,6 +39,33 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 		//	lastPlan = 0
 		//}
 	}
+}
+func CanSeeTarget(agent *core.Agent) bool {
+	if len(agent.CurrentActions()) == 0 {
+		return true
+	}
+	currAction := agent.CurrentActions()[0]
+	target := currAction.Target()
+	if target == nil {
+		return true
+	}
+
+	other := target.(*core.GameObject)
+	direction := other.Transform().Position().NewSub(agent.Transform().Position())
+	res := collision.Raycast(agent.Transform().Position(), direction, core.List)
+	if len(res) == 0 {
+		return false
+	}
+
+	for _, rr := range res {
+		if rr.Distance == 0 {
+			continue
+		}
+		if rr.Collision != other.Collision() {
+			return rr.Distance < 0.2
+		}
+	}
+	return true
 }
 
 // NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
