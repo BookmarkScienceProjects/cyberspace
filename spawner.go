@@ -35,7 +35,7 @@ func spawn(name string) *core.GameObject {
 	if data == nil {
 		return nil
 	}
-	object := core.NewGameObject(name)
+	object := core.NewGameObject(name, core.List)
 	object.AddTags([]string{name})
 	object.Transform().Position().Set(0, 0, 0)
 	object.Transform().Scale().Set(data.Scale[0], data.Scale[1], data.Scale[2])
@@ -52,7 +52,7 @@ func spawnNonCollidable(name string) *core.GameObject {
 	if data == nil {
 		return nil
 	}
-	object := core.NewGameObject(name)
+	object := core.NewGameObject(name, core.List)
 	object.AddTags([]string{name})
 	object.Transform().Position().Set(0, 0, 0)
 	object.Transform().Scale().Set(data.Scale[0], data.Scale[1], data.Scale[2])

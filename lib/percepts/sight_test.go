@@ -7,10 +7,11 @@ import (
 )
 
 func TestDistance(t *testing.T) {
-	me := core.NewGameObject("me")
+	list := core.NewObjectList()
+	me := core.NewGameObject("me", list)
 	me.Transform().Position().Set(0, 0, 0)
 
-	friend := core.NewGameObject("friend")
+	friend := core.NewGameObject("friend", list)
 	friend.Transform().Position().Set(10, 0, 0)
 
 	confidence := Distance(me, friend, 20)
@@ -20,10 +21,11 @@ func TestDistance(t *testing.T) {
 }
 
 func TestDistanceTooFar(t *testing.T) {
-	me := core.NewGameObject("me")
+	list := core.NewObjectList()
+	me := core.NewGameObject("me", list)
 	me.Transform().Position().Set(0, 0, 0)
 
-	friend := core.NewGameObject("friend")
+	friend := core.NewGameObject("friend", list)
 	friend.Transform().Position().Set(10, 0, 0)
 
 	confidence := Distance(me, friend, 5)
@@ -45,10 +47,11 @@ func TestInViewConeInFront(t *testing.T) {
 		{[3]float64{0.4142, 0, 1}, 0.25}, // front-right
 	}
 
-	me := core.NewGameObject("me")
+	list := core.NewObjectList()
+	me := core.NewGameObject("me", list)
 	me.Transform().Position().Set(0, 0, 0)
 	for _, test := range tests {
-		friend := core.NewGameObject("friend")
+		friend := core.NewGameObject("friend", list)
 		friend.Transform().Position().Set(test.in[0], test.in[1], test.in[2])
 		confidence := InViewCone(me, friend, math.Pi)
 		if equals(test.out, confidence) {

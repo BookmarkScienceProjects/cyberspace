@@ -5,7 +5,7 @@ import (
 )
 
 // NewGameObject returns a new GameObject
-func NewGameObject(name string) *GameObject {
+func NewGameObject(name string, list *ObjectList) *GameObject {
 
 	g := &GameObject{
 		name: name,
@@ -15,11 +15,11 @@ func NewGameObject(name string) *GameObject {
 			orientation: vector.NewQuaternion(1, 0, 0, 0),
 			scale:       vector.NewVector3(1, 1, 1),
 		},
+		list: list,
 	}
 	// link the transform back to the parent object
 	g.transform.parent = g
-	List.Add(g)
-
+	list.Add(g)
 	return g
 }
 
@@ -29,6 +29,7 @@ type GameObject struct {
 	name      string
 	transform *Transform
 	tags      map[string]bool
+	list      *ObjectList
 }
 
 // AddTags tags this object with tags
@@ -51,54 +52,54 @@ func (g *GameObject) Transform() *Transform {
 // AddGraphic adds a Graphic component to this GameObject
 func (g *GameObject) AddGraphic(graphic *Graphic) {
 	graphic.transform = g.transform
-	List.AddGraphic(g.id, graphic)
+	g.list.AddGraphic(g.id, graphic)
 }
 
 // Graphic returns the Graphic component for this GameObject
 func (g *GameObject) Graphic() *Graphic {
-	return List.Graphic(g.id)
+	return g.list.Graphic(g.id)
 }
 
 // AddBody adds a Body component to this GameObject
 func (g *GameObject) AddBody(body *Body) {
 	body.transform = g.transform
-	List.AddBody(g.id, body)
+	g.list.AddBody(g.id, body)
 }
 
 // Body returns the Body component for this GameObject
 func (g *GameObject) Body() *Body {
-	return List.Body(g.id)
+	return g.list.Body(g.id)
 }
 
 // AddCollision adds a Collision component to this GameObject
 func (g *GameObject) AddCollision(collision *Collision) {
 	collision.transform = g.transform
-	List.AddCollision(g.id, collision)
+	g.list.AddCollision(g.id, collision)
 }
 
 // Collision returns the Collision component for this GameObject
 func (g *GameObject) Collision() *Collision {
-	return List.Collision(g.id)
+	return g.list.Collision(g.id)
 }
 
 // AddAgent adds an Agent component to this GameObject
 func (g *GameObject) AddAgent(agent *Agent) {
 	agent.transform = g.transform
-	List.AddAgent(g.id, agent)
+	g.list.AddAgent(g.id, agent)
 }
 
 // Agent returns the Agent component for this GameObject
 func (g *GameObject) Agent() *Agent {
-	return List.Agent(g.id)
+	return g.list.Agent(g.id)
 }
 
 func (g *GameObject) AddInventory(inv *Inventory) {
 	inv.transform = g.transform
-	List.AddInventory(g.id, inv)
+	g.list.AddInventory(g.id, inv)
 }
 
 func (g *GameObject) Inventory() *Inventory {
-	return List.Inventory(g.id)
+	return g.list.Inventory(g.id)
 }
 
 // CompareTag returns true if this GameObject is tagged with a tag

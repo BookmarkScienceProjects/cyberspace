@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/stojg/cyberspace/lib/quadtree"
 	"math"
 	"sync"
 )
@@ -9,7 +10,11 @@ import (
 var List *ObjectList
 
 func init() {
-	List = &ObjectList{
+	List = NewObjectList()
+}
+
+func NewObjectList() *ObjectList {
+	return &ObjectList{
 		entities:    make(map[Entity]*GameObject),
 		graphics:    make(map[Entity]*Graphic),
 		bodies:      make(map[Entity]*Body),
@@ -24,6 +29,7 @@ func init() {
 // removal and changes should be handled by this list so they don't get lost or out of sync.
 type ObjectList struct {
 	sync.Mutex
+	quadTree    *quadtree.QuadTree
 	nextID      Entity
 	entities    map[Entity]*GameObject
 	graphics    map[Entity]*Graphic
@@ -54,6 +60,27 @@ func (l *ObjectList) Get(id Entity) *GameObject {
 	l.Lock()
 	defer l.Unlock()
 	return l.entities[id]
+}
+
+func (l *ObjectList) BuildQuadTree() {
+	qTree := quadtree.NewQuadTree(
+		quadtree.BoundingBox{
+			MinX: -3200 / 2,
+			MaxX: 3200 / 2,
+			MinY: -3200 / 2,
+			MaxY: 3200 / 2,
+		},
+	)
+	// build the quad tree for broad phase collision detection
+	for _, collision := range l.Collisions() {
+		qTree.Add(collision)
+	}
+
+	l.quadTree = &qTree
+}
+
+func (l *ObjectList) QuadTree() *quadtree.QuadTree {
+	return l.quadTree
 }
 
 // Remove a GameObject and all of it's components

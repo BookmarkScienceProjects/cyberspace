@@ -53,7 +53,6 @@ func main() {
 	printFPS()
 
 	for {
-
 		// keep track of which frame we are running
 		atomic.AddUint64(&currentFrame, 1)
 
@@ -67,6 +66,7 @@ func main() {
 
 		UpdateAI(elapsed, lvl.State)
 		UpdatePhysics(elapsed)
+		core.List.BuildQuadTree()
 		UpdateCollisions(elapsed)
 
 		if len(core.List.FindWithTag("food")) < 5 {

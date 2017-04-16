@@ -19,20 +19,6 @@ func (a byPenetration) Less(i, j int) bool { return a[i].penetration < a[j].pene
 // resolution.
 func UpdateCollisions(elapsed float64) {
 
-	tree := quadtree.NewQuadTree(
-		quadtree.BoundingBox{
-			MinX: -3200 / 2,
-			MaxX: 3200 / 2,
-			MinY: -3200 / 2,
-			MaxY: 3200 / 2,
-		},
-	)
-
-	// build the quad tree for broad phase collision detection
-	for _, collision := range core.List.Collisions() {
-		tree.Add(collision)
-	}
-
 	var potentialCollisions []*contact
 
 	// now we can query the quad tree for each collidable
@@ -42,7 +28,7 @@ func UpdateCollisions(elapsed float64) {
 		checked := make(map[quadtree.BoundingBoxer]map[quadtree.BoundingBoxer]bool)
 
 		// add only potential collisions that we haven't already checked
-		for _, b := range tree.Query(a.BoundingBox()) {
+		for _, b := range core.List.QuadTree().Query(a.BoundingBox()) {
 			// it cannot collide with it self
 			if a == b {
 				continue
