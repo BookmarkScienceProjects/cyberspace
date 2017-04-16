@@ -1,6 +1,7 @@
 package percepts
 
 import (
+	"github.com/stojg/cyberspace/lib/collision"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/vector"
 	"math"
@@ -37,4 +38,23 @@ func InViewCone(me, other *core.GameObject, viewCone float64) float64 {
 		return 0
 	}
 	return confidence
+}
+
+func CanSeeTarget(me, other *core.GameObject) bool {
+	direction := other.Transform().Position().NewSub(me.Transform().Position())
+	res := collision.Raycast(me.Transform().Position(), direction, core.List)
+	if len(res) == 0 {
+		return false
+	}
+
+	for _, rr := range res {
+		if rr.Collision == me.Collision() {
+			continue
+		}
+		if rr.Collision != other.Collision() {
+			return false
+		}
+		return true
+	}
+	return true
 }
