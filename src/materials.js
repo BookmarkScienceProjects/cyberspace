@@ -6,11 +6,16 @@ const materials = {};
 
 materials.gray = new BABYLON.StandardMaterial('gray', scene);
 materials.gray.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
-materials.gray.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+materials.gray.diffuseColor = new BABYLON.Color3(0.9, 0.9, 0.9);
 
 materials.cyan = new BABYLON.StandardMaterial('purle', scene);
 materials.cyan.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 materials.cyan.diffuseColor = new BABYLON.Color3(0.2, 0.9, 1);
+materials.cyan.specular = new BABYLON.Color3(1, 1, 1);
+
+materials.darkcyan = new BABYLON.StandardMaterial('purle', scene);
+materials.darkcyan.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+materials.darkcyan.diffuseColor = new BABYLON.Color3(0.2, 0.7, 1);
 
 materials.blue = new BABYLON.StandardMaterial('texture1', scene);
 materials.blue.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
@@ -20,8 +25,11 @@ materials.sepia = new BABYLON.StandardMaterial('yellow', scene);
 materials.sepia.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 materials.sepia.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
 
+
+materials.food = new BABYLON.StandardMaterial('food', scene);
+materials.food.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
+
 materials.white = new BABYLON.StandardMaterial('white', scene);
-// materials.white.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 materials.white.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
 module.exports = materials;

@@ -11,7 +11,7 @@ BABYLON.Engine.ShadersRepository = '/assets/shaders/';
 
 const scene = new BABYLON.Scene(engine);
 //scene.clearColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-scene.clearColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+scene.clearColor = new BABYLON.Color3(0.733, 0.804, 1.000);
 scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 
 //const camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 10, 1), scene);
@@ -22,11 +22,12 @@ camera.keysLeft.push(65);
 camera.keysDown.push(83);
 camera.keysRight.push(68);
 camera.speed = 2;
-camera.position = new BABYLON.Vector3(30, 10, 30);
+camera.position = new BABYLON.Vector3(30, 10, -30);
 camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 camera.attachControl(canvas, false);
 scene.activeCamera = camera;
 
 engine.runRenderLoop(() => scene.render());
+
 
 module.exports = scene;

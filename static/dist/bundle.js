@@ -54,13 +54,11 @@
 	var level = __webpack_require__(/*! ./level.js */ 4);
 	var scene = __webpack_require__(/*! ./scene.js */ 5);
 	
-	__webpack_require__(/*! ./lights.js */ 9);
-	
 	BABYLON.Engine.ShadersRepository = '/assets/shaders/';
 	
 	var groundMaterial = new BABYLON.StandardMaterial('ground', scene);
 	groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-	groundMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+	groundMaterial.diffuseColor = new BABYLON.Color3(0.953, 0.953, 0.953);
 	groundMaterial.maxSimultaneousLights = 2;
 	
 	var ground = BABYLON.Mesh.CreateGround('ground', 20000, 20000, 1, scene);
@@ -1906,7 +1904,7 @@
 	
 	var scene = new BABYLON.Scene(engine);
 	//scene.clearColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-	scene.clearColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	scene.clearColor = new BABYLON.Color3(0.733, 0.804, 1.000);
 	scene.ambientColor = new BABYLON.Color3(1, 1, 1);
 	
 	//const camera = new BABYLON.UniversalCamera('FreeCamera', new BABYLON.Vector3(1, 10, 1), scene);
@@ -1917,7 +1915,7 @@
 	camera.keysDown.push(83);
 	camera.keysRight.push(68);
 	camera.speed = 2;
-	camera.position = new BABYLON.Vector3(30, 10, 30);
+	camera.position = new BABYLON.Vector3(30, 10, -30);
 	camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
@@ -1941,6 +1939,14 @@
 	var scn = __webpack_require__(/*! ./scene.js */ 5);
 	var materials = __webpack_require__(/*! ./materials.js */ 7);
 	
+	var boxMat = new BABYLON.MultiMaterial('Box Multi Material', scn);
+	boxMat.subMaterials[0] = materials.cyan.clone();
+	boxMat.subMaterials[1] = materials.cyan.clone();
+	boxMat.subMaterials[2] = materials.darkcyan.clone();
+	boxMat.subMaterials[3] = materials.cyan.clone();
+	boxMat.subMaterials[4] = materials.cyan.clone();
+	boxMat.subMaterials[5] = materials.cyan.clone();
+	
 	var models = [];
 	
 	models[0] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
@@ -1951,12 +1957,20 @@
 	models[1] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	models[1].scaling = new BABYLON.Vector3(10, 10, 10);
 	models[1].isVisible = false;
-	models[1].material = materials.cyan.clone();
+	models[1].subMeshes = [];
+	var verticesCount = models[1].getTotalVertices();
+	models[1].subMeshes.push(new BABYLON.SubMesh(0, 0, verticesCount, 0, 6, models[1]));
+	models[1].subMeshes.push(new BABYLON.SubMesh(1, 1, verticesCount, 6, 6, models[1]));
+	models[1].subMeshes.push(new BABYLON.SubMesh(2, 2, verticesCount, 12, 6, models[1]));
+	models[1].subMeshes.push(new BABYLON.SubMesh(3, 3, verticesCount, 18, 6, models[1]));
+	models[1].subMeshes.push(new BABYLON.SubMesh(4, 4, verticesCount, 24, 6, models[1]));
+	models[1].subMeshes.push(new BABYLON.SubMesh(5, 5, verticesCount, 30, 6, models[1]));
+	models[1].material = boxMat.clone();
 	
 	models[2] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	models[2].scaling = new BABYLON.Vector3(10, 10, 10);
 	models[2].isVisible = false;
-	models[2].material = materials.sepia.clone();
+	models[2].material = materials.food.clone();
 	
 	models[3] = BABYLON.Mesh.CreateBox('box', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
 	models[3].scaling = new BABYLON.Vector3(10, 10, 10);
@@ -1981,11 +1995,16 @@
 	
 	materials.gray = new BABYLON.StandardMaterial('gray', scene);
 	materials.gray.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
-	materials.gray.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.7);
+	materials.gray.diffuseColor = new BABYLON.Color3(0.9, 0.9, 0.9);
 	
 	materials.cyan = new BABYLON.StandardMaterial('purle', scene);
 	materials.cyan.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 	materials.cyan.diffuseColor = new BABYLON.Color3(0.2, 0.9, 1);
+	materials.cyan.specular = new BABYLON.Color3(1, 1, 1);
+	
+	materials.darkcyan = new BABYLON.StandardMaterial('purle', scene);
+	materials.darkcyan.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	materials.darkcyan.diffuseColor = new BABYLON.Color3(0.2, 0.7, 1);
 	
 	materials.blue = new BABYLON.StandardMaterial('texture1', scene);
 	materials.blue.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
@@ -1995,8 +2014,10 @@
 	materials.sepia.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 	materials.sepia.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
 	
+	materials.food = new BABYLON.StandardMaterial('food', scene);
+	materials.food.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
+	
 	materials.white = new BABYLON.StandardMaterial('white', scene);
-	// materials.white.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
 	materials.white.diffuseColor = new BABYLON.Color3(1, 1, 1);
 	
 	module.exports = materials;
@@ -2032,15 +2053,16 @@
 	
 	var lightPosition = new BABYLON.Vector3(200, 400, 200);
 	var light = new BABYLON.HemisphericLight('Hemi0', new BABYLON.Vector3(2, 4, 2).normalize(), scene);
-	light.intensity = 0.5;
+	light.intensity = 0.7;
 	light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
+	light.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 	
 	var mainLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-2, -4, -2).normalize(), scene);
 	mainLight.position = lightPosition;
 	mainLight.intensity = 0.5;
 	mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
 	mainLight.specular = new BABYLON.Color3(1, 1, 1);
-	mainLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+	mainLight.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 	
 	module.exports = mainLight;
 
