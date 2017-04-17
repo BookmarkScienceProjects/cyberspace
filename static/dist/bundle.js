@@ -1977,6 +1977,11 @@
 	models[3].isVisible = false;
 	models[3].material = materials.gray.clone();
 	
+	models[4] = BABYLON.Mesh.CreateBox('charge_ad', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
+	models[4].scaling = new BABYLON.Vector3(10, 10, 10);
+	models[4].isVisible = false;
+	models[4].material = materials.charge.clone();
+	
 	module.exports = models;
 
 /***/ },
@@ -2020,6 +2025,10 @@
 	materials.white = new BABYLON.StandardMaterial('white', scene);
 	materials.white.diffuseColor = new BABYLON.Color3(1, 1, 1);
 	
+	materials.charge = new BABYLON.StandardMaterial('white', scene);
+	materials.charge.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+	materials.charge.diffuseColor = new BABYLON.Color3(0.7, 0.7, 1.0);
+	
 	module.exports = materials;
 
 /***/ },
@@ -2054,13 +2063,13 @@
 	var lightPosition = new BABYLON.Vector3(200, 400, 200);
 	var light = new BABYLON.HemisphericLight('Hemi0', new BABYLON.Vector3(2, 4, 2).normalize(), scene);
 	light.intensity = 0.7;
-	light.diffuse = new BABYLON.Color3(1.0, 0.9, 0.9);
+	light.diffuse = new BABYLON.Color3(0.9, 0.9, 0.9);
 	light.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 	
 	var mainLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-2, -4, -2).normalize(), scene);
 	mainLight.position = lightPosition;
 	mainLight.intensity = 0.5;
-	mainLight.diffuse = new BABYLON.Color3(1.0, 0.9, 0.85);
+	mainLight.diffuse = new BABYLON.Color3(1, 1, 1);
 	mainLight.specular = new BABYLON.Color3(1, 1, 1);
 	mainLight.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 	

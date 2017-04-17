@@ -21,7 +21,7 @@ func UpdateAI(elapsed float64, worldState goap.StateList) {
 	for _, agent := range core.List.Agents() {
 
 		lastPlan += elapsed
-		if lastPlan > 1 {
+		if lastPlan > 1.0 {
 			agent.Facts().Tick()
 			agent.Replan()
 			lastPlan = 0
@@ -94,7 +94,7 @@ func CanSeeTarget(agent *core.Agent) bool {
 			continue
 		}
 		if rr.Collision != other.Collision() {
-			return rr.Distance < 0.2
+			return rr.Distance < 0.01
 		}
 	}
 	return true
@@ -106,6 +106,7 @@ func NewMonsterAgent() *core.Agent {
 	a := []goap.Action{
 		actions.NewEat(1),
 		actions.NewGetFood(2),
+		actions.NewScan(4),
 		actions.NewRest(10),
 	}
 

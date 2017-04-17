@@ -2,96 +2,54 @@ package actions
 
 import (
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
+	"github.com/stojg/steering"
 	"github.com/stojg/vector"
-	"time"
 )
 
-func NewGetFood(cost float64) *getFood {
-	a := &getFood{
-		DefaultAction: goap.NewAction("getFood", cost),
+func NewScan(cost float64) *scan {
+	a := &scan{
+		DefaultAction: goap.NewAction("scan", cost),
 	}
 	a.AddEffect(HasFood)
 	return a
 }
 
-type getFood struct {
+type scan struct {
 	goap.DefaultAction
-	startTime time.Time
+	steer *steering.Face
 }
 
-func (a *getFood) Reset() {
+func (a *scan) Reset() {
 	a.DefaultAction.Reset()
-	a.startTime = time.Time{}
+	a.steer = nil
 }
 
-func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
-
-	cAgent := agent.(*core.Agent)
-
-	var target *core.GameObject
-	bestConfidence := 0.0
-
-	for _, f := range cAgent.Facts().Data() {
-		if f.Type == "food" {
-			fObj := core.List.Get(f.ID)
-			if fObj == nil {
-				continue
-			}
-
-			if f.Confidence > bestConfidence {
-				fObj := core.List.Get(f.ID)
-				if fObj == nil {
-					continue
-				}
-				target = fObj
-				bestConfidence = f.Confidence
-			}
-		}
-	}
-
-	if target == nil {
-		return false
-	}
-	a.SetTarget(target)
+func (a *scan) CheckContextPrecondition(agent goap.Agent) bool {
+	obj := agent.(*core.Agent).GameObject()
+	q := obj.Transform().Orientation()
+	test := vector.X().Rotate(q).Inverse()
+	a.steer = steering.NewFace(obj.Body(), test.Add(obj.Transform().Position()))
 	return true
 }
 
-func (a *getFood) InRange(agent goap.Agent) bool {
-	target, ok := a.Target().(*core.GameObject)
-	if !ok {
-		return false
-	}
-	me := agent.(*core.Agent).GameObject()
-	return percepts.Distance(me, target, me.Transform().Scale()[0]*1.5) > 0
+func (a *scan) InRange(agent goap.Agent) bool {
+	return true
 }
 
-func (a *getFood) Perform(agent goap.Agent) bool {
+func (a *scan) Perform(agent goap.Agent) bool {
+	obj := agent.(*core.Agent).GameObject()
 
-	target, ok := a.Target().(*core.GameObject)
-	if !ok {
-		return false
-	}
-	if core.List.Get(target.ID()) == nil {
-		return false
-	}
+	steer := a.steer.Get()
 
-	if a.startTime.IsZero() {
-		a.startTime = time.Now()
-	}
-
-	if time.Since(a.startTime) > 200*time.Millisecond {
-		core.List.Remove(target)
-		agent.AddState(HasFood)
-		agent.AddState(goap.Isnt(Rested))
+	if steer.Angular().Length() < 1 {
 		a.DefaultAction.Done = true
-		if a, found := agent.(*core.Agent); found {
-			a.Transform().Scale().Add(vector.NewVector3(0.00, 0.125, 0.0))
-			b := a.GameObject().Body()
-			b.SetMass(b.Mass() + 0.1)
-			b.MaxAcceleration().Add(vector.NewVector3(20, 0, 0))
-		}
+		return true
 	}
+
+	//obj.Body().AddForce(steer.Linear())
+	obj.Body().AddTorque(steer.Angular())
+
 	return true
+
 }

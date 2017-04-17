@@ -28,9 +28,9 @@ func InViewCone(me, other *core.GameObject, viewCone float64) float64 {
 	// normalise after the above check for efficiency
 	direction.Normalize()
 
-	guardFacing := vector.X().Rotate(me.Transform().Orientation())
+	meFacing := vector.X().Rotate(me.Transform().Orientation())
 
-	dot := guardFacing.Dot(direction)
+	dot := meFacing.Dot(direction)
 	angle := math.Acos(dot)
 
 	halfViewCone := viewCone / 2

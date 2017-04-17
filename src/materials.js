@@ -1,7 +1,6 @@
 const BABYLON = require('babylonjs');
 const scene = require('./scene.js');
 
-
 const materials = {};
 
 materials.gray = new BABYLON.StandardMaterial('gray', scene);
@@ -31,5 +30,9 @@ materials.food.diffuseColor = new BABYLON.Color3(0.9, 0.7, 0.5);
 
 materials.white = new BABYLON.StandardMaterial('white', scene);
 materials.white.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
+materials.charge = new BABYLON.StandardMaterial('white', scene);
+materials.charge.diffuseTexture = new BABYLON.Texture('/assets/square_running.jpg', scene);
+materials.charge.diffuseColor = new BABYLON.Color3(0.7, 0.7, 1.0);
 
 module.exports = materials;

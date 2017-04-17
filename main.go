@@ -26,7 +26,7 @@ func main() {
 
 	lvl := newLevel()
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 10; i++ {
 		obj := spawn("monster")
 		obj.AddAgent(NewMonsterAgent())
 		obj.Transform().Position().Set(rand.Float64()*50-24, 0, rand.Float64()*50-25)
@@ -40,6 +40,9 @@ func main() {
 	bed.Transform().Position().Set(-15, 0, 15)
 	bed = spawnNonCollidable("bed")
 	bed.Transform().Position().Set(15, 0, 15)
+
+	bed = spawnNonCollidable("charge_pad")
+	bed.Transform().Position().Set(0, 0, 0)
 
 	hub := initNetwork(lvl)
 
@@ -69,7 +72,7 @@ func main() {
 		core.List.BuildQuadTree()
 		UpdateCollisions(elapsed)
 
-		if len(core.List.FindWithTag("food")) < 5 {
+		if len(core.List.FindWithTag("food")) < 2 {
 			obj := spawn("food")
 			obj.Transform().Position().Set(rand.Float64()*50-25, 0, rand.Float64()*50-25)
 			rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)

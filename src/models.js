@@ -40,4 +40,9 @@ models[3].scaling = new BABYLON.Vector3(10, 10, 10);
 models[3].isVisible = false;
 models[3].material = materials.gray.clone();
 
+models[4] = BABYLON.Mesh.CreateBox('charge_ad', 1.0, scn, false, BABYLON.Mesh.DEFAULTSIDE);
+models[4].scaling = new BABYLON.Vector3(10, 10, 10);
+models[4].isVisible = false;
+models[4].material = materials.charge.clone();
+
 module.exports = models;
