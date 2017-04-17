@@ -67,18 +67,18 @@ func main() {
 		frameLag += elapsed
 		netLag += elapsed
 
-		UpdateAI(elapsed, lvl.State)
+		UpdateAI(elapsed)
 		UpdatePhysics(elapsed)
 		core.List.BuildQuadTree()
 		UpdateCollisions(elapsed)
 
-		if len(core.List.FindWithTag("food")) < 2 {
+		if len(core.List.FindWithTag("food")) < 20 {
 			obj := spawn("food")
 			obj.Transform().Position().Set(rand.Float64()*50-25, 0, rand.Float64()*50-25)
 			rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
 			obj.Transform().Orientation().RotateByVector(rot)
 			obj.Transform().Orientation().Normalize()
-			lvl.State["food_exists"] = true
+			obj.AddAgent(NewFoodAgent())
 		}
 
 		// send updates to the network

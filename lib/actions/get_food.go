@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"fmt"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
@@ -33,21 +34,28 @@ func (a *getFood) CheckContextPrecondition(agent goap.Agent) bool {
 	var target *core.GameObject
 	bestConfidence := 0.0
 
-	for _, f := range cAgent.Facts().Data() {
-		if f.Type == "food" {
+	for _, f := range cAgent.Memory().Data() {
+		fObj := core.List.Get(f.ID)
+		if fObj == nil {
+			continue
+		}
+		provides := false
+		for _, g := range fObj.Agent().ProvidesGoals {
+			if g == HasFood {
+				provides = true
+			}
+		}
+		if !provides {
+			continue
+		}
+
+		if f.Confidence > bestConfidence {
 			fObj := core.List.Get(f.ID)
 			if fObj == nil {
 				continue
 			}
-
-			if f.Confidence > bestConfidence {
-				fObj := core.List.Get(f.ID)
-				if fObj == nil {
-					continue
-				}
-				target = fObj
-				bestConfidence = f.Confidence
-			}
+			target = fObj
+			bestConfidence = f.Confidence
 		}
 	}
 
@@ -81,17 +89,20 @@ func (a *getFood) Perform(agent goap.Agent) bool {
 		a.startTime = time.Now()
 	}
 
-	if time.Since(a.startTime) > 200*time.Millisecond {
-		core.List.Remove(target)
-		agent.AddState(HasFood)
-		agent.AddState(goap.Isnt(Rested))
-		a.DefaultAction.Done = true
-		if a, found := agent.(*core.Agent); found {
-			a.Transform().Scale().Add(vector.NewVector3(0.00, 0.125, 0.0))
-			b := a.GameObject().Body()
-			b.SetMass(b.Mass() + 0.1)
-			b.MaxAcceleration().Add(vector.NewVector3(20, 0, 0))
+	//if time.Since(a.startTime) > 200*time.Millisecond {
+	core.List.Remove(target)
+	agent.AddState(HasFood)
+	agent.AddState(goap.Isnt(Rested))
+	a.DefaultAction.Done = true
+	if a, found := agent.(*core.Agent); found {
+		a.Transform().Scale().Add(vector.NewVector3(0.00, 0.125, 0.0))
+		body := a.GameObject().Body()
+		if body == nil {
+			panic(fmt.Sprintf("agent has no body %+v\n", a.GameObject().ID()))
 		}
+		body.SetMass(body.Mass() + 0.1)
+		body.MaxAcceleration().Add(vector.NewVector3(20, 0, 0))
 	}
+	//}
 	return true
 }

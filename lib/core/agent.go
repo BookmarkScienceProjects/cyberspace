@@ -4,65 +4,30 @@ import (
 	"fmt"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
-	"github.com/stojg/vector"
 )
 
 // NewAgent returns an initialised agent ready for action!
 func NewAgent(actions []goap.Action) *Agent {
 	a := &Agent{
-		DefaultAgent: goap.NewDefaultAgent(actions),
-		facts:        &Facts{},
+		DefaultAgent:  goap.NewDefaultAgent(actions),
+		workingMemory: &WorkingMemory{},
+		ProvidesGoals: make([]goap.State, 0),
+		Debug:         false,
 	}
 	return a
-}
-
-type Facts struct {
-	data []*Fact
-}
-
-func (f *Facts) Data() []*Fact {
-	return f.data
-}
-
-func (f *Facts) Tick() {
-	for i := len(f.data) - 1; i >= 0; i-- {
-		f.data[i].Confidence -= 0.1
-		if f.data[i].Confidence < 0 {
-			f.data = append(f.data[:i], f.data[i+1:]...)
-		}
-	}
-}
-
-func (facts *Facts) Add(f *Fact) {
-	for i := range facts.data {
-		if facts.data[i].ID == f.ID {
-			facts.data[i].Confidence = f.Confidence
-			facts.data[i].Position = f.Position
-			facts.data[i].Type = f.Type
-			return
-		}
-	}
-	facts.data = append(facts.data, f)
-}
-
-type Fact struct {
-	ID         Entity
-	Confidence float64
-	Type       string
-	Position   *vector.Vector3
 }
 
 // Agent is the core struct that represents an AI entity that plan and execute actions.
 type Agent struct {
 	goap.DefaultAgent
 	Component
-	Debug       bool
-	needsReplan bool
-	facts       *Facts
+	Debug         bool
+	workingMemory *WorkingMemory
+	ProvidesGoals []goap.State
 }
 
-func (a *Agent) Facts() *Facts {
-	return a.facts
+func (a *Agent) Memory() *WorkingMemory {
+	return a.workingMemory
 }
 
 func (a *Agent) Replan() {
@@ -73,7 +38,7 @@ func (a *Agent) Replan() {
 // You will need to try another goal
 func (a *Agent) PlanFailed(failedGoal goap.StateList) {
 	if a.Debug {
-		fmt.Printf("plan failed with goalState: %v and state %v\n", failedGoal, a.State())
+		fmt.Printf("%s #%d: plan failed with goalState: %v and state %v\n", a.gameObject.name, a.gameObject.ID(), failedGoal, a.State())
 	}
 }
 
@@ -81,14 +46,14 @@ func (a *Agent) PlanFailed(failedGoal goap.StateList) {
 // of actions the agent will perform, in order.
 func (a *Agent) PlanFound(goal goap.StateList, actions []goap.Action) {
 	if a.Debug {
-		fmt.Printf("Plan found with actions: %v for %v\n", actions, a.State())
+		fmt.Printf("%s #%d: Plan found with actions: %v for %v\n", a.gameObject.name, a.gameObject.ID(), actions, a.State())
 	}
 }
 
 // ActionsFinished is signaled when all actions are complete and the goal was reached.
 func (a *Agent) ActionsFinished() {
 	if a.Debug {
-		fmt.Println("actions finished")
+		fmt.Printf("%s #%d: actions finished\n", a.gameObject.name, a.gameObject.ID())
 	}
 }
 
@@ -96,7 +61,7 @@ func (a *Agent) ActionsFinished() {
 // be done.
 func (a *Agent) PlanAborted(abortingAction goap.Action) {
 	if a.Debug {
-		fmt.Printf("plan was aborted by action %s aborted", abortingAction.String())
+		fmt.Printf("%s #%d: plan was aborted by action %s aborted", a.gameObject.name, a.gameObject.ID(), abortingAction.String())
 	}
 }
 
@@ -104,7 +69,7 @@ func (a *Agent) PlanAborted(abortingAction goap.Action) {
 func (a *Agent) Update() {
 	a.DefaultAgent.FSM(a, func(msg string) {
 		if a.Debug {
-			fmt.Println(msg)
+			fmt.Printf("%s #%d: %s\n", a.gameObject.name, a.gameObject.ID(), msg)
 		}
 	})
 }
