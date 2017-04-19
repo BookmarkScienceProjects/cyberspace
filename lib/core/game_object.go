@@ -25,7 +25,7 @@ func NewGameObject(name string, list *ObjectList) *GameObject {
 
 // GameObject is the base struct that all entities in the game should embed or use.
 type GameObject struct {
-	id        Entity
+	id        ID
 	name      string
 	transform *Transform
 	tags      map[string]bool
@@ -40,7 +40,7 @@ func (g *GameObject) AddTags(tags []string) {
 }
 
 // ID returns the unique ID for this GameObject
-func (g *GameObject) ID() Entity {
+func (g *GameObject) ID() ID {
 	return g.id
 }
 

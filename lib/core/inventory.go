@@ -39,7 +39,7 @@ func (i *Inventory) Remove(name string, num int) {
 	}
 }
 
-func (l *ObjectList) AddInventory(id Entity, inventory *Inventory) {
+func (l *ObjectList) AddInventory(id ID, inventory *Inventory) {
 	l.Lock()
 	inventory.gameObject = l.entities[id]
 	l.inventories[id] = inventory
@@ -47,7 +47,7 @@ func (l *ObjectList) AddInventory(id Entity, inventory *Inventory) {
 }
 
 // Inventory returns the inventory component for a GameObject
-func (l *ObjectList) Inventory(id Entity) *Inventory {
+func (l *ObjectList) Inventory(id ID) *Inventory {
 	return l.inventories[id]
 }
 

@@ -1,6 +1,6 @@
 package core
 
-type Entity uint32
+type ID uint32
 
 // Component is the base struct that should be embedded on all components
 type Component struct {

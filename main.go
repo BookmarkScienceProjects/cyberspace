@@ -72,7 +72,7 @@ func main() {
 		core.List.BuildQuadTree()
 		UpdateCollisions(elapsed)
 
-		if len(core.List.FindWithTag("food")) < 20 {
+		if len(core.List.FindWithTag("food")) < 5 {
 			obj := spawn("food")
 			obj.Transform().Position().Set(rand.Float64()*50-25, 0, rand.Float64()*50-25)
 			rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)

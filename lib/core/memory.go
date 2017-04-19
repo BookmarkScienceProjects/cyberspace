@@ -46,7 +46,7 @@ type WorkingMemoryFact struct {
 	Position *vector.Vector3
 	//Direction *vector.Vector3
 	//Stimulus  *vector.Vector3
-	ID Entity
+	ID ID
 	//Desire
 	Confidence float64
 	Type       FactType

@@ -190,7 +190,7 @@ func binaryStream(buf io.Writer, varType byte, value interface{}) error {
 		err = binary.Write(buf, binary.LittleEndian, val)
 	case float64:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
-	case core.Entity:
+	case core.ID:
 		err = binary.Write(buf, binary.LittleEndian, float32(val))
 	case *vector.Vector3:
 		if err = binary.Write(buf, binary.LittleEndian, float32(val[0])); err != nil {

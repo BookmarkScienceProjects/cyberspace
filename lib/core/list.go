@@ -15,13 +15,13 @@ func init() {
 
 func NewObjectList() *ObjectList {
 	return &ObjectList{
-		entities:    make(map[Entity]*GameObject),
-		graphics:    make(map[Entity]*Graphic),
-		bodies:      make(map[Entity]*Body),
-		collisions:  make(map[Entity]*Collision),
-		agents:      make(map[Entity]*Agent),
-		inventories: make(map[Entity]*Inventory),
-		deleted:     make([]Entity, 0),
+		entities:    make(map[ID]*GameObject),
+		graphics:    make(map[ID]*Graphic),
+		bodies:      make(map[ID]*Body),
+		collisions:  make(map[ID]*Collision),
+		agents:      make(map[ID]*Agent),
+		inventories: make(map[ID]*Inventory),
+		deleted:     make([]ID, 0),
 	}
 }
 
@@ -30,14 +30,14 @@ func NewObjectList() *ObjectList {
 type ObjectList struct {
 	sync.Mutex
 	quadTree    *quadtree.QuadTree
-	nextID      Entity
-	entities    map[Entity]*GameObject
-	graphics    map[Entity]*Graphic
-	bodies      map[Entity]*Body
-	collisions  map[Entity]*Collision
-	agents      map[Entity]*Agent
-	inventories map[Entity]*Inventory
-	deleted     []Entity
+	nextID      ID
+	entities    map[ID]*GameObject
+	graphics    map[ID]*Graphic
+	bodies      map[ID]*Body
+	collisions  map[ID]*Collision
+	agents      map[ID]*Agent
+	inventories map[ID]*Inventory
+	deleted     []ID
 }
 
 // Add a GameObject to this list and assign it an unique ID
@@ -56,7 +56,7 @@ func (l *ObjectList) Add(g *GameObject) {
 	}
 }
 
-func (l *ObjectList) Get(id Entity) *GameObject {
+func (l *ObjectList) Get(id ID) *GameObject {
 	l.Lock()
 	defer l.Unlock()
 	return l.entities[id]
@@ -134,7 +134,7 @@ func (l *ObjectList) FindWithTag(tag string) []*GameObject {
 }
 
 // AddGraphic adds a Graphic component to a GameObject
-func (l *ObjectList) AddGraphic(id Entity, graphic *Graphic) {
+func (l *ObjectList) AddGraphic(id ID, graphic *Graphic) {
 	l.Lock()
 	graphic.gameObject = l.entities[id]
 	graphic.transform = l.entities[id].transform
@@ -143,7 +143,7 @@ func (l *ObjectList) AddGraphic(id Entity, graphic *Graphic) {
 }
 
 // Graphic returns the Graphic component for a GameObject
-func (l *ObjectList) Graphic(id Entity) *Graphic {
+func (l *ObjectList) Graphic(id ID) *Graphic {
 	return l.graphics[id]
 }
 
@@ -159,7 +159,7 @@ func (l *ObjectList) Graphics() []*Graphic {
 }
 
 // AddBody adds a Body component to a GameObject
-func (l *ObjectList) AddBody(id Entity, body *Body) {
+func (l *ObjectList) AddBody(id ID, body *Body) {
 	l.Lock()
 	body.gameObject = l.entities[id]
 	body.transform = l.entities[id].transform
@@ -168,7 +168,7 @@ func (l *ObjectList) AddBody(id Entity, body *Body) {
 }
 
 // Body returns the Body component for a GameObject
-func (l *ObjectList) Body(id Entity) *Body {
+func (l *ObjectList) Body(id ID) *Body {
 	return l.bodies[id]
 }
 
@@ -184,7 +184,7 @@ func (l *ObjectList) Bodies() []*Body {
 }
 
 // AddCollision adds a Collision component to a GameObject
-func (l *ObjectList) AddCollision(id Entity, collision *Collision) {
+func (l *ObjectList) AddCollision(id ID, collision *Collision) {
 	l.Lock()
 	collision.gameObject = l.entities[id]
 	collision.transform = l.entities[id].transform
@@ -193,7 +193,7 @@ func (l *ObjectList) AddCollision(id Entity, collision *Collision) {
 }
 
 // Collision returns the Collision component for a GameObject
-func (l *ObjectList) Collision(id Entity) *Collision {
+func (l *ObjectList) Collision(id ID) *Collision {
 	return l.collisions[id]
 }
 
@@ -209,7 +209,7 @@ func (l *ObjectList) Collisions() []*Collision {
 }
 
 // AddAgent adds an Agent component to a GameObject
-func (l *ObjectList) AddAgent(id Entity, agent *Agent) {
+func (l *ObjectList) AddAgent(id ID, agent *Agent) {
 	l.Lock()
 	agent.gameObject = l.entities[id]
 	l.agents[id] = agent
@@ -217,7 +217,7 @@ func (l *ObjectList) AddAgent(id Entity, agent *Agent) {
 }
 
 // Agent returns the Agent component for a GameObject
-func (l *ObjectList) Agent(id Entity) *Agent {
+func (l *ObjectList) Agent(id ID) *Agent {
 	return l.agents[id]
 }
 
@@ -233,7 +233,7 @@ func (l *ObjectList) Agents() []*Agent {
 }
 
 // Deleted returns a list of GameObject IDs that has been deleted/removed
-func (l *ObjectList) Deleted() []Entity {
+func (l *ObjectList) Deleted() []ID {
 	l.Lock()
 	defer l.Unlock()
 	return l.deleted
@@ -243,5 +243,5 @@ func (l *ObjectList) Deleted() []Entity {
 func (l *ObjectList) ClearDeleted() {
 	l.Lock()
 	defer l.Unlock()
-	l.deleted = make([]Entity, 0)
+	l.deleted = make([]ID, 0)
 }
