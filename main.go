@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/stojg/cyberspace/lib/core"
 	"math/rand"
 	_ "net/http/pprof"
 	"sync/atomic"
 	"time"
+
+	"github.com/stojg/cyberspace/lib/core"
 )
 
 const (

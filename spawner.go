@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/vector"
 	"io/ioutil"
 	"os"
+
+	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/vector"
 )
 
 type objectModel struct {

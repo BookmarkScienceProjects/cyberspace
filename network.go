@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/stojg/cyberspace/lib/client"
-	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/vector"
-	"golang.org/x/net/websocket"
 	"io"
 	"net/http"
 	"sync"
 	"sync/atomic"
+
+	"github.com/stojg/cyberspace/lib/client"
+	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/vector"
+	"golang.org/x/net/websocket"
 )
 
 type clientHub struct {

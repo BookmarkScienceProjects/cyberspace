@@ -8,10 +8,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"golang.org/x/net/websocket"
 	"io"
 	"log"
 	"time"
+
+	"golang.org/x/net/websocket"
 )
 
 type MessageType uint8

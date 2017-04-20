@@ -1,9 +1,10 @@
 package collision
 
 import (
+	"testing"
+
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/vector"
-	"testing"
 )
 
 func TestRaycastFalse(t *testing.T) {

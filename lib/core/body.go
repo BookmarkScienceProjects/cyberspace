@@ -1,8 +1,9 @@
 package core
 
 import (
-	"github.com/stojg/vector"
 	"sync"
+
+	"github.com/stojg/vector"
 )
 
 // NewBody returns a new rigidbody that is primarily used for simulating physics

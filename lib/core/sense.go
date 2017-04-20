@@ -1,9 +1,10 @@
 package core
 
 import (
-	"github.com/stojg/vector"
 	"math"
 	"time"
+
+	"github.com/stojg/vector"
 )
 
 type Modality interface {

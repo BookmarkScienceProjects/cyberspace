@@ -1,9 +1,10 @@
 package core
 
 import (
+	"math"
+
 	"github.com/stojg/cyberspace/lib/quadtree"
 	"github.com/stojg/vector"
-	"math"
 )
 
 // NewCollisionRectangle returns a new Collision struct

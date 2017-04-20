@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/stojg/cyberspace/lib/core"
 	"math"
+
+	"github.com/stojg/cyberspace/lib/core"
 )
 
 // UpdatePhysics will run the physics simulation

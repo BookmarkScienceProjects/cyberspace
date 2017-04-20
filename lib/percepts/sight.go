@@ -1,10 +1,11 @@
 package percepts
 
 import (
+	"math"
+
 	"github.com/stojg/cyberspace/lib/collision"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/vector"
-	"math"
 )
 
 // Distance checks distance between me and other with a maxDistance and returns the confidence between 0 and 1

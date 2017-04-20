@@ -1,9 +1,10 @@
 package percepts
 
 import (
-	"github.com/stojg/cyberspace/lib/core"
 	"math"
 	"testing"
+
+	"github.com/stojg/cyberspace/lib/core"
 )
 
 func TestDistance(t *testing.T) {

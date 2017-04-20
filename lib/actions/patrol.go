@@ -2,6 +2,7 @@ package actions
 
 import (
 	"fmt"
+
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"

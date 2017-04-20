@@ -1,9 +1,10 @@
 package core
 
 import (
-	"github.com/stojg/cyberspace/lib/quadtree"
 	"math"
 	"sync"
+
+	"github.com/stojg/cyberspace/lib/quadtree"
 )
 
 // List is the primary resource for adding, removing and changing GameObjects and their components.

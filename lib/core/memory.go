@@ -1,8 +1,9 @@
 package core
 
 import (
-	"github.com/stojg/vector"
 	"time"
+
+	"github.com/stojg/vector"
 )
 
 type EntityType int

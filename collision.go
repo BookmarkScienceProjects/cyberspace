@@ -1,11 +1,12 @@
 package main
 
 import (
+	"math"
+	"sort"
+
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/cyberspace/lib/quadtree"
 	"github.com/stojg/vector"
-	"math"
-	"sort"
 )
 
 type byPenetration []*contact

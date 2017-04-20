@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
 	"github.com/stojg/vector"

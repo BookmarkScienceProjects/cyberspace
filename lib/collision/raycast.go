@@ -1,10 +1,11 @@
 package collision
 
 import (
-	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/vector"
 	"math"
 	"sort"
+
+	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/vector"
 )
 
 type RaycastResult struct {
