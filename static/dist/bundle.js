@@ -1915,8 +1915,9 @@
 	camera.keysDown.push(83);
 	camera.keysRight.push(68);
 	camera.speed = 2;
-	camera.position = new BABYLON.Vector3(30, 10, -30);
-	camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+	// camera.position = new BABYLON.Vector3(30, 10, -30);
+	camera.position = new BABYLON.Vector3(0, 10, -50);
+	camera.setTarget(new BABYLON.Vector3(0, 10, 0));
 	camera.attachControl(canvas, false);
 	scene.activeCamera = camera;
 	

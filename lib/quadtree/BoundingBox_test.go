@@ -4,8 +4,10 @@ Copyright 2013 Volker Poplawski
 
 package quadtree
 
-import "testing"
-import _ "math"
+import (
+	_ "math"
+	"testing"
+)
 
 func TestBoundingBox(t *testing.T) {
 	a := NewBoundingBox(0, 10, 0, 10)

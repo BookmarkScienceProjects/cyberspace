@@ -3,72 +3,45 @@ package main
 import (
 	"github.com/stojg/cyberspace/lib/actions"
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
-	//"github.com/stojg/steering"
-	//"github.com/stojg/vector"
-	"math"
 )
-
-var lastPlan float64
 
 // UpdateAI will run the AI simulation
 func UpdateAI(elapsed float64) {
 
-	//monsters := core.List.FindWithTag("monster")
-
 	for _, agent := range core.List.Agents() {
+		memory := agent.Memory()
+		state := make(goap.StateList)
+		goal := make(goap.StateList)
 
-		lastPlan += elapsed
-		if lastPlan > 1.0 {
-			agent.Memory().Tick()
-			agent.Replan()
-			lastPlan = 0
+		for _, mem := range memory.Entities() {
+			obj := core.List.Get(mem.ID)
+			if obj == nil {
+				continue
+			}
+			if obj.CompareTag("food") {
+				state.Add(actions.EnemyInSight)
+			}
 		}
 
-		obj := agent.GameObject()
-
-		// sensor update
-		for _, food := range core.List.All() {
-			confidence := percepts.Distance(obj, food, 50)
-			if confidence < 0.01 {
-				continue
-			}
-
-			if percepts.InViewCone(obj, food, math.Pi) < 0.01 {
-				continue
-			}
-
-			if !percepts.CanSeeTarget(obj, food) {
-				continue
-			}
-
-			agent.Memory().Add(&core.WorkingMemoryFact{
-				Type:       core.Item,
-				ID:         food.ID(),
-				Confidence: confidence,
-				Position:   food.Transform().Position(),
-				States:     food.Agent().ProvidesGoals,
-			})
+		if memory.Internal().Health < 1 {
+			state.Add(goap.Isnt(actions.Healthy))
+		} else if memory.Internal().Health > 4 {
+			state.Add(actions.Healthy)
 		}
 
+		agent.SetState(state)
+
+		if agent.State().Query(goap.Isnt(actions.Healthy)) {
+			goal.Add(actions.Healthy)
+		} else if agent.State().Query(actions.EnemyInSight) {
+			goal.Add(actions.EnemyKilled)
+		} else {
+			goal.Add(actions.AreaPatrolled)
+		}
+		agent.SetGoalState(goal)
 		agent.Update()
 
-		//var separationTargets []*vector.Vector3
-		//for _, monster := range monsters {
-		//	if monster.ID() != agent.GameObject().ID() {
-		//		separationTargets = append(separationTargets, monster.Transform().Position())
-		//	}
-		//}
-		//separation := steering.NewSeparation(agent.GameObject().Body(), separationTargets, 2).Get()
-		//agent.GameObject().Body().AddForce(separation.Linear())
-
-		//// replan
-		//lastPlan += elapsed
-		//if lastPlan > 1 {
-		//	agent.StateMachine.Reset(goap.Idle)
-		//	lastPlan = 0
-		//}
 	}
 }
 
@@ -76,41 +49,21 @@ func UpdateAI(elapsed float64) {
 func NewMonsterAgent() *core.Agent {
 
 	a := []goap.Action{
-		actions.NewEat(1),
-		actions.NewGetFood(2),
-		actions.NewScan(4),
-		actions.NewRest(10),
+		actions.NewKillEnemy(2),
+		actions.NewHeal(10),
+		actions.NewPatrol(4),
 	}
 
 	agent := core.NewAgent(a)
 
 	goal := make(goap.StateList)
-	goal.Add(actions.Rested)
-	goal.Add(actions.Full)
 	agent.SetGoalState(goal)
 
-	initialState := make(goap.StateList)
-	initialState.Add(goap.Isnt(actions.Full))
-
-	agent.SetState(initialState)
-	return agent
-}
-
-func NewNoopAgent() *core.Agent {
-	return core.NewAgent([]goap.Action{})
-}
-
-func NewFoodAgent() *core.Agent {
-
-	a := []goap.Action{}
-
-	agent := core.NewAgent(a)
-	agent.ProvidesGoals = append(agent.ProvidesGoals, actions.HasFood)
-
-	goal := make(goap.StateList)
-	agent.SetGoalState(goal)
+	core.List.SenseManager().Register(agent)
 
 	initialState := make(goap.StateList)
+	initialState.Add(goap.Isnt(actions.Healthy))
+
 	agent.SetState(initialState)
 	return agent
 }

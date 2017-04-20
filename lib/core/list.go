@@ -15,13 +15,14 @@ func init() {
 
 func NewObjectList() *ObjectList {
 	return &ObjectList{
-		entities:    make(map[ID]*GameObject),
-		graphics:    make(map[ID]*Graphic),
-		bodies:      make(map[ID]*Body),
-		collisions:  make(map[ID]*Collision),
-		agents:      make(map[ID]*Agent),
-		inventories: make(map[ID]*Inventory),
-		deleted:     make([]ID, 0),
+		entities:     make(map[ID]*GameObject),
+		graphics:     make(map[ID]*Graphic),
+		bodies:       make(map[ID]*Body),
+		collisions:   make(map[ID]*Collision),
+		agents:       make(map[ID]*Agent),
+		inventories:  make(map[ID]*Inventory),
+		deleted:      make([]ID, 0),
+		senseManager: &Manager{},
 	}
 }
 
@@ -29,15 +30,16 @@ func NewObjectList() *ObjectList {
 // removal and changes should be handled by this list so they don't get lost or out of sync.
 type ObjectList struct {
 	sync.Mutex
-	quadTree    *quadtree.QuadTree
-	nextID      ID
-	entities    map[ID]*GameObject
-	graphics    map[ID]*Graphic
-	bodies      map[ID]*Body
-	collisions  map[ID]*Collision
-	agents      map[ID]*Agent
-	inventories map[ID]*Inventory
-	deleted     []ID
+	quadTree     *quadtree.QuadTree
+	nextID       ID
+	entities     map[ID]*GameObject
+	graphics     map[ID]*Graphic
+	bodies       map[ID]*Body
+	collisions   map[ID]*Collision
+	agents       map[ID]*Agent
+	inventories  map[ID]*Inventory
+	senseManager *Manager
+	deleted      []ID
 }
 
 // Add a GameObject to this list and assign it an unique ID
@@ -50,16 +52,16 @@ func (l *ObjectList) Add(g *GameObject) {
 	l.nextID++
 	g.id = l.nextID
 	l.entities[g.id] = g
-
-	for _, a := range l.agents {
-		a.Replan()
-	}
 }
 
 func (l *ObjectList) Get(id ID) *GameObject {
 	l.Lock()
 	defer l.Unlock()
 	return l.entities[id]
+}
+
+func (l *ObjectList) SenseManager() *Manager {
+	return l.senseManager
 }
 
 func (l *ObjectList) BuildQuadTree() {

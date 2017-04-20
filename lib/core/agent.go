@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
+	"github.com/stojg/vector"
 )
 
 // NewAgent returns an initialised agent ready for action!
 func NewAgent(actions []goap.Action) *Agent {
 	a := &Agent{
 		DefaultAgent:  goap.NewDefaultAgent(actions),
-		workingMemory: &WorkingMemory{},
-		ProvidesGoals: make([]goap.State, 0),
+		workingMemory: NewWorkingMemory(),
 		Debug:         false,
 	}
 	return a
@@ -23,7 +23,39 @@ type Agent struct {
 	Component
 	Debug         bool
 	workingMemory *WorkingMemory
-	ProvidesGoals []goap.State
+}
+
+func (a *Agent) DetectsModality(modality Modality) bool {
+	return true
+}
+
+func (a *Agent) Position() *vector.Vector3 {
+	return a.transform.position
+}
+
+func (a *Agent) Orientation() *vector.Quaternion {
+	return a.transform.orientation
+}
+
+func (a *Agent) Threshold() float64 {
+	return 100
+}
+func (a *Agent) Notify(signal *Signal) {
+	other := List.Get(signal.ID)
+	if other == nil {
+		return
+	}
+
+	distance := other.Transform().Position().NewSub(a.Transform().position).Length()
+	ent := &Entity{
+		ID:       signal.ID,
+		Position: signal.Position,
+		Distance: distance,
+		//Velocity: other.Body().velocity,
+		//Name     string
+		//Type:
+	}
+	a.Memory().AddEntity(ent)
 }
 
 func (a *Agent) Memory() *WorkingMemory {
@@ -67,11 +99,13 @@ func (a *Agent) PlanAborted(abortingAction goap.Action) {
 
 // Update checks the state machine and updates its if possible
 func (a *Agent) Update() {
+	//a.gameObject.Body().AddForce(vector.X())
 	a.DefaultAgent.FSM(a, func(msg string) {
 		if a.Debug {
-			fmt.Printf("%s #%d: %s\n", a.gameObject.name, a.gameObject.ID(), msg)
+			//fmt.Printf("%s #%d: %s\n", a.gameObject.name, a.gameObject.ID(), msg)
 		}
 	})
+	a.workingMemory.tick()
 }
 
 // MoveAgent is when the agent must move towards the target in order for the next action to be able

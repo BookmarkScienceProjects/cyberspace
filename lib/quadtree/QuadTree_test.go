@@ -67,14 +67,14 @@ var world BoundingBox = NewBoundingBox(-1000.0, 1000.0, -1000.0, 1000.0)
 
 // Compary correctness of quad-tree results vs simple look-up on set of random rectangles
 func TestQuadTreeRects(t *testing.T) {
-	var rects []BoundingBox = randomBoundingBoxes(100*1000, world, 5)
+	var rects []BoundingBox = randomBoundingBoxes(100, world, 5)
 	qt := NewQuadTree(world)
 
 	for _, v := range rects {
 		qt.Add(v)
 	}
 
-	queries := randomBoundingBoxes(1000, world, 10)
+	queries := randomBoundingBoxes(10, world, 10)
 
 	for _, q := range queries {
 		r1 := queryLinear(rects, q)
@@ -97,14 +97,14 @@ func TestQuadTreeRects(t *testing.T) {
 
 // Compary correctness of quad-tree results vs simple look-up on set of random points
 func TestQuadTreePoints(t *testing.T) {
-	var points []BoundingBox = randomBoundingBoxes(100*1000, world, 0)
+	var points []BoundingBox = randomBoundingBoxes(100, world, 0)
 	qt := NewQuadTree(world)
 
 	for _, v := range points {
 		qt.Add(v)
 	}
 
-	queries := randomBoundingBoxes(1000, world, 10)
+	queries := randomBoundingBoxes(1, world, 10)
 
 	for _, q := range queries {
 		r1 := queryLinear(points, q)
@@ -128,22 +128,19 @@ func TestQuadTreePoints(t *testing.T) {
 // Benchmark insertion into quad-tree
 func BenchmarkInsert(b *testing.B) {
 	b.StopTimer()
-
 	var values []BoundingBox = randomBoundingBoxes(b.N, world, 5)
 	qt := NewQuadTree(world)
-
 	b.StartTimer()
-
 	for _, v := range values {
 		qt.Add(v)
 	}
 }
 
 // A set of 10 million randomly distributed rectangles of avg size 5
-var boxes10M []BoundingBox = randomBoundingBoxes(10*1000*1000, world, 5)
 
 // Benchmark quad-tree on set of rectangles
 func BenchmarkRectsQuadtree(b *testing.B) {
+	boxes10M := randomBoundingBoxes(10*1000*1000, world, 5)
 	b.StopTimer()
 	rand.Seed(1)
 	qt := NewQuadTree(world)
@@ -162,6 +159,7 @@ func BenchmarkRectsQuadtree(b *testing.B) {
 
 // Benchmark simple look up on set of rectangles
 func BenchmarkRectsLinear(b *testing.B) {
+	boxes10M := randomBoundingBoxes(10*1000*1000, world, 5)
 	b.StopTimer()
 	rand.Seed(1)
 	queries := randomBoundingBoxes(b.N, world, 10)
@@ -173,10 +171,10 @@ func BenchmarkRectsLinear(b *testing.B) {
 }
 
 // A set of 10 million randomly distributed points
-var points10M []BoundingBox = randomBoundingBoxes(10*1000*1000, world, 0)
 
-// Benchmark quad-tree on set of points
+//// Benchmark quad-tree on set of points
 func BenchmarkPointsQuadtree(b *testing.B) {
+	points10M := randomBoundingBoxes(10*1000*1000, world, 0)
 	b.StopTimer()
 	rand.Seed(1)
 	qt := NewQuadTree(world)
@@ -195,6 +193,7 @@ func BenchmarkPointsQuadtree(b *testing.B) {
 
 // Benchmark simple look-up on set of points
 func BenchmarkPointsLinear(b *testing.B) {
+	points10M := randomBoundingBoxes(10*1000*1000, world, 0)
 	b.StopTimer()
 	rand.Seed(1)
 	queries := randomBoundingBoxes(b.N, world, 10)

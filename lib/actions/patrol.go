@@ -1,31 +1,32 @@
 package actions
 
 import (
+	"fmt"
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
 	"github.com/stojg/vector"
 )
 
-func NewScan(cost float64) *scan {
-	a := &scan{
-		DefaultAction: goap.NewAction("scan", cost),
+func NewPatrol(cost float64) *patrol {
+	a := &patrol{
+		DefaultAction: goap.NewAction("patrol", cost),
 	}
-	a.AddEffect(HasFood)
+	a.AddEffect(AreaPatrolled)
 	return a
 }
 
-type scan struct {
+type patrol struct {
 	goap.DefaultAction
 	steer *steering.Face
 }
 
-func (a *scan) Reset() {
+func (a *patrol) Reset() {
 	a.DefaultAction.Reset()
 	a.steer = nil
 }
 
-func (a *scan) CheckContextPrecondition(agent goap.Agent) bool {
+func (a *patrol) CheckContextPrecondition(agent goap.Agent) bool {
 	obj := agent.(*core.Agent).GameObject()
 	q := obj.Transform().Orientation()
 	test := vector.X().Rotate(q).Inverse()
@@ -33,23 +34,18 @@ func (a *scan) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *scan) InRange(agent goap.Agent) bool {
+func (a *patrol) InRange(agent goap.Agent) bool {
 	return true
 }
 
-func (a *scan) Perform(agent goap.Agent) bool {
+func (a *patrol) Perform(agent goap.Agent) bool {
+	fmt.Println("performing patrolling")
 	obj := agent.(*core.Agent).GameObject()
-
 	steer := a.steer.Get()
-
 	if steer.Angular().Length() < 1 {
 		a.DefaultAction.Done = true
 		return true
 	}
-
-	//obj.Body().AddForce(steer.Linear())
 	obj.Body().AddTorque(steer.Angular())
-
 	return true
-
 }

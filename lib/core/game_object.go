@@ -38,6 +38,19 @@ func (g *GameObject) AddTags(tags []string) {
 		g.tags[tags[i]] = true
 	}
 }
+func (g *GameObject) Tags() []string {
+	var res []string
+	for i := range g.tags {
+		res = append(res, i)
+	}
+	return res
+}
+
+// CompareTag returns true if this GameObject is tagged with a tag
+func (g *GameObject) CompareTag(tag string) bool {
+	_, ok := g.tags[tag]
+	return ok
+}
 
 // ID returns the unique ID for this GameObject
 func (g *GameObject) ID() ID {
@@ -100,10 +113,4 @@ func (g *GameObject) AddInventory(inv *Inventory) {
 
 func (g *GameObject) Inventory() *Inventory {
 	return g.list.Inventory(g.id)
-}
-
-// CompareTag returns true if this GameObject is tagged with a tag
-func (g *GameObject) CompareTag(tag string) bool {
-	_, ok := g.tags[tag]
-	return ok
 }

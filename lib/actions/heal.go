@@ -1,33 +1,33 @@
 package actions
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/cyberspace/lib/percepts"
 	"github.com/stojg/goap"
-	"github.com/stojg/vector"
-	"time"
 )
 
-func NewRest(cost float64) *rest {
-	a := &rest{
-		DefaultAction: goap.NewAction("rest", cost),
+func NewHeal(cost float64) *healAction {
+	a := &healAction{
+		DefaultAction: goap.NewAction("heal_action", cost),
 	}
-	a.AddPrecondition(Full)
-	a.AddEffect(Rested)
+	a.AddEffect(Healthy)
 	return a
 }
 
-type rest struct {
+type healAction struct {
 	goap.DefaultAction
 	startTime time.Time
 }
 
-func (a *rest) Reset() {
+func (a *healAction) Reset() {
 	a.DefaultAction.Reset()
 	a.startTime = time.Time{}
 }
 
-func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
+func (a *healAction) CheckContextPrecondition(agent goap.Agent) bool {
 	beds := core.List.FindWithTag("bed")
 
 	if len(beds) < 1 {
@@ -49,6 +49,7 @@ func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
 			bestConfidence = confidence
 		}
 	}
+
 	if target == nil {
 		return false
 	}
@@ -56,28 +57,18 @@ func (a *rest) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *rest) InRange(agent goap.Agent) bool {
+func (a *healAction) InRange(agent goap.Agent) bool {
 	target := a.Target().(*core.GameObject)
 	me := agent.(*core.Agent).GameObject()
-	return percepts.Distance(me, target, me.Transform().Scale()[0]*1.5) > 0
+	return percepts.Distance(me, target, me.Transform().Scale()[0]) > 0
 }
 
-func (a *rest) Perform(agent goap.Agent) bool {
+func (a *healAction) Perform(agent goap.Agent) bool {
+	fmt.Println("performing healing")
 	if a.startTime.IsZero() {
 		a.startTime = time.Now()
 	}
-
-	if time.Since(a.startTime) > 10*time.Millisecond {
-		agent.AddState(goap.Isnt(Full))
-		agent.AddState(Rested)
-		a.DefaultAction.Done = true
-		if a, found := agent.(*core.Agent); found {
-			a.Transform().Scale().Sub(vector.NewVector3(0.00, 0.125, 0.0))
-			b := a.GameObject().Body()
-			b.SetMass(b.Mass() - 0.1)
-			b.MaxAcceleration().Sub(vector.NewVector3(20, 0, 0))
-		}
-	}
-
+	a.DefaultAction.Done = true
+	agent.(*core.Agent).Memory().Internal().Health += 3
 	return true
 }

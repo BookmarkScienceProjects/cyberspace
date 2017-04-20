@@ -3,7 +3,8 @@ package actions
 import "github.com/stojg/goap"
 
 var (
-	HasFood = goap.State{Name: "has_food", Value: true}
-	Full    = goap.State{Name: "is_full", Value: true}
-	Rested  = goap.State{Name: "is_rested", Value: true}
+	EnemyInSight  = goap.State{Name: "enemy_in_sight", Value: true}
+	AreaPatrolled = goap.State{Name: "area_patrolled", Value: true}
+	EnemyKilled   = goap.State{Name: "enemy_killed", Value: true}
+	Healthy       = goap.State{Name: "healthy", Value: true}
 )

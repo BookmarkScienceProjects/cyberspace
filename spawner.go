@@ -60,6 +60,5 @@ func spawnNonCollidable(name string) *core.GameObject {
 	object.AddGraphic(core.NewGraphic(data.Model))
 	object.AddBody(core.NewBody(1 / data.Weight))
 	object.AddInventory(core.NewInventory())
-	object.AddAgent(NewNoopAgent())
 	return object
 }
