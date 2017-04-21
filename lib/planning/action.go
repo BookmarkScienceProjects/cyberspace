@@ -1,4 +1,4 @@
-package goap
+package planning
 
 // Action is the interface that describes what the planner and
 type Action interface {

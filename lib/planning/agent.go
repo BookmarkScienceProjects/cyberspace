@@ -1,4 +1,4 @@
-package goap
+package planning
 
 // Agent must be implemented by agents that wants to use GOAP  It provides information to the GOAP
 // planner so it can plan what actions to use.

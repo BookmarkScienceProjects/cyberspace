@@ -7,4 +7,5 @@ import:
 - package: golang.org/x/text
   subpackages:
   - encoding
-- package: github.com/stojg/goap
+- package: github.com/stojg/vector
+- package: github.com/stojg/steering

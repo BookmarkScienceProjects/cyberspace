@@ -1,6 +1,6 @@
 // Package goap is a Goal Orientated Action Planner just mainly for game programming purposes
 // Inspired by https://github.com/sploreg/goap/
-package goap
+package planning
 
 // Plan what sequence of actions can fulfill the goal. Returns null if a plan could not be found, or
 // a list of the actions that must be performed, in order, to fulfill the goal.

@@ -6,12 +6,12 @@ import (
 
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/cyberspace/lib/percepts"
-	"github.com/stojg/goap"
+	"github.com/stojg/cyberspace/lib/planning"
 )
 
 func NewKillEnemy(cost float64) *killEnemyAction {
 	a := &killEnemyAction{
-		DefaultAction: goap.NewAction("kill_enemy", cost),
+		DefaultAction: planning.NewAction("kill_enemy", cost),
 	}
 	a.AddPrecondition(EnemyInSight)
 	a.AddEffect(EnemyKilled)
@@ -19,7 +19,7 @@ func NewKillEnemy(cost float64) *killEnemyAction {
 }
 
 type killEnemyAction struct {
-	goap.DefaultAction
+	planning.DefaultAction
 	startTime time.Time
 }
 
@@ -28,7 +28,7 @@ func (a *killEnemyAction) Reset() {
 	a.startTime = time.Time{}
 }
 
-func (a *killEnemyAction) CheckContextPrecondition(agent goap.Agent) bool {
+func (a *killEnemyAction) CheckContextPrecondition(agent planning.Agent) bool {
 
 	cAgent := agent.(*core.Agent)
 
@@ -63,7 +63,7 @@ func (a *killEnemyAction) Target() interface{} {
 	return target
 }
 
-func (a *killEnemyAction) InRange(agent goap.Agent) bool {
+func (a *killEnemyAction) InRange(agent planning.Agent) bool {
 	target, ok := a.Target().(*core.GameObject)
 	if !ok {
 		return false
@@ -72,7 +72,7 @@ func (a *killEnemyAction) InRange(agent goap.Agent) bool {
 	return percepts.Distance(me, target, me.Transform().Scale()[0]*2) > 0
 }
 
-func (a *killEnemyAction) Perform(agent goap.Agent) bool {
+func (a *killEnemyAction) Perform(agent planning.Agent) bool {
 	target, ok := a.Target().(*core.GameObject)
 	if !ok {
 		return false

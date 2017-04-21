@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/stojg/cyberspace/lib/actions"
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/goap"
+	"github.com/stojg/cyberspace/lib/planning"
 )
 
 // UpdateAI will run the AI simulation
@@ -11,8 +11,8 @@ func UpdateAI(elapsed float64) {
 
 	for _, agent := range core.List.Agents() {
 		memory := agent.Memory()
-		state := make(goap.StateList)
-		goal := make(goap.StateList)
+		state := make(planning.StateList)
+		goal := make(planning.StateList)
 
 		for _, mem := range memory.Entities() {
 			obj := core.List.Get(mem.ID)
@@ -24,19 +24,10 @@ func UpdateAI(elapsed float64) {
 			}
 		}
 
-		if memory.Internal().Health < 1 {
-			state.Add(goap.Isnt(actions.Healthy))
-		} else {
-			state.Add(actions.Healthy)
-		}
 		agent.SetState(state)
 
-		if agent.State().Query(goap.Isnt(actions.Healthy)) {
-			goal.Add(actions.Healthy)
-		} else if agent.State().Query(actions.EnemyInSight) {
+		if agent.State().Query(actions.EnemyInSight) {
 			goal.Add(actions.EnemyKilled)
-		} else {
-			goal.Add(actions.AreaPatrolled)
 		}
 		agent.SetGoalState(goal)
 		agent.Update()
@@ -47,7 +38,7 @@ func UpdateAI(elapsed float64) {
 // NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
 func NewMonsterAgent() *core.Agent {
 
-	a := []goap.Action{
+	a := []planning.Action{
 		actions.NewKillEnemy(2),
 		actions.NewHeal(10),
 		actions.NewPatrol(4),
@@ -55,13 +46,13 @@ func NewMonsterAgent() *core.Agent {
 
 	agent := core.NewAgent(a)
 
-	goal := make(goap.StateList)
+	goal := make(planning.StateList)
 	agent.SetGoalState(goal)
 
 	core.List.SenseManager().Register(agent)
 
-	initialState := make(goap.StateList)
-	initialState.Add(goap.Isnt(actions.Healthy))
+	initialState := make(planning.StateList)
+	initialState.Add(planning.Isnt(actions.Healthy))
 
 	agent.SetState(initialState)
 	return agent

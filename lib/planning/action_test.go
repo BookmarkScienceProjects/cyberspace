@@ -1,4 +1,4 @@
-package goap
+package planning
 
 func newGetFoodAction(cost float64) *getFoodAction {
 	a := &getFoodAction{

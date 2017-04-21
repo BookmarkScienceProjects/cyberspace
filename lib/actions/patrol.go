@@ -6,21 +6,21 @@ import (
 	"time"
 
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/goap"
+	"github.com/stojg/cyberspace/lib/planning"
 	"github.com/stojg/steering"
 	"github.com/stojg/vector"
 )
 
 func NewPatrol(cost float64) *patrol {
 	a := &patrol{
-		DefaultAction: goap.NewAction("patrol", cost),
+		DefaultAction: planning.NewAction("patrol", cost),
 	}
 	a.AddEffect(AreaPatrolled)
 	return a
 }
 
 type patrol struct {
-	goap.DefaultAction
+	planning.DefaultAction
 	steer *steering.Face
 	start time.Time
 }
@@ -31,7 +31,7 @@ func (a *patrol) Reset() {
 	a.start = time.Time{}
 }
 
-func (a *patrol) CheckContextPrecondition(agent goap.Agent) bool {
+func (a *patrol) CheckContextPrecondition(agent planning.Agent) bool {
 	obj := agent.(*core.Agent).GameObject()
 	q := obj.Transform().Orientation()
 	test := vector.X().Rotate(q).Inverse()
@@ -39,11 +39,11 @@ func (a *patrol) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *patrol) InRange(agent goap.Agent) bool {
+func (a *patrol) InRange(agent planning.Agent) bool {
 	return true
 }
 
-func (a *patrol) Perform(agent goap.Agent) bool {
+func (a *patrol) Perform(agent planning.Agent) bool {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}

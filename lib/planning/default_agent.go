@@ -1,4 +1,4 @@
-package goap
+package planning
 
 func NewDefaultAgent(actions []Action) DefaultAgent {
 	return DefaultAgent{

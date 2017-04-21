@@ -5,19 +5,19 @@ import (
 
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/cyberspace/lib/percepts"
-	"github.com/stojg/goap"
+	"github.com/stojg/cyberspace/lib/planning"
 )
 
 func NewHeal(cost float64) *healAction {
 	a := &healAction{
-		DefaultAction: goap.NewAction("heal_action", cost),
+		DefaultAction: planning.NewAction("heal_action", cost),
 	}
 	a.AddEffect(Healthy)
 	return a
 }
 
 type healAction struct {
-	goap.DefaultAction
+	planning.DefaultAction
 	start time.Time
 }
 
@@ -26,7 +26,7 @@ func (a *healAction) Reset() {
 	a.start = time.Time{}
 }
 
-func (a *healAction) CheckContextPrecondition(agent goap.Agent) bool {
+func (a *healAction) CheckContextPrecondition(agent planning.Agent) bool {
 	beds := core.List.FindWithTag("bed")
 
 	if len(beds) < 1 {
@@ -56,13 +56,13 @@ func (a *healAction) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
-func (a *healAction) InRange(agent goap.Agent) bool {
+func (a *healAction) InRange(agent planning.Agent) bool {
 	target := a.Target().(*core.GameObject)
 	me := agent.(*core.Agent).GameObject()
 	return percepts.Distance(me, target, me.Transform().Scale()[0]) > 0
 }
 
-func (a *healAction) Perform(agent goap.Agent) bool {
+func (a *healAction) Perform(agent planning.Agent) bool {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
