@@ -42,7 +42,6 @@ func Plan(agent Agent, availableActions []Action, worldState StateList, goal Sta
 	}
 
 	// go through the end node and work up to through it's parents
-
 	for n := cheapest; n != nil; n = n.parent {
 		if n.action != nil {
 			// insert action in front

@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+//func NewArrive(m *Model, b *RigidBody, target *vector.Vector3, maxSpeed, targetRadius, slowRadius float64) *Arrive {
 func NewFace(char Body, target *vector.Vector3) *Face {
 	return &Face{
 		char:            char,

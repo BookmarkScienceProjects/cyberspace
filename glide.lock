@@ -1,10 +1,10 @@
 hash: d9df5b605283f1226367c786eea94a70cfa7952be29fb3835e0083e68c13598c
-updated: 2017-04-16T22:45:58.756268467+12:00
+updated: 2017-04-21T12:48:01.988355566+12:00
 imports:
 - name: github.com/stojg/formation
   version: e3789cf58dcc389676b1aa5107a6e474884477ef
 - name: github.com/stojg/goap
-  version: 6b28f0b892796e6f7bb12a49100847d88cf9e20f
+  version: 700194bdba283bfb5665b0df7820586265db5be2
 - name: github.com/stojg/steering
   version: 8ff509248ca049ded50080fdb12afae44c5b2369
 - name: github.com/stojg/vector
@@ -14,7 +14,7 @@ imports:
   subpackages:
   - websocket
 - name: golang.org/x/text
-  version: f4b4367115ec2de254587813edaa901bc1c723a8
+  version: 19e3104b43db45fca0303f489a9536087b184802
   subpackages:
   - encoding
 testImports: []
