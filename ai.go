@@ -26,10 +26,9 @@ func UpdateAI(elapsed float64) {
 
 		if memory.Internal().Health < 1 {
 			state.Add(goap.Isnt(actions.Healthy))
-		} else if memory.Internal().Health > 4 {
+		} else {
 			state.Add(actions.Healthy)
 		}
-
 		agent.SetState(state)
 
 		if agent.State().Query(goap.Isnt(actions.Healthy)) {

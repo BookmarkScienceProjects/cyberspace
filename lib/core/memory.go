@@ -30,18 +30,22 @@ type Internal struct {
 
 func NewWorkingMemory() *WorkingMemory {
 	return &WorkingMemory{
-		entities: make([]*Entity, 0),
+		entities: make(map[ID]*Entity),
 		internal: &Internal{},
 	}
 }
 
 type WorkingMemory struct {
-	entities []*Entity
+	entities map[ID]*Entity
 	internal *Internal
 }
 
 func (memory *WorkingMemory) Entities() []*Entity {
-	return memory.entities
+	var res []*Entity
+	for _, v := range memory.entities {
+		res = append(res, v)
+	}
+	return res
 }
 
 func (memory *WorkingMemory) Internal() *Internal {
@@ -50,21 +54,20 @@ func (memory *WorkingMemory) Internal() *Internal {
 
 func (memory *WorkingMemory) tick() {
 	now := time.Now()
-	for i := len(memory.entities) - 1; i >= 0; i-- {
-		if now.After(memory.entities[i].expiry) {
-			memory.entities = append(memory.entities[:i], memory.entities[i+1:]...)
+	for id, value := range memory.entities {
+		if value.expiry.After(now) {
+			delete(memory.entities, id)
 		}
 	}
 }
 
-func (memory *WorkingMemory) AddEntity(f *Entity) {
-	for _, ent := range memory.entities {
-		if ent.ID == f.ID {
-			ent.expiry = time.Now()
-			ent.Position = f.Position
-			ent.Type = f.Type
-			return
-		}
+// AddEntity adds an entity to the memory, returns true if its an update
+func (memory *WorkingMemory) AddEntity(f *Entity) bool {
+	_, found := memory.entities[f.ID]
+	if found {
+		memory.entities[f.ID] = f
+		return true
 	}
-	memory.entities = append(memory.entities, f)
+	memory.entities[f.ID] = f
+	return false
 }

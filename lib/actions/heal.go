@@ -1,7 +1,6 @@
 package actions
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/stojg/cyberspace/lib/core"
@@ -19,12 +18,12 @@ func NewHeal(cost float64) *healAction {
 
 type healAction struct {
 	goap.DefaultAction
-	startTime time.Time
+	start time.Time
 }
 
 func (a *healAction) Reset() {
 	a.DefaultAction.Reset()
-	a.startTime = time.Time{}
+	a.start = time.Time{}
 }
 
 func (a *healAction) CheckContextPrecondition(agent goap.Agent) bool {
@@ -64,11 +63,14 @@ func (a *healAction) InRange(agent goap.Agent) bool {
 }
 
 func (a *healAction) Perform(agent goap.Agent) bool {
-	fmt.Println("performing healing")
-	if a.startTime.IsZero() {
-		a.startTime = time.Now()
+	if a.start.IsZero() {
+		a.start = time.Now()
 	}
-	a.DefaultAction.Done = true
-	agent.(*core.Agent).Memory().Internal().Health += 3
+
+	if time.Since(a.start) > 1*time.Second {
+		agent.(*core.Agent).Memory().Internal().Health += 4
+		a.DefaultAction.Done = true
+	}
+
 	return true
 }

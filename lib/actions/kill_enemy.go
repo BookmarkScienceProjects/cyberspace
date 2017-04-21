@@ -55,6 +55,14 @@ func (a *killEnemyAction) CheckContextPrecondition(agent goap.Agent) bool {
 	return true
 }
 
+func (a *killEnemyAction) Target() interface{} {
+	target := a.DefaultAction.Target().(*core.GameObject)
+	if core.List.Get(target.ID()) == nil {
+		return nil
+	}
+	return target
+}
+
 func (a *killEnemyAction) InRange(agent goap.Agent) bool {
 	target, ok := a.Target().(*core.GameObject)
 	if !ok {

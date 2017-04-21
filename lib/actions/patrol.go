@@ -3,6 +3,8 @@ package actions
 import (
 	"fmt"
 
+	"time"
+
 	"github.com/stojg/cyberspace/lib/core"
 	"github.com/stojg/goap"
 	"github.com/stojg/steering"
@@ -20,11 +22,13 @@ func NewPatrol(cost float64) *patrol {
 type patrol struct {
 	goap.DefaultAction
 	steer *steering.Face
+	start time.Time
 }
 
 func (a *patrol) Reset() {
 	a.DefaultAction.Reset()
 	a.steer = nil
+	a.start = time.Time{}
 }
 
 func (a *patrol) CheckContextPrecondition(agent goap.Agent) bool {
@@ -40,7 +44,13 @@ func (a *patrol) InRange(agent goap.Agent) bool {
 }
 
 func (a *patrol) Perform(agent goap.Agent) bool {
-	fmt.Println("performing patrolling")
+	if a.start.IsZero() {
+		a.start = time.Now()
+	}
+	if time.Since(a.start) > 2*time.Second {
+		fmt.Println("Patrolling took to long time, aborting")
+		return false
+	}
 	obj := agent.(*core.Agent).GameObject()
 	steer := a.steer.Get()
 	if steer.Angular().Length() < 1 {

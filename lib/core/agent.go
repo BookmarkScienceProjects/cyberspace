@@ -56,7 +56,9 @@ func (a *Agent) Notify(signal *Signal) {
 		//Name     string
 		//Type:
 	}
-	a.Memory().AddEntity(ent)
+	if !a.Memory().AddEntity(ent) {
+		a.Replan()
+	}
 }
 
 func (a *Agent) Memory() *WorkingMemory {
@@ -115,6 +117,10 @@ func (a *Agent) Update() {
 func (a *Agent) MoveAgent(nextAction goap.Action) bool {
 	target, found := nextAction.Target().(*GameObject)
 	if !found {
+		fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
+		return false
+	}
+	if target == nil {
 		fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
 		return false
 	}
