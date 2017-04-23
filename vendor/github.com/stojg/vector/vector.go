@@ -422,10 +422,7 @@ func (m *Matrix4) Clone() *Matrix4 {
 }
 
 func (m *Matrix4) Equals(other *Matrix4) bool {
-	if other == nil {
-		return false
-	}
-	for i := range m {
+	for i := 0; i < 12; i++ {
 		if math.Abs(m[i]-other[i]) > RealEpsilon {
 			return false
 		}

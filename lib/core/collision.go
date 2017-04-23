@@ -9,19 +9,25 @@ import (
 
 // NewCollisionRectangle returns a new Collision struct
 func NewCollisionRectangle(x, y, z float64) *Collision {
-	return &Collision{
+	col := &Collision{
 		fullWidth: [3]float64{x, y, z},
 		halfWidth: [3]float64{x / 2, y / 2, z / 2},
 	}
+	col.cachedOBB = &OBB{
+		//centre:   vector.Zero(),
+		MaxPoint: vector.Zero(),
+		MinPoint: vector.Zero(),
+	}
+	return col
 }
 
 // Collision is a struct that keeps track of the collision geometry for a GameObject
 type Collision struct {
 	Component
-	fullWidth             [3]float64
-	halfWidth             [3]float64
-	cachedTransformMatrix *vector.Matrix4
-	cachedOBB             *OBB
+	fullWidth          [3]float64
+	halfWidth          [3]float64
+	cachedOBB          *OBB
+	cachedFrameCounter uint64
 }
 
 // BoundingBox return the AABB bounding box the GameObject it is connected to
@@ -35,66 +41,49 @@ func (c *Collision) BoundingBox() quadtree.BoundingBox {
 }
 
 // OBB returns the Oriented Bounding Box for this volume
-func (c *Collision) OBB() *OBB {
+func (c *Collision) OBB(frame uint64) *OBB {
 	// @todo cache with the frame counter this so it's not re-calculate for every SAT test
-	halfSize := c.halfWidth[0]
 
-	if c.gameObject.Body() == nil {
-		return nil
-	}
-
-	mat := c.gameObject.Body().transformMatrix
-
-	if mat.Equals(c.cachedTransformMatrix) {
+	if frame == c.cachedFrameCounter {
 		return c.cachedOBB
 	}
+	c.cachedFrameCounter = frame
 
+	mat := c.gameObject.Body().transformMatrix
 	var points [8]*vector.Vector3
-	points[0] = mat.TransformVector3(vector.NewVector3(halfSize, halfSize, halfSize))
-	points[1] = mat.TransformVector3(vector.NewVector3(halfSize, -halfSize, halfSize))
-	points[2] = mat.TransformVector3(vector.NewVector3(halfSize, halfSize, -halfSize))
-	points[3] = mat.TransformVector3(vector.NewVector3(halfSize, -halfSize, -halfSize))
-
-	points[4] = mat.TransformVector3(vector.NewVector3(-halfSize, halfSize, halfSize))
-	points[5] = mat.TransformVector3(vector.NewVector3(-halfSize, -halfSize, halfSize))
-	points[6] = mat.TransformVector3(vector.NewVector3(-halfSize, halfSize, -halfSize))
-	points[7] = mat.TransformVector3(vector.NewVector3(-halfSize, -halfSize, -halfSize))
-
-	max := vector.NewVector3(-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64)
-	min := vector.NewVector3(math.MaxFloat64, math.MaxFloat64, math.MaxFloat64)
-	for i := range points {
-		for j := range max {
-			if points[i][j] > max[j] {
-				max[j] = points[i][j]
+	vec := vector.NewVector3(c.halfWidth[0], c.halfWidth[1], c.halfWidth[2])
+	points[0] = mat.TransformVector3(vec)
+	vec.Set(c.halfWidth[0], -c.halfWidth[1], c.halfWidth[2])
+	points[1] = mat.TransformVector3(vec)
+	vec.Set(c.halfWidth[0], c.halfWidth[1], -c.halfWidth[2])
+	points[2] = mat.TransformVector3(vec)
+	vec.Set(c.halfWidth[0], -c.halfWidth[1], -c.halfWidth[2])
+	points[3] = mat.TransformVector3(vec)
+	vec.Set(-c.halfWidth[0], c.halfWidth[1], c.halfWidth[2])
+	points[4] = mat.TransformVector3(vec)
+	vec.Set(-c.halfWidth[0], -c.halfWidth[1], c.halfWidth[2])
+	points[5] = mat.TransformVector3(vec)
+	vec.Set(-c.halfWidth[0], c.halfWidth[1], -c.halfWidth[2])
+	points[6] = mat.TransformVector3(vec)
+	vec.Set(-c.halfWidth[0], -c.halfWidth[1], -c.halfWidth[2])
+	points[7] = mat.TransformVector3(vec)
+	c.cachedOBB.MaxPoint.Set(-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64)
+	c.cachedOBB.MinPoint.Set(math.MaxFloat64, math.MaxFloat64, math.MaxFloat64)
+	for j := 0; j < 3; j++ {
+		for i := 0; i < 8; i++ {
+			if points[i][j] > c.cachedOBB.MaxPoint[j] {
+				c.cachedOBB.MaxPoint[j] = points[i][j]
 			}
-			if points[i][j] < min[j] {
-				min[j] = points[i][j]
+			if points[i][j] < c.cachedOBB.MinPoint[j] {
+				c.cachedOBB.MinPoint[j] = points[i][j]
 			}
 		}
 	}
-
-	c.cachedTransformMatrix = mat.Clone()
-
-	c.cachedOBB = &OBB{
-		centre:   c.gameObject.Transform().Position(),
-		MaxPoint: max,
-		MinPoint: min,
-	}
-
 	return c.cachedOBB
 }
 
 // OBB is a struct that represents the Oriented Bounded Box, i.e. a rotated AABB
 type OBB struct {
-	centre *vector.Vector3
-
-	HalfSize *vector.Vector3
-
 	MinPoint *vector.Vector3
 	MaxPoint *vector.Vector3
-}
-
-// CentrePoint returns the centre point of this OBB in world space
-func (obb *OBB) CentrePoint() *vector.Vector3 {
-	return obb.centre
 }

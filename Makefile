@@ -18,6 +18,15 @@ build:
 	go install -race .
 	cyberspace
 
+cpu:
+	go tool pprof /Users/stojg/Code/golang/bin/cyberspace cpu_profile.out
+
+mem:
+	go tool pprof /Users/stojg/Code/golang/bin/cyberspace mem_profile.out
+
+alloc:
+	go tool pprof -alloc_objects /Users/stojg/Code/golang/bin/cyberspace mem_profile.out
+
 js:
 	./node_modules/.bin/webpack -d -w --progress
 

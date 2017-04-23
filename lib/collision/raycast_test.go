@@ -30,7 +30,7 @@ func TestRaycastFalse(t *testing.T) {
 
 	direction := vector.NewVector3(5, 0, 0)
 
-	result := Raycast(me.Transform().Position(), direction, list)
+	result := Raycast(me.Transform().Position(), direction, list, 1)
 
 	if len(result) != 2 {
 		t.Errorf("Expected 2 results in raycast, got %d", len(result))

@@ -3,6 +3,8 @@ package main
 import (
 	"math/rand"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
 	"sync/atomic"
 	"time"
 
@@ -45,8 +47,11 @@ func main() {
 
 	Println("Running the game loop, like a pro")
 
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+
 	// print the FPS when it's below the frameRate
-	printFPS()
+	printFPS(signalChan)
 
 	for {
 		// keep track of which frame we are running
@@ -65,8 +70,8 @@ func main() {
 		UpdateSight(elapsed)
 		UpdateAI(elapsed)
 		UpdatePhysics(elapsed)
-		core.List.BuildQuadTree()
-		UpdateCollisions(elapsed)
+		core.List.BuildQuadTree(currentFrame)
+		UpdateCollisions(elapsed, currentFrame)
 
 		if len(core.List.FindWithTag("food")) < 5 {
 			obj := spawn("food")

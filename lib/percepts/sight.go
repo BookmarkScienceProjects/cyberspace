@@ -35,9 +35,9 @@ func InSight(from *vector.Vector3, orientation *vector.Quaternion, to *vector.Ve
 	return angle < (viewCone / 2)
 }
 
-func InLineOfSight(from, to *vector.Vector3) collision.Raylist {
+func InLineOfSight(from, to *vector.Vector3, frame uint64) collision.Raylist {
 	direction := to.NewSub(from)
-	return collision.Raycast(from, direction, core.List)
+	return collision.Raycast(from, direction, core.List, frame)
 }
 
 // InViewCone checks if other is in me view cone and returns a confidence between 0 and 1.
@@ -64,9 +64,9 @@ func InViewCone(me, other *core.GameObject, viewCone float64) float64 {
 	return confidence
 }
 
-func CanSeeTarget(me, other *core.GameObject) bool {
+func CanSeeTarget(me, other *core.GameObject, frame uint64) bool {
 	direction := other.Transform().Position().NewSub(me.Transform().Position())
-	res := collision.Raycast(me.Transform().Position(), direction, core.List)
+	res := collision.Raycast(me.Transform().Position(), direction, core.List, frame)
 	if len(res) == 0 {
 		return false
 	}

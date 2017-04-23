@@ -19,21 +19,20 @@ type Raylist []*RaycastResult
 
 func (r Raylist) Len() int           { return len(r) }
 func (r Raylist) Less(a, b int) bool { return r[a].Distance < r[b].Distance }
-func (r Raylist) Swap(a, b int) {
-	r[a], r[b] = r[b], r[a]
-}
+func (r Raylist) Swap(a, b int)      { r[a], r[b] = r[b], r[a] }
 
-func Raycast(start, direction *vector.Vector3, list *core.ObjectList) Raylist {
+// @todo exclude if starting inside a collision geometry
+// @todo, if it's faster, only return the first collision
+func Raycast(start, direction *vector.Vector3, list *core.ObjectList, frame uint64) Raylist {
 	var result Raylist
-	for _, col := range list.Collisions() {
-		obb := col.OBB()
-		// the collision doesn't have a body
+	for _, col := range list.Collisions(frame) {
+		obb := col.OBB(frame)
 		if obb == nil {
 			panic("RayCast against an object without a Body")
 		}
 		// this is the 'percent' along the direction that the hit happened
 		distance := 0.0
-		if rayAABBoxIntersect(start, direction, col.OBB().MinPoint, col.OBB().MaxPoint, &distance) {
+		if rayAABBoxIntersect(start, direction, obb.MinPoint, obb.MaxPoint, &distance) {
 			result = append(result, &RaycastResult{
 				Collision: col,
 				Distance:  distance,

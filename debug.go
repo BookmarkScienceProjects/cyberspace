@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"runtime/pprof"
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/stojg/cyberspace/lib/core"
 )
 
 var (
@@ -31,23 +35,64 @@ func init() {
 	}
 }
 
-func printFPS() {
+func printFPS(signal chan os.Signal) {
 
 	ticker := time.NewTicker(time.Second * 2)
 
 	go func() {
+
+		var cpuProfilingFile *os.File
+		var memProfilingFile *os.File
+
 		prevFrame := atomic.LoadUint64(&currentFrame)
 		prevTime := time.Now()
 
-		for currentTime := range ticker.C {
-			frame := atomic.LoadUint64(&currentFrame)
-			fps := float64(frame-prevFrame) / currentTime.Sub(prevTime).Seconds()
-			if fps < 60 {
-				Printf("fps: %0.1f frame: %d\n", fps, frame)
-			}
-			prevFrame = frame
-			prevTime = currentTime
+		for {
+			select {
+			case currentTime := <-ticker.C:
+				frame := atomic.LoadUint64(&currentFrame)
+				fps := float64(frame-prevFrame) / currentTime.Sub(prevTime).Seconds()
+				if fps < 60 {
+					if cpuProfilingFile == nil {
+						var err error
+						cpuProfilingFile, err = os.Create("cpu_profile.out")
+						if err != nil {
+							log.Printf("%v\n", err)
+							os.Exit(1)
+						}
+						pprof.StartCPUProfile(cpuProfilingFile)
+						Printf("Started cpu profiling")
+					}
+					Printf("fps: %0.1f frame: %d, objects: %d\n", fps, frame, len(core.List.All()))
+				}
+				prevFrame = frame
+				prevTime = currentTime
+			case <-signal:
 
+				fmt.Println("got signal, quitting")
+
+				if cpuProfilingFile != nil {
+					fmt.Println("stopped cpu profiling")
+					pprof.StopCPUProfile()
+					err := cpuProfilingFile.Close()
+					if err != nil {
+						fmt.Printf("error on closing cpu profile file %v\n", err)
+					}
+				}
+				var err error
+				memProfilingFile, err = os.Create("mem_profile.out")
+				if err != nil {
+					log.Fatal(err)
+				}
+				pprof.WriteHeapProfile(memProfilingFile)
+				err = memProfilingFile.Close()
+				if err != nil {
+					fmt.Printf("error on closing mem profile file %v\n", err)
+				}
+				fmt.Println("wrote memory profiling file")
+				os.Exit(0)
+				return
+			}
 		}
 	}()
 }

@@ -18,12 +18,12 @@ func (a byPenetration) Less(i, j int) bool { return a[i].penetration < a[j].pene
 // UpdateCollisions resolves collisions by using a impulse based collision resolution, ie it moves
 // entities with impulses (instant velocity change) instead of using a force based collision
 // resolution.
-func UpdateCollisions(elapsed float64) {
+func UpdateCollisions(elapsed float64, frame uint64) {
 
 	var potentialCollisions []*contact
 
 	// now we can query the quad tree for each collidable
-	for _, a := range core.List.Collisions() {
+	for _, a := range core.List.Collisions(frame) {
 
 		// checked is a list of what we already checked so we don't do duplicate checks
 		checked := make(map[quadtree.BoundingBoxer]map[quadtree.BoundingBoxer]bool)
@@ -71,7 +71,7 @@ func UpdateCollisions(elapsed float64) {
 
 	var collisions []*contact
 	for _, pair := range potentialCollisions {
-		rectangleVsRectangle(pair)
+		rectangleVsRectangle(pair, frame)
 		if pair.IsIntersecting {
 			collisions = append(collisions, pair)
 		}
@@ -171,9 +171,9 @@ func UpdateCollisions(elapsed float64) {
 	}
 }
 
-func rectangleVsRectangle(contact *contact) {
-	rA := contact.a.OBB()
-	rB := contact.b.OBB()
+func rectangleVsRectangle(contact *contact, frame uint64) {
+	rA := contact.a.OBB(frame)
+	rB := contact.b.OBB(frame)
 
 	if rA == nil || rB == nil {
 		return

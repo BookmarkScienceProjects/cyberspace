@@ -1,4 +1,7 @@
 static/.sass-cache/
+torch.svg
+cpu_profile.out
+mem_profile.out
 node_modules
 deploy.sh
 .idea

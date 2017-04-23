@@ -16,16 +16,18 @@ func init() {
 
 func NewObjectList() *ObjectList {
 	return &ObjectList{
-		nextID:       1,
-		entities:     make(map[ID]*GameObject),
-		graphics:     make(map[ID]*Graphic),
-		bodies:       make(map[ID]*Body),
-		collisions:   make(map[ID]*Collision),
-		agents:       make(map[ID]*Agent),
-		inventories:  make(map[ID]*Inventory),
-		deleted:      make([]ID, 0),
-		toDelete:     make([]ID, 0),
-		senseManager: &Manager{},
+		nextID:          1,
+		entities:        make(map[ID]*GameObject),
+		graphics:        make(map[ID]*Graphic),
+		bodies:          make(map[ID]*Body),
+		collisions:      make(map[ID]*Collision),
+		collisionsFrame: 0,
+		collisionCache:  make([]*Collision, 0),
+		agents:          make(map[ID]*Agent),
+		inventories:     make(map[ID]*Inventory),
+		deleted:         make([]ID, 0),
+		toDelete:        make([]ID, 0),
+		senseManager:    &Manager{},
 	}
 }
 
@@ -33,17 +35,19 @@ func NewObjectList() *ObjectList {
 // removal and changes should be handled by this list so they don't get lost or out of sync.
 type ObjectList struct {
 	sync.Mutex
-	quadTree     *quadtree.QuadTree
-	nextID       ID
-	entities     map[ID]*GameObject
-	graphics     map[ID]*Graphic
-	bodies       map[ID]*Body
-	collisions   map[ID]*Collision
-	agents       map[ID]*Agent
-	inventories  map[ID]*Inventory
-	senseManager *Manager
-	deleted      []ID
-	toDelete     []ID
+	quadTree        *quadtree.QuadTree
+	nextID          ID
+	entities        map[ID]*GameObject
+	graphics        map[ID]*Graphic
+	bodies          map[ID]*Body
+	collisions      map[ID]*Collision
+	collisionsFrame uint64
+	collisionCache  []*Collision
+	agents          map[ID]*Agent
+	inventories     map[ID]*Inventory
+	senseManager    *Manager
+	deleted         []ID
+	toDelete        []ID
 }
 
 // Add a GameObject to this list and assign it an unique ID
@@ -68,7 +72,7 @@ func (l *ObjectList) SenseManager() *Manager {
 	return l.senseManager
 }
 
-func (l *ObjectList) BuildQuadTree() {
+func (l *ObjectList) BuildQuadTree(frame uint64) {
 	qTree := quadtree.NewQuadTree(
 		quadtree.BoundingBox{
 			MinX: -3200 / 2,
@@ -78,7 +82,7 @@ func (l *ObjectList) BuildQuadTree() {
 		},
 	)
 	// build the quad tree for broad phase collision detection
-	for _, collision := range l.Collisions() {
+	for _, collision := range l.Collisions(frame) {
 		qTree.Add(collision)
 	}
 
@@ -184,7 +188,10 @@ func (l *ObjectList) AddBody(id ID, body *Body) {
 
 // Body returns the Body component for a GameObject
 func (l *ObjectList) Body(id ID) *Body {
-	return l.bodies[id]
+	if body, found := l.bodies[id]; found {
+		return body
+	}
+	panic("No body exists")
 }
 
 // Bodies returns all Body components
@@ -213,14 +220,18 @@ func (l *ObjectList) Collision(id ID) *Collision {
 }
 
 // Collisions returns all registered Collision components
-func (l *ObjectList) Collisions() []*Collision {
-	l.Lock()
-	var result []*Collision
-	for i := range l.collisions {
-		result = append(result, l.collisions[i])
+func (l *ObjectList) Collisions(frame uint64) []*Collision {
+	if frame == l.collisionsFrame {
+		return l.collisionCache
 	}
-	l.Unlock()
-	return result
+	l.collisionCache = make([]*Collision, len(l.collisions))
+	count := 0
+	for i := range l.collisions {
+		l.collisionCache[count] = l.collisions[i]
+		count++
+	}
+	l.collisionsFrame = frame
+	return l.collisionCache
 }
 
 // AddAgent adds an Agent component to a GameObject
