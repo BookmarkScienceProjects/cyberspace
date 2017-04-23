@@ -11,9 +11,10 @@ import (
 )
 
 type objectModel struct {
-	Model  int             `json:"model"`
-	Scale  *vector.Vector3 `json:"scale"`
-	Weight float64         `json:"weight"`
+	Model           int             `json:"model"`
+	Scale           *vector.Vector3 `json:"scale"`
+	Weight          float64         `json:"weight"`
+	MaxAcceleration *vector.Vector3 `json:"max_acceleration"`
 }
 
 func loadFromFile(name string) *objectModel {
@@ -43,6 +44,9 @@ func spawn(name string) *core.GameObject {
 
 	object.AddGraphic(core.NewGraphic(data.Model))
 	object.AddBody(core.NewBody(1/data.Weight, true))
+	if data.MaxAcceleration != nil {
+		object.Body().MaxAcceleration().Copy(data.MaxAcceleration)
+	}
 	object.AddInventory(core.NewInventory())
 	object.AddCollision(core.NewCollisionRectangle(data.Scale[0], data.Scale[1], data.Scale[2]))
 	return object
@@ -60,6 +64,9 @@ func spawnNonCollidable(name string) *core.GameObject {
 
 	object.AddGraphic(core.NewGraphic(data.Model))
 	object.AddBody(core.NewBody(1/data.Weight, false))
+	if data.MaxAcceleration != nil {
+		object.Body().MaxAcceleration().Copy(data.MaxAcceleration)
+	}
 	object.AddInventory(core.NewInventory())
 	object.AddCollision(core.NewCollisionRectangle(data.Scale[0], data.Scale[1], data.Scale[2]))
 	return object

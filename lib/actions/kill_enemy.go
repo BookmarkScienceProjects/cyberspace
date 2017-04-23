@@ -69,9 +69,9 @@ func (a *killEnemyAction) MoveTo() interface{} {
 	if target == nil {
 		return nil
 	}
-	sqrDist := me.Transform().Position().NewSub(target.Transform().Position()).Length()
-	reach := me.Transform().Scale()[0] + target.Transform().Scale()[0]
-	if sqrDist > (reach) {
+	dist := me.Transform().Position().NewSub(target.Transform().Position()).SquareLength()
+	reach := (me.Transform().Scale()[0] + target.Transform().Scale()[0])
+	if dist > (reach * reach) {
 		return target
 	}
 	return nil

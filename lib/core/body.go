@@ -23,7 +23,7 @@ func NewBody(invMass float64, collides bool) *Body {
 		Acceleration:              &vector.Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
-		maxRotation:               3.14 / 1,
+		maxRotation:               3.14 / 1.1,
 		InvMass:                   invMass,
 		CanSleep:                  true,
 		isAwake:                   true,

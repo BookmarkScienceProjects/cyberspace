@@ -24,6 +24,7 @@ func NewObjectList() *ObjectList {
 		agents:       make(map[ID]*Agent),
 		inventories:  make(map[ID]*Inventory),
 		deleted:      make([]ID, 0),
+		toDelete:     make([]ID, 0),
 		senseManager: &Manager{},
 	}
 }
@@ -42,6 +43,7 @@ type ObjectList struct {
 	inventories  map[ID]*Inventory
 	senseManager *Manager
 	deleted      []ID
+	toDelete     []ID
 }
 
 // Add a GameObject to this list and assign it an unique ID
@@ -87,29 +89,38 @@ func (l *ObjectList) QuadTree() *quadtree.QuadTree {
 	return l.quadTree
 }
 
+func (l *ObjectList) Flush() {
+	l.Lock()
+	for _, id := range l.toDelete {
+		if _, found := l.graphics[id]; found {
+			delete(l.graphics, id)
+		}
+		if _, found := l.bodies[id]; found {
+			delete(l.bodies, id)
+		}
+		if _, found := l.agents[id]; found {
+			delete(l.agents, id)
+		}
+		if _, found := l.collisions[id]; found {
+			delete(l.collisions, id)
+		}
+		if _, found := l.entities[id]; found {
+			delete(l.entities, id)
+		}
+		if _, found := l.inventories[id]; found {
+			delete(l.inventories, id)
+		}
+		l.deleted = append(l.deleted, id)
+		delete(l.entities, id)
+	}
+	l.toDelete = make([]ID, 0)
+	l.Unlock()
+}
+
 // Remove a GameObject and all of it's components
 func (l *ObjectList) Remove(g *GameObject) {
 	l.Lock()
-	if _, found := l.graphics[g.id]; found {
-		delete(l.graphics, g.id)
-	}
-	if _, found := l.bodies[g.id]; found {
-		delete(l.bodies, g.id)
-	}
-	if _, found := l.agents[g.id]; found {
-		delete(l.agents, g.id)
-	}
-	if _, found := l.collisions[g.id]; found {
-		delete(l.collisions, g.id)
-	}
-	if _, found := l.entities[g.id]; found {
-		delete(l.entities, g.id)
-	}
-	if _, found := l.inventories[g.id]; found {
-		delete(l.inventories, g.id)
-	}
-	l.deleted = append(l.deleted, g.id)
-	delete(l.entities, g.id)
+	l.toDelete = append(l.toDelete, g.id)
 	l.Unlock()
 }
 

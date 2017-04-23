@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/vector"
 )
 
 const (
@@ -27,7 +26,7 @@ func main() {
 
 	lvl := newLevel()
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 3; i++ {
 		obj := spawn("monster")
 		obj.AddAgent(NewMonsterAgent())
 		obj.Transform().Position().Set(rand.Float64()*30-15, 0, rand.Float64()*30-15)
@@ -53,6 +52,8 @@ func main() {
 		// keep track of which frame we are running
 		atomic.AddUint64(&currentFrame, 1)
 
+		core.List.Flush()
+
 		// calculate a bunch of time values
 		now := time.Now()
 		elapsed := now.Sub(previous).Seconds()
@@ -70,10 +71,18 @@ func main() {
 		if len(core.List.FindWithTag("food")) < 5 {
 			obj := spawn("food")
 			obj.Transform().Position().Set(rand.Float64()*30-15, 0, rand.Float64()*30-15)
-			rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
-			obj.Transform().Orientation().RotateByVector(rot)
-			obj.Transform().Orientation().Normalize()
-			//obj.AddAgent(NewFoodAgent())
+			//rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
+			//obj.Transform().Orientation().RotateByVector(rot)
+			//obj.Transform().Orientation().Normalize()
+			obj.AddAgent(NewFoodAgent())
+		}
+
+		if len(core.List.FindWithTag("grass")) < 30 {
+			obj := spawn("grass")
+			obj.Transform().Position().Set(rand.Float64()*30-15, 0, rand.Float64()*30-15)
+			//rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
+			//obj.Transform().Orientation().RotateByVector(rot)
+			//obj.Transform().Orientation().Normalize()
 		}
 
 		// send updates to the network
