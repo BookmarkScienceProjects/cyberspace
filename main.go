@@ -67,7 +67,7 @@ func main() {
 		frameLag += elapsed
 		netLag += elapsed
 
-		UpdateSight(elapsed)
+		UpdateSight(elapsed, currentFrame)
 		UpdateAI(elapsed)
 		UpdatePhysics(elapsed)
 		core.List.BuildQuadTree(currentFrame)
@@ -104,7 +104,10 @@ func main() {
 	}
 }
 
-func UpdateSight(elapsed float64) {
+func UpdateSight(elapsed float64, frame uint64) {
+	if frame%10 != 0 {
+		return
+	}
 	for _, obj := range core.List.All() {
 		core.List.SenseManager().Add(NewSight(obj, 100))
 	}

@@ -47,9 +47,7 @@ func BenchmarkManager_Add(b *testing.B) {
 	manager.Register(listener)
 
 	for i := 0; i < b.N; i++ {
-		for j := 0; j < 1000; j++ {
-			manager.Add(sig)
-		}
+		manager.Add(sig)
 	}
 }
 

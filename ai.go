@@ -21,12 +21,12 @@ func UpdateAI(elapsed float64) {
 	}
 }
 
-func HandleMonsterAi(agent *core.Agent, elapsed float64) {
-	memory := agent.Memory()
-	me := agent.GameObject()
+func HandleMonsterAi(ag *core.Agent, elapsed float64) {
+	memory := ag.Memory()
+	me := ag.GameObject()
 	state := make(plan.StateList)
 
-	if agent.Memory().Internal().Health > 1 {
+	if ag.Memory().Internal().Health > 1 {
 		state.Set(actions.Healthy, true)
 	}
 
@@ -60,14 +60,14 @@ func HandleMonsterAi(agent *core.Agent, elapsed float64) {
 		}
 	}
 
-	me.Transform().Scale().Set(1, 1-agent.Memory().Internal().Health*0.1, 1)
-	me.Body().SetMass(1 - agent.Memory().Internal().Health*0.15)
-	needsReplanning := !agent.State().Compare(state)
-	agent.SetState(state)
+	me.Transform().Scale().Set(1, 1-ag.Memory().Internal().Health*0.1, 1)
+	me.Body().SetMass(1 - ag.Memory().Internal().Health*0.15)
+	needsReplanning := !ag.State().Compare(state)
+	ag.SetState(state)
 	if needsReplanning {
-		agent.Replan()
+		ag.Replan()
 	}
-	agent.Update(elapsed)
+	ag.Update(elapsed)
 }
 
 // NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
@@ -93,12 +93,12 @@ func NewMonsterAgent() *core.Agent {
 	return agent
 }
 
-func HandleFoodAI(agent *core.Agent, elapsed float64) {
-	memory := agent.Memory()
-	me := agent.GameObject()
+func HandleFoodAI(ag *core.Agent, elapsed float64) {
+	memory := ag.Memory()
+	me := ag.GameObject()
 	state := make(plan.StateList)
 
-	if agent.Memory().Internal().Health > 1 {
+	if ag.Memory().Internal().Health > 1 {
 		state.Set(actions.Healthy, true)
 	}
 
@@ -118,12 +118,12 @@ func HandleFoodAI(agent *core.Agent, elapsed float64) {
 	}
 	state.Set(actions.Healthy, true)
 
-	needsReplanning := !agent.State().Compare(state)
-	agent.SetState(state)
+	needsReplanning := !ag.State().Compare(state)
+	ag.SetState(state)
 	if needsReplanning {
-		agent.Replan()
+		ag.Replan()
 	}
-	agent.Update(elapsed)
+	ag.Update(elapsed)
 }
 
 func NewFoodAgent() *core.Agent {
