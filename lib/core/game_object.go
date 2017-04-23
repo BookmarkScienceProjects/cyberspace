@@ -1,6 +1,8 @@
 package core
 
 import (
+	"math"
+
 	"github.com/stojg/vector"
 )
 
@@ -30,6 +32,14 @@ type GameObject struct {
 	transform *Transform
 	tags      map[string]bool
 	list      *ObjectList
+}
+
+func (g *GameObject) SqrDistance(other *GameObject) float64 {
+	return g.Transform().Position().NewSub(other.Transform().Position()).SquareLength()
+}
+
+func (g *GameObject) Distance(other *GameObject) float64 {
+	return math.Sqrt(g.SqrDistance(other))
 }
 
 // AddTags tags this object with tags

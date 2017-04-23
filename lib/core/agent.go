@@ -2,16 +2,20 @@ package core
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
-	"github.com/stojg/cyberspace/lib/planning"
+	"time"
+
+	"github.com/stojg/cyberspace/lib/plan"
 	"github.com/stojg/steering"
 	"github.com/stojg/vector"
 )
 
 // NewAgent returns an initialised agent ready for action!
-func NewAgent(actions []planning.Action) *Agent {
+func NewAgent() *Agent {
 	a := &Agent{
-		DefaultAgent:  planning.NewDefaultAgent(actions),
+		statemachine:  plan.NewFSM(),
 		workingMemory: NewWorkingMemory(),
 		Debug:         false,
 	}
@@ -20,10 +24,18 @@ func NewAgent(actions []planning.Action) *Agent {
 
 // Agent is the core struct that represents an AI entity that plan and execute actions.
 type Agent struct {
-	planning.DefaultAgent
 	Component
-	Debug         bool
-	workingMemory *WorkingMemory
+	statemachine     *plan.FSM
+	availableActions []plan.Action
+	state            plan.StateList
+	goals            []plan.StateList
+	plan             []plan.Action
+	Debug            bool
+	workingMemory    *WorkingMemory
+}
+
+func (a *Agent) AddAction(action plan.Action) {
+	a.availableActions = append(a.availableActions, action)
 }
 
 func (a *Agent) DetectsModality(modality Modality) bool {
@@ -52,13 +64,43 @@ func (a *Agent) Notify(signal *Signal) {
 		ID:       signal.ID,
 		Position: signal.Position,
 		Distance: distance,
-		//Velocity: other.Body().velocity,
-		//Name     string
-		//Type:
+		expiry:   time.Now().Add(10 * time.Second),
 	}
-	if !a.Memory().AddEntity(ent) {
-		a.Replan()
+	a.Memory().AddEntity(ent)
+}
+
+func (a *Agent) AvailableActions() []plan.Action {
+	return a.availableActions
+}
+
+func (a *Agent) SetPlan(plan []plan.Action) {
+	a.plan = plan
+}
+
+func (a *Agent) Plan() []plan.Action {
+	return a.plan
+}
+
+func (a *Agent) PopCurrentAction() {
+	if len(a.plan) > 0 {
+		a.plan = a.plan[1:]
 	}
+}
+
+func (a *Agent) State() plan.StateList {
+	return a.state
+}
+
+func (a *Agent) SetState(s plan.StateList) {
+	a.state = s
+}
+
+func (a *Agent) Goals() []plan.StateList {
+	return a.goals
+}
+
+func (a *Agent) SetGoals(set []plan.StateList) {
+	a.goals = set
 }
 
 func (a *Agent) Memory() *WorkingMemory {
@@ -66,22 +108,22 @@ func (a *Agent) Memory() *WorkingMemory {
 }
 
 func (a *Agent) Replan() {
-	a.DefaultAgent.StateMachine.Reset(planning.Idle)
+	a.statemachine.Reset()
 }
 
 // PlanFailed is called when there is no sequence of actions could be found for the supplied goal.
 // You will need to try another goal
-func (a *Agent) PlanFailed(failedGoal planning.StateList) {
+func (a *Agent) PlanFailed(failedGoal []plan.StateList) {
 	if a.Debug {
-		fmt.Printf("%s #%d: plan failed with goalState: %v and state %v\n", a.gameObject.name, a.gameObject.ID(), failedGoal, a.State())
+		fmt.Printf("%s #%d: plan failed with goals: %v and state %v, # of actions: %d\n", a.gameObject.name, a.gameObject.ID(), failedGoal, a.State(), len(a.availableActions))
 	}
 }
 
 // PlanFound is called when a plan was found for the supplied goal. The actions contains the plan
 // of actions the agent will perform, in order.
-func (a *Agent) PlanFound(goal planning.StateList, actions []planning.Action) {
+func (a *Agent) PlanFound(goal plan.StateList, actions []plan.Action) {
 	if a.Debug {
-		fmt.Printf("%s #%d: Plan found with actions: %v for %v\n", a.gameObject.name, a.gameObject.ID(), actions, a.State())
+		fmt.Printf("%s #%d: plan found for goal %s with actions: %+v state: %v\n", a.gameObject.name, a.gameObject.ID(), a.goals, actionsToString(actions), a.State())
 	}
 }
 
@@ -94,18 +136,19 @@ func (a *Agent) ActionsFinished() {
 
 // PlanAborted is called when one of the actions in the plan have discovered that it can no longer
 // be done.
-func (a *Agent) PlanAborted(abortingAction planning.Action) {
+func (a *Agent) PlanAborted(abortingAction plan.Action, err error) {
 	if a.Debug {
-		fmt.Printf("%s #%d: plan was aborted by action %s aborted", a.gameObject.name, a.gameObject.ID(), abortingAction.String())
+		fmt.Printf("%s #%d: plan was aborted by action %+v\n", a.gameObject.name, a.gameObject.ID(), actionToString(abortingAction))
+		fmt.Printf("reason: %s\n", err)
 	}
 }
 
 // Update checks the state machine and updates its if possible
-func (a *Agent) Update() {
+func (a *Agent) Update(elapsed float64) {
 	//a.gameObject.Body().AddForce(vector.X())
-	a.DefaultAgent.FSM(a, func(msg string) {
+	a.statemachine.Update(a, func(msg string) {
 		if a.Debug {
-			//fmt.Printf("%s #%d: %s\n", a.gameObject.name, a.gameObject.ID(), msg)
+			fmt.Printf("%s #%d: %s\n", a.gameObject.name, a.gameObject.ID(), msg)
 		}
 	})
 	a.workingMemory.tick()
@@ -114,26 +157,34 @@ func (a *Agent) Update() {
 // MoveAgent is when the agent must move towards the target in order for the next action to be able
 // to perform. Return true if the Agent is at the target and the next action can perform. False if
 // it is not there yet.
-func (a *Agent) MoveAgent(nextAction planning.Action) bool {
-	target, found := nextAction.Target().(*GameObject)
-	if !found {
-		fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
-		return false
-	}
+func (a *Agent) Move(action plan.Action) (bool, error) {
+	target := action.MoveTo()
 	if target == nil {
-		fmt.Printf("in core.Agent.MoveAgent: %s is not a *GameObject", nextAction.Target())
-		return false
+		return true, nil
 	}
 
-	if nextAction.InRange(a) {
-		return true
+	obj, ok := target.(*GameObject)
+	if !ok {
+		return true, fmt.Errorf("Move to taget isnt a game Object, %+v", target)
 	}
 
-	arrive := steering.NewArrive(a.gameObject.Body(), target.transform.Position(), 10).Get()
+	arrive := steering.NewArrive(a.gameObject.Body(), obj.transform.Position(), 10).Get()
 	look := steering.NewLookWhereYoureGoing(a.gameObject.Body()).Get()
 
 	a.gameObject.Body().AddForce(arrive.Linear())
 	a.gameObject.Body().AddTorque(look.Angular())
 
-	return false
+	return false, nil
+}
+
+func actionToString(action plan.Action) string {
+	return reflect.TypeOf(action).String()
+}
+
+func actionsToString(actions []plan.Action) string {
+	var res []string
+	for _, action := range actions {
+		res = append(res, actionToString(action))
+	}
+	return "[" + strings.Join(res, ", ") + "]"
 }

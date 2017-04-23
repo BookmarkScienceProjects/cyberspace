@@ -50,6 +50,9 @@ func (mod *SightModality) Check(signal *core.Signal, sensor core.Sensor) bool {
 	// there should be only two objects in the line, the signal and sensor
 	if len(res) != 2 {
 		//fmt.Printf("not in line of sight %v\n", res)
+		//for i := range res {
+		//	fmt.Printf("%v\n", res[i])
+		//}
 		return false
 	}
 

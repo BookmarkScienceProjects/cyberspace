@@ -36,7 +36,7 @@ func (c *Collision) BoundingBox() quadtree.BoundingBox {
 
 // OBB returns the Oriented Bounding Box for this volume
 func (c *Collision) OBB() *OBB {
-	// @todo cache this so it's not re-calculate for every SAT test
+	// @todo cache with the frame counter this so it's not re-calculate for every SAT test
 	halfSize := c.halfWidth[0]
 
 	if c.gameObject.Body() == nil {

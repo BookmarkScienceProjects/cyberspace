@@ -55,7 +55,7 @@ func (memory *WorkingMemory) Internal() *Internal {
 func (memory *WorkingMemory) tick() {
 	now := time.Now()
 	for id, value := range memory.entities {
-		if value.expiry.After(now) {
+		if value.expiry.Before(now) {
 			delete(memory.entities, id)
 		}
 	}

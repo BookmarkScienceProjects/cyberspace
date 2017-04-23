@@ -1,76 +1,92 @@
 package actions
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/cyberspace/lib/percepts"
-	"github.com/stojg/cyberspace/lib/planning"
+	"github.com/stojg/cyberspace/lib/plan"
 )
 
-func NewHeal(cost float64) *healAction {
+func NewHeal(cost float64, me *core.Agent) *healAction {
 	a := &healAction{
-		DefaultAction: planning.NewAction("heal_action", cost),
+		cost:  cost,
+		agent: me,
 	}
-	a.AddEffect(Healthy)
+	a.preconditions = make(plan.StateList)
+	a.preconditions.Set(ClosestHealing, true)
+	a.effect = make(plan.StateList)
+	a.effect.Set(Healthy, true)
 	return a
 }
 
 type healAction struct {
-	planning.DefaultAction
-	start time.Time
+	agent         *core.Agent
+	start         time.Time
+	cost          float64
+	effect        plan.StateList
+	preconditions plan.StateList
+	target        core.ID
 }
 
 func (a *healAction) Reset() {
-	a.DefaultAction.Reset()
 	a.start = time.Time{}
 }
 
-func (a *healAction) CheckContextPrecondition(agent planning.Agent) bool {
-	beds := core.List.FindWithTag("bed")
+func (a *healAction) Cost() float64 {
+	return a.cost
+}
 
-	if len(beds) < 1 {
+func (a healAction) Effects() plan.StateList {
+	return a.effect
+}
+
+func (a healAction) Preconditions() plan.StateList {
+	return a.preconditions
+}
+
+func (a *healAction) CheckContextPrecondition(state plan.StateList) bool {
+	id, found := state.Get(ClosestHealing).(core.ID)
+	if !found {
 		return false
 	}
-	obj := agent.(*core.Agent).GameObject()
 
-	var target *core.GameObject
-	bestConfidence := 0.0
-
-	for _, bed := range beds {
-		confidence := percepts.Distance(obj, bed, 50)
-		if confidence < 0.01 {
-			continue
-		}
-
-		if confidence > bestConfidence {
-			target = bed
-			bestConfidence = confidence
-		}
-	}
-
-	if target == nil {
+	object := core.List.Get(id)
+	if object == nil {
 		return false
 	}
-	a.SetTarget(target)
+	a.target = object.ID()
 	return true
 }
 
-func (a *healAction) InRange(agent planning.Agent) bool {
-	target := a.Target().(*core.GameObject)
-	me := agent.(*core.Agent).GameObject()
-	return percepts.Distance(me, target, me.Transform().Scale()[0]) > 0
+func (a *healAction) MoveTo() interface{} {
+	me := a.agent.GameObject()
+	target := core.List.Get(a.target)
+	if target == nil {
+		return nil
+	}
+	sqrDist := me.Transform().Position().NewSub(target.Transform().Position()).SquareLength()
+	reach := me.Transform().Scale()[0] + target.Transform().Scale()[0]
+	if sqrDist > (reach * reach) {
+		return target
+	}
+	return nil
 }
 
-func (a *healAction) Perform(agent planning.Agent) bool {
+func (a *healAction) Run(agent plan.Agent) (bool, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
 
-	if time.Since(a.start) > 1*time.Second {
-		agent.(*core.Agent).Memory().Internal().Health += 4
-		a.DefaultAction.Done = true
+	target := core.List.Get(a.target)
+	if target == nil {
+		return false, fmt.Errorf("Cant find target %+v anymore", a.target)
 	}
 
-	return true
+	if time.Since(a.start) > 1*time.Second {
+		agent.(*core.Agent).Memory().Internal().Health += 3
+		return true, nil
+	}
+
+	return false, nil
 }

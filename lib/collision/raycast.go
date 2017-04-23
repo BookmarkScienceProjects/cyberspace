@@ -25,17 +25,17 @@ func (r Raylist) Swap(a, b int) {
 
 func Raycast(start, direction *vector.Vector3, list *core.ObjectList) Raylist {
 	var result Raylist
-	for _, collision := range list.Collisions() {
-		obb := collision.OBB()
+	for _, col := range list.Collisions() {
+		obb := col.OBB()
 		// the collision doesn't have a body
 		if obb == nil {
-			continue
+			panic("RayCast against an object without a Body")
 		}
 		// this is the 'percent' along the direction that the hit happened
 		distance := 0.0
-		if rayAABBoxIntersect(start, direction, collision.OBB().MinPoint, collision.OBB().MaxPoint, &distance) {
+		if rayAABBoxIntersect(start, direction, col.OBB().MinPoint, col.OBB().MaxPoint, &distance) {
 			result = append(result, &RaycastResult{
-				Collision: collision,
+				Collision: col,
 				Distance:  distance,
 			})
 		}

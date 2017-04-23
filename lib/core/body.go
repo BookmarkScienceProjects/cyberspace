@@ -7,8 +7,9 @@ import (
 )
 
 // NewBody returns a new rigidbody that is primarily used for simulating physics
-func NewBody(invMass float64) *Body {
+func NewBody(invMass float64, collides bool) *Body {
 	body := &Body{
+		collidable:                collides,
 		velocity:                  &vector.Vector3{},
 		maxVelocity:               3,
 		rotation:                  &vector.Vector3{},
@@ -18,7 +19,7 @@ func NewBody(invMass float64) *Body {
 		InverseInertiaTensorWorld: &vector.Matrix3{},
 		ForceAccum:                &vector.Vector3{},
 		TorqueAccum:               &vector.Vector3{},
-		maxAcceleration:           &vector.Vector3{10, 10, 1},
+		maxAcceleration:           &vector.Vector3{10, 5, 5},
 		Acceleration:              &vector.Vector3{},
 		LinearDamping:             0.99,
 		AngularDamping:            0.99,
@@ -39,6 +40,8 @@ func NewBody(invMass float64) *Body {
 // Body is a struct that contains data for doing rigid body physics simulation
 type Body struct {
 	Component
+
+	collidable bool
 	sync.Mutex
 	// Holds the linear velocity of the rigid body in world space.
 	velocity *vector.Vector3
@@ -119,6 +122,10 @@ type Body struct {
 
 	SleepEpsilon float64
 	Forces       *vector.Vector3
+}
+
+func (rb *Body) CanCollide() bool {
+	return rb.collidable
 }
 
 // Position returns the position of the transform for this body

@@ -16,6 +16,7 @@ func init() {
 
 func NewObjectList() *ObjectList {
 	return &ObjectList{
+		nextID:       1,
 		entities:     make(map[ID]*GameObject),
 		graphics:     make(map[ID]*Graphic),
 		bodies:       make(map[ID]*Body),

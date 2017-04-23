@@ -91,8 +91,14 @@ func UpdateCollisions(elapsed float64) {
 		contact.penetration += 0.001
 
 		contact.bodies[0] = contact.a.GameObject().Body()
+		if !contact.bodies[0].CanCollide() {
+			return
+		}
 		if contact.b != nil {
 			contact.bodies[1] = contact.b.GameObject().Body()
+			if !contact.bodies[1].CanCollide() {
+				return
+			}
 		}
 
 		// calculate the total inverse mass

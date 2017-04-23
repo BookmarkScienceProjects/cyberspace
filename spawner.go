@@ -42,7 +42,7 @@ func spawn(name string) *core.GameObject {
 	object.Transform().Scale().Set(data.Scale[0], data.Scale[1], data.Scale[2])
 
 	object.AddGraphic(core.NewGraphic(data.Model))
-	object.AddBody(core.NewBody(1 / data.Weight))
+	object.AddBody(core.NewBody(1/data.Weight, true))
 	object.AddInventory(core.NewInventory())
 	object.AddCollision(core.NewCollisionRectangle(data.Scale[0], data.Scale[1], data.Scale[2]))
 	return object
@@ -59,7 +59,8 @@ func spawnNonCollidable(name string) *core.GameObject {
 	object.Transform().Scale().Set(data.Scale[0], data.Scale[1], data.Scale[2])
 
 	object.AddGraphic(core.NewGraphic(data.Model))
-	object.AddBody(core.NewBody(1 / data.Weight))
+	object.AddBody(core.NewBody(1/data.Weight, false))
 	object.AddInventory(core.NewInventory())
+	object.AddCollision(core.NewCollisionRectangle(data.Scale[0], data.Scale[1], data.Scale[2]))
 	return object
 }

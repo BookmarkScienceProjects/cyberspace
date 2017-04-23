@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stojg/cyberspace/lib/core"
+	"github.com/stojg/vector"
 )
 
 const (
@@ -26,13 +27,16 @@ func main() {
 
 	lvl := newLevel()
 
-	obj := spawn("monster")
-	obj.AddAgent(NewMonsterAgent())
-	obj.Transform().Position().Set(39, 0, 0)
-	lvl.State["monster_exists"] = true
+	for i := 0; i < 4; i++ {
+		obj := spawn("monster")
+		obj.AddAgent(NewMonsterAgent())
+		obj.Transform().Position().Set(rand.Float64()*30-15, 0, rand.Float64()*30-15)
+	}
 
-	food := spawn("food")
-	food.Transform().Position().Set(0, 0, 0)
+	spawnNonCollidable("healing_station").Transform().Position().Set(15, 0, 15)
+	spawnNonCollidable("healing_station").Transform().Position().Set(15, 0, -15)
+	spawnNonCollidable("healing_station").Transform().Position().Set(-15, 0, -15)
+	spawnNonCollidable("healing_station").Transform().Position().Set(-15, 0, 15)
 
 	hub := initNetwork(lvl)
 
@@ -40,7 +44,7 @@ func main() {
 	frameLag := 0.0
 	netLag := 0.0
 
-	Println("Running the game loop")
+	Println("Running the game loop, like a pro")
 
 	// print the FPS when it's below the frameRate
 	printFPS()
@@ -63,20 +67,22 @@ func main() {
 		core.List.BuildQuadTree()
 		UpdateCollisions(elapsed)
 
-		//if len(core.List.FindWithTag("food")) < 1 {
-		//	obj := spawn("food")
-		//	obj.Transform().Position().Set(0, 0, 0)
-		//rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
-		//obj.Transform().Orientation().RotateByVector(rot)
-		//obj.Transform().Orientation().Normalize()
-		//obj.AddAgent(NewFoodAgent())
-		//}
+		if len(core.List.FindWithTag("food")) < 5 {
+			obj := spawn("food")
+			obj.Transform().Position().Set(rand.Float64()*30-15, 0, rand.Float64()*30-15)
+			rot := vector.NewVector3(rand.Float64()*2-1, 0, rand.Float64()*2-1)
+			obj.Transform().Orientation().RotateByVector(rot)
+			obj.Transform().Orientation().Normalize()
+			//obj.AddAgent(NewFoodAgent())
+		}
 
 		// send updates to the network
 		if netLag > netRate {
 			sendToClients(hub, lvl)
 			netLag -= netRate
 		}
+
+		//time.Sleep(time.Duration(time.Second))
 
 		frameLag -= frameRate
 		// save some CPU cycles by sleeping for a while

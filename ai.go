@@ -1,9 +1,11 @@
 package main
 
 import (
+	"math"
+
 	"github.com/stojg/cyberspace/lib/actions"
 	"github.com/stojg/cyberspace/lib/core"
-	"github.com/stojg/cyberspace/lib/planning"
+	"github.com/stojg/cyberspace/lib/plan"
 )
 
 // UpdateAI will run the AI simulation
@@ -11,49 +13,73 @@ func UpdateAI(elapsed float64) {
 
 	for _, agent := range core.List.Agents() {
 		memory := agent.Memory()
-		state := make(planning.StateList)
-		goal := make(planning.StateList)
+		me := agent.GameObject()
+		state := make(plan.StateList)
 
+		if agent.Memory().Internal().Health > 1 {
+			state.Set(actions.Healthy, true)
+		}
+
+		closestDistance := math.MaxFloat64
 		for _, mem := range memory.Entities() {
 			obj := core.List.Get(mem.ID)
 			if obj == nil {
 				continue
 			}
 			if obj.CompareTag("food") {
-				state.Add(actions.EnemyInSight)
+				dist := me.SqrDistance(obj)
+				if dist < closestDistance {
+					closestDistance = dist
+					state.Set(actions.EnemyInSight, obj.ID())
+				}
 			}
 		}
 
-		agent.SetState(state)
-
-		if agent.State().Query(actions.EnemyInSight) {
-			goal.Add(actions.EnemyKilled)
+		closestDistance = math.MaxFloat64
+		for _, mem := range memory.Entities() {
+			obj := core.List.Get(mem.ID)
+			if obj == nil {
+				continue
+			}
+			if obj.CompareTag("healing_station") {
+				dist := me.SqrDistance(obj)
+				if dist < closestDistance {
+					closestDistance = dist
+					state.Set(actions.ClosestHealing, obj.ID())
+				}
+			}
 		}
-		agent.SetGoalState(goal)
-		agent.Update()
 
+		me.Transform().Scale().Set(1, 1-agent.Memory().Internal().Health*0.1, 1)
+		me.Body().SetMass(1 - agent.Memory().Internal().Health*0.15)
+		needsReplanning := !agent.State().Compare(state)
+		agent.SetState(state)
+		if needsReplanning {
+			agent.Replan()
+		}
+		agent.Update(elapsed)
 	}
 }
 
 // NewMonsterAgent will return an AI agent with the actions set and goals that a monster have
 func NewMonsterAgent() *core.Agent {
+	agent := core.NewAgent()
+	agent.AddAction(actions.NewKillEnemy(2, agent))
+	agent.AddAction(actions.NewHeal(1, agent))
+	agent.AddAction(actions.NewPatrol(4, agent))
 
-	a := []planning.Action{
-		actions.NewKillEnemy(2),
-		actions.NewHeal(10),
-		actions.NewPatrol(4),
-	}
+	goalSet := make([]plan.StateList, 0)
 
-	agent := core.NewAgent(a)
+	firstGoal := make(plan.StateList)
+	firstGoal.Set(actions.EnemyKilled, true)
+	goalSet = append(goalSet, firstGoal)
 
-	goal := make(planning.StateList)
-	agent.SetGoalState(goal)
+	secondGoal := make(plan.StateList)
+	secondGoal.Set(actions.AreaPatrolled, true)
+	goalSet = append(goalSet, secondGoal)
+
+	agent.SetGoals(goalSet)
 
 	core.List.SenseManager().Register(agent)
-
-	initialState := make(planning.StateList)
-	initialState.Add(planning.Isnt(actions.Healthy))
-
-	agent.SetState(initialState)
 	return agent
 }
