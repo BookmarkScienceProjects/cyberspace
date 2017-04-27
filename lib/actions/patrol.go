@@ -1,8 +1,6 @@
 package actions
 
 import (
-	"fmt"
-
 	"time"
 
 	"github.com/stojg/cyberspace/lib/core"
@@ -62,16 +60,15 @@ func (a *patrol) MoveTo() interface{} {
 }
 
 func (a *patrol) Run(agent plan.Agent) (bool, error) {
-	if a.start.IsZero() {
-		a.start = time.Now()
-	}
-	if time.Since(a.start) > 1000*time.Millisecond {
-		return false, fmt.Errorf("Patrolling took to long, aborting")
-	}
 	obj := agent.(*core.Agent).GameObject()
 	steer := a.steer.Get()
 	if steer.Angular().Length() < 1 {
-		return true, nil
+		if a.start.IsZero() {
+			a.start = time.Now()
+		}
+		if time.Since(a.start) > 1000*time.Millisecond {
+			return true, nil
+		}
 	}
 	obj.Body().AddTorque(steer.Angular())
 	return false, nil

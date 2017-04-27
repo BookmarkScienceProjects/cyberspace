@@ -1,6 +1,6 @@
 {
     "model": 1,
     "scale": [1, 1, 1],
-    "weight": 1,
-    "max_acceleration": [10, 5, 5]
+    "weight": 0.4,
+    "max_acceleration": [10, 10, 10]
 }

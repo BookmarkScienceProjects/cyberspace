@@ -9,10 +9,10 @@ function Update(id) {
   return {
     id,
     timestamp: 0,
-    position: { x: 0, y: 0, z: 0 },
+    position: {x: 0, y: 0, z: 0},
     orientation: [1, 0, 0, 0],
     model: 0,
-    scale: { x: 0, y: 0, z: 0 },
+    scale: {x: 0, y: 0, z: 0},
     health: 0.0
   };
 }
@@ -96,9 +96,6 @@ const updateScene = function sceneUpdater(updates) {
       update.orientation[0]
     );
     objects[id].scaling = update.scale;
-    // we are going to ignore any height offset just because I don't want to deal with the
-    // steering output in the backen
-    objects[id].position.y = objects[id].scaling.y / 2;
   });
 };
 

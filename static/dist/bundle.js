@@ -56,14 +56,14 @@
 	
 	BABYLON.Engine.ShadersRepository = '/assets/shaders/';
 	
-	var groundMaterial = new BABYLON.StandardMaterial('ground', scene);
-	groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-	groundMaterial.diffuseColor = new BABYLON.Color3(0.953, 0.953, 0.953);
-	groundMaterial.maxSimultaneousLights = 2;
+	// const groundMaterial = new BABYLON.StandardMaterial('ground', scene);
+	// groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+	// groundMaterial.diffuseColor = new BABYLON.Color3(0.953, 0.953, 0.953);
+	// groundMaterial.maxSimultaneousLights = 2;
 	
-	var ground = BABYLON.Mesh.CreateGround('ground', 20000, 20000, 1, scene);
-	ground.material = groundMaterial;
-	ground.receiveShadows = true;
+	// const ground = BABYLON.Mesh.CreateGround('ground', 20000, 20000, 1, scene);
+	// ground.material = groundMaterial;
+	// ground.receiveShadows = true;
 	
 	scene.registerBeforeRender(function () {
 	  scene.activeCamera.position.y = 10;
@@ -1761,9 +1761,6 @@
 	    objects[id].position = update.position;
 	    objects[id].rotationQuaternion = new BABYLON.Quaternion(update.orientation[1], update.orientation[2], update.orientation[3], update.orientation[0]);
 	    objects[id].scaling = update.scale;
-	    // we are going to ignore any height offset just because I don't want to deal with the
-	    // steering output in the backen
-	    objects[id].position.y = objects[id].scaling.y / 2;
 	  });
 	};
 	
